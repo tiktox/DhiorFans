@@ -1,9 +1,4 @@
 {
-  "functions": {
-    "App/pages/api/**/*.ts": {
-      "runtime": "vercel-nodejs@18.0.0"
-    }
-  },
   "rewrites": [
     {
       "source": "/(.*)",
