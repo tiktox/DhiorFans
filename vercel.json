@@ -1,9 +1,13 @@
 {
-  "version": 2,
-  "builds": [
+  "functions": {
+    "App/pages/api/**/*.ts": {
+      "runtime": "vercel-nodejs@18.0.0"
+    }
+  },
+  "rewrites": [
     {
-      "src": "App/next.config.js",
-      "use": "@vercel/next"
+      "source": "/(.*)",
+      "destination": "/App/$1"
     }
   ]
 }
