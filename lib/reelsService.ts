@@ -30,9 +30,9 @@ export const saveReel = (videoFile: File, description: string): Promise<Reel> =>
       timestamp: Date.now()
     };
 
-    const existingReels = JSON.parse(localStorage.getItem('reels') || '[]');
+    const existingReels = JSON.parse(localStorage.getItem('dhirofans_reels') || '[]');
     existingReels.unshift(reel);
-    localStorage.setItem('reels', JSON.stringify(existingReels));
+    localStorage.setItem('dhirofans_reels', JSON.stringify(existingReels));
     
     // Update user posts count
     const { saveUserData } = await import('./userService');
@@ -43,5 +43,6 @@ export const saveReel = (videoFile: File, description: string): Promise<Reel> =>
 };
 
 export const getReels = (): Reel[] => {
-  return JSON.parse(localStorage.getItem('reels') || '[]');
+  if (typeof window === 'undefined') return [];
+  return JSON.parse(localStorage.getItem('dhirofans_reels') || '[]');
 };

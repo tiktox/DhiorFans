@@ -103,7 +103,7 @@ export default function Home() {
         activeTab={activeTab} 
         key={`${refreshFeed}-${selectedPostId}`} 
         onExternalProfile={handleExternalProfile}
-        initialPostId={selectedPostId}
+        initialPostId={selectedPostId || undefined}
         onPostDeleted={() => setRefreshFeed(prev => prev + 1)}
       />
       

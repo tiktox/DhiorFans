@@ -12,7 +12,17 @@ export interface Post {
   comments: number;
 }
 
-let posts: Post[] = [];
+const POSTS_KEY = 'dhirofans_posts';
+
+const loadPosts = (): Post[] => {
+  if (typeof window === 'undefined') return [];
+  return JSON.parse(localStorage.getItem(POSTS_KEY) || '[]');
+};
+
+const savePosts = (posts: Post[]): void => {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(POSTS_KEY, JSON.stringify(posts));
+};
 
 export const createPost = (postData: Omit<Post, 'id' | 'timestamp' | 'likes' | 'comments'>): Post => {
   if (!postData.title?.trim()) throw new Error('El título es requerido');
@@ -29,30 +39,34 @@ export const createPost = (postData: Omit<Post, 'id' | 'timestamp' | 'likes' | '
     description: postData.description?.trim() || ''
   };
   
+  const posts = loadPosts();
   posts.unshift(newPost);
+  savePosts(posts);
   console.log('Nueva publicación creada:', newPost);
   return newPost;
 };
 
 export const getAllPosts = (): Post[] => {
-  return posts;
+  return loadPosts();
 };
 
 export const getUserPosts = (userId: string): Post[] => {
-  return posts.filter(post => post.userId === userId);
+  return loadPosts().filter(post => post.userId === userId);
 };
 
 export const searchPostsByTitle = (query: string): Post[] => {
   if (!query.trim()) return [];
-  return posts.filter(post => 
+  return loadPosts().filter(post => 
     post.title.toLowerCase().includes(query.toLowerCase())
   ).sort((a, b) => b.timestamp - a.timestamp);
 };
 
 export const deletePost = (postId: string, userId: string): boolean => {
+  const posts = loadPosts();
   const postIndex = posts.findIndex(post => post.id === postId && post.userId === userId);
   if (postIndex !== -1) {
     posts.splice(postIndex, 1);
+    savePosts(posts);
     console.log('Publicación eliminada:', postId);
     return true;
   }

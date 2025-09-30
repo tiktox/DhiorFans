@@ -21,7 +21,7 @@ const formatUsername = (username: string): string => {
 
 const isUsernameAvailable = (username: string): boolean => {
   const formattedUsername = formatUsername(username);
-  const allUsers = JSON.parse(localStorage.getItem('allUsernames') || '[]');
+  const allUsers = JSON.parse(localStorage.getItem('dhirofans_usernames') || '[]');
   return !allUsers.includes(formattedUsername);
 };
 
@@ -33,18 +33,18 @@ const canChangeUsername = (lastChange?: number): boolean => {
 
 const addUsernameToRegistry = (username: string) => {
   const formattedUsername = formatUsername(username);
-  const allUsers = JSON.parse(localStorage.getItem('allUsernames') || '[]');
+  const allUsers = JSON.parse(localStorage.getItem('dhirofans_usernames') || '[]');
   if (!allUsers.includes(formattedUsername)) {
     allUsers.push(formattedUsername);
-    localStorage.setItem('allUsernames', JSON.stringify(allUsers));
+    localStorage.setItem('dhirofans_usernames', JSON.stringify(allUsers));
   }
 };
 
 const removeUsernameFromRegistry = (username: string) => {
   const formattedUsername = formatUsername(username);
-  const allUsers = JSON.parse(localStorage.getItem('allUsernames') || '[]');
+  const allUsers = JSON.parse(localStorage.getItem('dhirofans_usernames') || '[]');
   const filtered = allUsers.filter((u: string) => u !== formattedUsername);
-  localStorage.setItem('allUsernames', JSON.stringify(filtered));
+  localStorage.setItem('dhirofans_usernames', JSON.stringify(filtered));
 };
 
 export const saveUserData = async (userData: Partial<UserData>) => {
@@ -69,7 +69,7 @@ export const saveUserData = async (userData: Partial<UserData>) => {
       addUsernameToRegistry(formattedUsername);
     }
     
-    localStorage.setItem(`userData_${auth.currentUser.uid}`, JSON.stringify(newData));
+    localStorage.setItem(`dhirofans_user_${auth.currentUser.uid}`, JSON.stringify(newData));
   }
 };
 
@@ -92,13 +92,13 @@ export const validateUsername = (username: string, currentUsername: string, last
 };
 
 export const getAllUsers = (): UserData[] => {
-  const allUsernames = JSON.parse(localStorage.getItem('allUsernames') || '[]');
+  const allUsernames = JSON.parse(localStorage.getItem('dhirofans_usernames') || '[]');
   const users: UserData[] = [];
   
   // Get all user data from localStorage
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
-    if (key && key.startsWith('userData_')) {
+    if (key && key.startsWith('dhirofans_user_')) {
       const userData = localStorage.getItem(key);
       if (userData) {
         users.push(JSON.parse(userData));
@@ -111,7 +111,7 @@ export const getAllUsers = (): UserData[] => {
 
 export const getUserData = (): UserData => {
   if (auth.currentUser) {
-    const stored = localStorage.getItem(`userData_${auth.currentUser.uid}`);
+    const stored = localStorage.getItem(`dhirofans_user_${auth.currentUser.uid}`);
     if (stored) {
       const data = JSON.parse(stored);
       return {
@@ -143,7 +143,7 @@ export const getUserData = (): UserData => {
 };
 
 export const getUserDataById = (userId: string): UserData | null => {
-  const stored = localStorage.getItem(`userData_${userId}`);
+  const stored = localStorage.getItem(`dhirofans_user_${userId}`);
   if (stored) {
     return JSON.parse(stored);
   }
