@@ -20,62 +20,41 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    loadReels();
-  }, [activeTab]);
-  
   // Recargar cuando el componente se monta (para capturar nuevas publicaciones)
   useEffect(() => {
     loadReels();
   }, []);
 
   const loadReels = () => {
-    try {
-      const allReels = getReels();
-      const allPosts = getAllPosts(); // Esto ya obtiene TODAS las publicaciones de TODOS los usuarios
-      console.log('🔍 DEBUG Feed cargado:');
-      console.log('- Reels:', allReels.length);
-      console.log('- Posts:', allPosts.length);
-      console.log('- Posts data:', allPosts);
-      
-      setReels(allReels);
-      setPosts(allPosts);
-      
-      // Convertir posts a formato reel para compatibilidad
-      const postsAsReels: Reel[] = allPosts.map(post => {
-        const userData = getUserDataById(post.userId);
-        console.log(`🔍 Post ${post.id} - userId: ${post.userId}, userData:`, userData);
-        return {
-          id: post.id,
-          userId: post.userId,
-          username: userData?.username || post.username,
-          fullName: userData?.fullName || post.username,
-          profilePicture: userData?.profilePicture || post.profilePicture || '',
-          videoUrl: post.mediaUrl,
-          description: post.description,
-          timestamp: post.timestamp,
-          mediaType: post.mediaType,
-          title: post.title
-        };
-      });
-      
-      // Combinar reels y posts convertidos, ordenar por timestamp
-      const combined = [...allReels, ...postsAsReels].sort((a, b) => b.timestamp - a.timestamp);
-      console.log('🔍 Contenido final:', combined.length, 'items');
-      console.log('🔍 Usuarios únicos:', Array.from(new Set(combined.map(c => c.userId))).length);
-      console.log('🔍 Combined data:', combined);
-      setAllContent(combined);
-      
-      // Si hay un postId inicial, encontrar su índice
-      if (initialPostId) {
-        const postIndex = combined.findIndex(item => item.id === initialPostId);
-        setCurrentIndex(postIndex >= 0 ? postIndex : 0);
-      } else {
-        setCurrentIndex(0);
-      }
-    } catch (error) {
-      console.error('❌ Error loading feed:', error);
-      setAllContent([]);
+    const allReels = getReels();
+    const allPosts = getAllPosts();
+    setReels(allReels);
+    setPosts(allPosts);
+    
+    // Convertir posts a formato reel para compatibilidad
+    const postsAsReels: Reel[] = allPosts.map(post => ({
+      id: post.id,
+      userId: post.userId,
+      username: post.username,
+      fullName: post.username,
+      profilePicture: post.profilePicture || '',
+      videoUrl: post.mediaUrl,
+      description: post.description,
+      timestamp: post.timestamp,
+      mediaType: post.mediaType,
+      title: post.title
+    }));
+    
+    // Combinar reels y posts convertidos, ordenar por timestamp
+    const combined = [...allReels, ...postsAsReels].sort((a, b) => b.timestamp - a.timestamp);
+    setAllContent(combined);
+    
+    // Si hay un postId inicial, encontrar su índice
+    if (initialPostId) {
+      const postIndex = combined.findIndex(item => item.id === initialPostId);
+      setCurrentIndex(postIndex >= 0 ? postIndex : 0);
+    } else {
+      setCurrentIndex(0);
     }
   };
 
@@ -115,7 +94,7 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
   if (allContent.length === 0) {
     return (
       <div className="empty-feed-background">
-        <p>No hay contenido disponible</p>
+        <p>No hay reels disponibles</p>
         <p>¡Sé el primero en publicar!</p>
       </div>
     );

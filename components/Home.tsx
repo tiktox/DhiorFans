@@ -106,7 +106,7 @@ export default function Home() {
       {/* Video Background */}
       <ReelsFeed 
         activeTab={activeTab} 
-        key={`${refreshFeed}-${selectedPostId}`} 
+        key={`${refreshFeed}-${selectedPostId}-${activeTab}`} 
         onExternalProfile={handleExternalProfile}
         initialPostId={selectedPostId || undefined}
         onPostDeleted={() => setRefreshFeed(prev => prev + 1)}
