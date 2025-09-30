@@ -5,9 +5,10 @@ import { getUserDataById, searchUsers, UserData } from '../lib/userService';
 interface SearchProps {
   onNavigateHome: () => void;
   onViewPost?: (postId: string) => void;
+  onViewProfile?: (userId: string) => void;
 }
 
-export default function Search({ onNavigateHome, onViewPost }: SearchProps) {
+export default function Search({ onNavigateHome, onViewPost, onViewProfile }: SearchProps) {
   const [activeFilter, setActiveFilter] = useState('usuarios');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Post[]>([]);
@@ -87,22 +88,29 @@ export default function Search({ onNavigateHome, onViewPost }: SearchProps) {
                 <p>No se encontraron usuarios</p>
               </div>
             ) : (
-              userResults.map(user => (
-                <div key={user.username} className="user-result">
-                  <div className="user-avatar">
-                    {user.profilePicture ? (
-                      <img src={user.profilePicture} alt={user.fullName} />
-                    ) : (
-                      <div className="default-avatar">👤</div>
-                    )}
+              userResults.map(user => {
+                // Buscar el userId real del usuario
+                const posts = JSON.parse(localStorage.getItem('dhirofans_posts') || '[]');
+                const userPost = posts.find((p: any) => p.username === user.username);
+                const userId = userPost?.userId || user.username;
+                
+                return (
+                  <div key={user.username} className="user-result" onClick={() => onViewProfile?.(userId)}>
+                    <div className="user-avatar">
+                      {user.profilePicture ? (
+                        <img src={user.profilePicture} alt={user.fullName} />
+                      ) : (
+                        <div className="default-avatar">👤</div>
+                      )}
+                    </div>
+                    <div className="user-info">
+                      <h3 className="user-fullname">{user.fullName}</h3>
+                      <p className="user-username">@{user.username}</p>
+                      {user.bio && <p className="user-bio">{user.bio}</p>}
+                    </div>
                   </div>
-                  <div className="user-info">
-                    <h3 className="user-fullname">{user.fullName}</h3>
-                    <p className="user-username">@{user.username}</p>
-                    {user.bio && <p className="user-bio">{user.bio}</p>}
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         ) : (

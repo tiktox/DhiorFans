@@ -32,27 +32,35 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
   const loadReels = () => {
     const allReels = getReels();
     const allPosts = getAllPosts();
-    console.log('Cargando contenido - Reels:', allReels.length, 'Posts:', allPosts.length);
+    console.log('=== DEBUG FEED ===');
+    console.log('Reels encontrados:', allReels.length);
+    console.log('Posts encontrados:', allPosts.length);
+    console.log('Posts data:', allPosts);
+    
     setReels(allReels);
     setPosts(allPosts);
     
     // Convertir posts a formato reel para compatibilidad
-    const postsAsReels: Reel[] = allPosts.map(post => ({
-      id: post.id,
-      userId: post.userId,
-      username: post.username,
-      fullName: post.username,
-      profilePicture: post.profilePicture || '',
-      videoUrl: post.mediaUrl,
-      description: post.description,
-      timestamp: post.timestamp,
-      mediaType: post.mediaType,
-      title: post.title
-    }));
+    const postsAsReels: Reel[] = allPosts.map(post => {
+      const userData = getUserDataById(post.userId);
+      return {
+        id: post.id,
+        userId: post.userId,
+        username: userData?.username || post.username,
+        fullName: userData?.fullName || post.username,
+        profilePicture: userData?.profilePicture || post.profilePicture || '',
+        videoUrl: post.mediaUrl,
+        description: post.description,
+        timestamp: post.timestamp,
+        mediaType: post.mediaType,
+        title: post.title
+      };
+    });
     
     // Combinar reels y posts convertidos, ordenar por timestamp
     const combined = [...allReels, ...postsAsReels].sort((a, b) => b.timestamp - a.timestamp);
-    console.log('Contenido combinado:', combined.length, 'elementos');
+    console.log('Contenido final combinado:', combined.length, 'elementos');
+    console.log('Usuarios únicos:', [...new Set(combined.map(c => c.userId))]);
     setAllContent(combined);
     
     // Si hay un postId inicial, encontrar su índice

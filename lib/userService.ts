@@ -92,19 +92,49 @@ export const validateUsername = (username: string, currentUsername: string, last
 };
 
 export const getAllUsers = (): UserData[] => {
-  const allUsernames = JSON.parse(localStorage.getItem('dhirofans_usernames') || '[]');
   const users: UserData[] = [];
+  const posts = JSON.parse(localStorage.getItem('dhirofans_posts') || '[]');
+  const userIds = new Set<string>();
   
-  // Get all user data from localStorage
+  // Obtener IDs de usuarios de las publicaciones
+  posts.forEach((post: any) => {
+    if (post.userId) {
+      userIds.add(post.userId);
+    }
+  });
+  
+  // Obtener usuarios de localStorage
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
     if (key && key.startsWith('dhirofans_user_')) {
-      const userData = localStorage.getItem(key);
-      if (userData) {
-        users.push(JSON.parse(userData));
-      }
+      const userId = key.replace('dhirofans_user_', '');
+      userIds.add(userId);
     }
   }
+  
+  // Crear datos de usuario para cada ID encontrado
+  userIds.forEach(userId => {
+    const stored = localStorage.getItem(`dhirofans_user_${userId}`);
+    if (stored) {
+      users.push(JSON.parse(stored));
+    } else {
+      // Crear datos básicos para usuarios que no han editado su perfil
+      const userPost = posts.find((post: any) => post.userId === userId);
+      if (userPost) {
+        users.push({
+          fullName: userPost.username || 'Usuario',
+          username: userPost.username || `user_${userId.slice(-6)}`,
+          email: '',
+          bio: '',
+          link: '',
+          profilePicture: userPost.profilePicture || '',
+          followers: 0,
+          following: 0,
+          posts: posts.filter((p: any) => p.userId === userId).length
+        });
+      }
+    }
+  });
   
   return users;
 };
@@ -147,6 +177,24 @@ export const getUserDataById = (userId: string): UserData | null => {
   if (stored) {
     return JSON.parse(stored);
   }
+  
+  // Si no existe, buscar en las publicaciones para crear datos básicos
+  const posts = JSON.parse(localStorage.getItem('dhirofans_posts') || '[]');
+  const userPost = posts.find((post: any) => post.userId === userId);
+  if (userPost) {
+    return {
+      fullName: userPost.username || 'Usuario',
+      username: userPost.username || `user_${userId.slice(-6)}`,
+      email: '',
+      bio: '',
+      link: '',
+      profilePicture: userPost.profilePicture || '',
+      followers: 0,
+      following: 0,
+      posts: posts.filter((p: any) => p.userId === userId).length
+    };
+  }
+  
   return null;
 };
 
