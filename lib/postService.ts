@@ -53,9 +53,10 @@ export const createPost = (postData: Omit<Post, 'id' | 'timestamp' | 'likes' | '
 export const getAllPosts = (): Post[] => {
   const posts = loadPosts(); // Esto obtiene TODAS las publicaciones de localStorage
   
-  // Si hay menos de 3 posts, generar datos de prueba automáticamente
-  if (posts.length < 3) {
-    generateSamplePosts();
+  // Si no hay posts, usar testData para generar datos consistentes
+  if (posts.length === 0) {
+    const { generateTestData } = require('./testData');
+    generateTestData();
     return loadPosts();
   }
   
@@ -63,55 +64,7 @@ export const getAllPosts = (): Post[] => {
   return posts.sort((a, b) => b.timestamp - a.timestamp);
 };
 
-const generateSamplePosts = () => {
-  const samplePosts: Post[] = [
-    {
-      id: 'sample_1',
-      userId: 'sample_user_1',
-      username: 'maria_garcia',
-      profilePicture: '',
-      title: 'Atardecer en la playa',
-      description: 'Un hermoso atardecer que capturé ayer 🌅',
-      mediaUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=600&fit=crop',
-      mediaType: 'image',
-      timestamp: Date.now() - 3600000,
-      likes: 45,
-      comments: 12
-    },
-    {
-      id: 'sample_2',
-      userId: 'sample_user_2', 
-      username: 'carlos_lopez',
-      profilePicture: '',
-      title: 'Fotografía urbana',
-      description: 'Explorando la ciudad con mi cámara 📸',
-      mediaUrl: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&h=600&fit=crop',
-      mediaType: 'image',
-      timestamp: Date.now() - 7200000,
-      likes: 78,
-      comments: 23
-    },
-    {
-      id: 'sample_3',
-      userId: 'sample_user_3',
-      username: 'ana_martinez',
-      profilePicture: '',
-      title: 'Arte y diseño',
-      description: 'Nuevo proyecto creativo ✨',
-      mediaUrl: 'https://images.unsplash.com/photo-1558655146-d09347e92766?w=400&h=600&fit=crop',
-      mediaType: 'image',
-      timestamp: Date.now() - 10800000,
-      likes: 92,
-      comments: 18
-    }
-  ];
-  
-  const existingPosts = loadPosts();
-  const combinedPosts = [...existingPosts, ...samplePosts];
-  savePosts(combinedPosts);
-  
-  console.log('✅ Datos de ejemplo generados automáticamente');
-};
+
 
 export const getUserPosts = (userId: string): Post[] => {
   return loadPosts().filter(post => post.userId === userId);

@@ -1,8 +1,8 @@
 // Función para generar datos de prueba
 export const generateTestData = () => {
-  // Limpiar datos existentes
-  localStorage.removeItem('dhirofans_posts');
-  localStorage.removeItem('dhirofans_usernames');
+  // No limpiar datos existentes, solo agregar si no existen
+  const existingPosts = JSON.parse(localStorage.getItem('dhirofans_posts') || '[]');
+  if (existingPosts.length > 0) return; // Ya hay datos
   
   // Crear usuarios de prueba
   const testUsers = [
@@ -52,9 +52,10 @@ export const generateTestData = () => {
       id: 'post1',
       userId: 'user1',
       username: 'maria_garcia',
+      profilePicture: '',
       title: 'Atardecer en la playa',
-      description: 'Un hermoso atardecer que capturé ayer',
-      mediaUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400',
+      description: 'Un hermoso atardecer que capturé ayer 🌅',
+      mediaUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=600&fit=crop',
       mediaType: 'image' as const,
       timestamp: Date.now() - 3600000,
       likes: 45,
@@ -64,10 +65,11 @@ export const generateTestData = () => {
       id: 'post2',
       userId: 'user2',
       username: 'carlos_lopez',
-      title: 'Mi nuevo video',
-      description: 'Trabajando en mi último proyecto',
-      mediaUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4',
-      mediaType: 'video' as const,
+      profilePicture: '',
+      title: 'Fotografía urbana',
+      description: 'Explorando la ciudad con mi cámara 📸',
+      mediaUrl: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&h=600&fit=crop',
+      mediaType: 'image' as const,
       timestamp: Date.now() - 7200000,
       likes: 78,
       comments: 23
@@ -76,9 +78,10 @@ export const generateTestData = () => {
       id: 'post3',
       userId: 'user3',
       username: 'ana_martinez',
-      title: 'Diseño minimalista',
-      description: 'Nuevo diseño para un cliente',
-      mediaUrl: 'https://images.unsplash.com/photo-1558655146-d09347e92766?w=400',
+      profilePicture: '',
+      title: 'Arte y diseño',
+      description: 'Nuevo proyecto creativo ✨',
+      mediaUrl: 'https://images.unsplash.com/photo-1558655146-d09347e92766?w=400&h=600&fit=crop',
       mediaType: 'image' as const,
       timestamp: Date.now() - 10800000,
       likes: 92,
@@ -88,9 +91,10 @@ export const generateTestData = () => {
       id: 'post4',
       userId: 'user1',
       username: 'maria_garcia',
-      title: 'Fotografía urbana',
-      description: 'Explorando la ciudad con mi cámara',
-      mediaUrl: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400',
+      profilePicture: '',
+      title: 'Momento urbano',
+      description: 'Capturando la vida en la ciudad',
+      mediaUrl: 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=400&h=600&fit=crop',
       mediaType: 'image' as const,
       timestamp: Date.now() - 14400000,
       likes: 67,
@@ -105,10 +109,7 @@ export const generateTestData = () => {
   const usernames = testUsers.map(u => u.username);
   localStorage.setItem('dhirofans_usernames', JSON.stringify(usernames));
 
-  console.log('✅ Datos de prueba generados:');
-  console.log('- 3 usuarios de prueba');
-  console.log('- 4 publicaciones de prueba');
-  console.log('Recarga la página para ver los cambios');
+  console.log('✅ Datos de prueba generados:', testPosts.length, 'posts de', testUsers.length, 'usuarios');
 };
 
 // Función para limpiar datos de prueba
@@ -121,8 +122,15 @@ export const clearTestData = () => {
   console.log('🗑️ Datos de prueba eliminados');
 };
 
+// Función para forzar regeneración de datos
+export const forceGenerateTestData = () => {
+  clearTestData();
+  generateTestData();
+};
+
 // Hacer funciones disponibles globalmente para testing
 if (typeof window !== 'undefined') {
   (window as any).generateTestData = generateTestData;
   (window as any).clearTestData = clearTestData;
+  (window as any).forceGenerateTestData = forceGenerateTestData;
 }

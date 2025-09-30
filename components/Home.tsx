@@ -134,7 +134,8 @@ export default function Home() {
         <div style={{ position: 'absolute', top: '10px', right: '10px' }}>
           <button 
             onClick={() => {
-              localStorage.removeItem('dhirofans_posts');
+              const { forceGenerateTestData } = require('../lib/testData');
+              forceGenerateTestData();
               setRefreshFeed(prev => prev + 1);
             }}
             style={{

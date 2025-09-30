@@ -153,6 +153,20 @@ const getSampleUserData = (username: string) => {
   return sampleData[username] || { fullName: username, bio: 'Usuario de DhiorFans' };
 };
 
+// Asegurar que los datos de prueba estén disponibles al cargar
+const ensureTestData = () => {
+  const posts = JSON.parse(localStorage.getItem('dhirofans_posts') || '[]');
+  if (posts.length === 0) {
+    const { generateTestData } = require('./testData');
+    generateTestData();
+  }
+};
+
+// Ejecutar al cargar el módulo
+if (typeof window !== 'undefined') {
+  ensureTestData();
+}
+
 export const getUserData = (): UserData => {
   if (auth.currentUser) {
     const stored = localStorage.getItem(`dhirofans_user_${auth.currentUser.uid}`);
