@@ -30,41 +30,46 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
   }, []);
 
   const loadReels = () => {
-    const allReels = getReels();
-    const allPosts = getAllPosts();
-    console.log('Feed cargado - Reels:', allReels.length, 'Posts:', allPosts.length);
-    
-    setReels(allReels);
-    setPosts(allPosts);
-    
-    // Convertir posts a formato reel para compatibilidad
-    const postsAsReels: Reel[] = allPosts.map(post => {
-      const userData = getUserDataById(post.userId);
-      return {
-        id: post.id,
-        userId: post.userId,
-        username: userData?.username || post.username,
-        fullName: userData?.fullName || post.username,
-        profilePicture: userData?.profilePicture || post.profilePicture || '',
-        videoUrl: post.mediaUrl,
-        description: post.description,
-        timestamp: post.timestamp,
-        mediaType: post.mediaType,
-        title: post.title
-      };
-    });
-    
-    // Combinar reels y posts convertidos, ordenar por timestamp
-    const combined = [...allReels, ...postsAsReels].sort((a, b) => b.timestamp - a.timestamp);
-    console.log('Contenido total:', combined.length, 'de', Array.from(new Set(combined.map(c => c.userId))).length, 'usuarios');
-    setAllContent(combined);
-    
-    // Si hay un postId inicial, encontrar su índice
-    if (initialPostId) {
-      const postIndex = combined.findIndex(item => item.id === initialPostId);
-      setCurrentIndex(postIndex >= 0 ? postIndex : 0);
-    } else {
-      setCurrentIndex(0);
+    try {
+      const allReels = getReels();
+      const allPosts = getAllPosts(); // Esto ya obtiene TODAS las publicaciones de TODOS los usuarios
+      console.log('Feed cargado - Reels:', allReels.length, 'Posts:', allPosts.length);
+      
+      setReels(allReels);
+      setPosts(allPosts);
+      
+      // Convertir posts a formato reel para compatibilidad
+      const postsAsReels: Reel[] = allPosts.map(post => {
+        const userData = getUserDataById(post.userId);
+        return {
+          id: post.id,
+          userId: post.userId,
+          username: userData?.username || post.username,
+          fullName: userData?.fullName || post.username,
+          profilePicture: userData?.profilePicture || post.profilePicture || '',
+          videoUrl: post.mediaUrl,
+          description: post.description,
+          timestamp: post.timestamp,
+          mediaType: post.mediaType,
+          title: post.title
+        };
+      });
+      
+      // Combinar reels y posts convertidos, ordenar por timestamp
+      const combined = [...allReels, ...postsAsReels].sort((a, b) => b.timestamp - a.timestamp);
+      console.log('Contenido total:', combined.length, 'de', Array.from(new Set(combined.map(c => c.userId))).length, 'usuarios');
+      setAllContent(combined);
+      
+      // Si hay un postId inicial, encontrar su índice
+      if (initialPostId) {
+        const postIndex = combined.findIndex(item => item.id === initialPostId);
+        setCurrentIndex(postIndex >= 0 ? postIndex : 0);
+      } else {
+        setCurrentIndex(0);
+      }
+    } catch (error) {
+      console.error('Error loading feed:', error);
+      setAllContent([]);
     }
   };
 

@@ -29,6 +29,9 @@ export default function Publish({ onNavigateHome, onPublish }: PublishProps) {
       setIsUploading(true);
       try {
         const userData = getUserData();
+        if (!userData) {
+          throw new Error('No se pudo obtener los datos del usuario');
+        }
         const mediaUrl = await uploadFile(selectedFile, auth.currentUser.uid);
         const mediaType = selectedFile.type.startsWith('video/') ? 'video' : 'image';
         

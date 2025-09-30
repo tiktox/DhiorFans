@@ -90,7 +90,12 @@ export default function Search({ onNavigateHome, onViewPost, onViewProfile }: Se
             ) : (
               userResults.map(user => {
                 // Buscar el userId real del usuario
-                const posts = JSON.parse(localStorage.getItem('dhirofans_posts') || '[]');
+                let posts = [];
+                try {
+                  posts = JSON.parse(localStorage.getItem('dhirofans_posts') || '[]');
+                } catch {
+                  posts = [];
+                }
                 const userPost = posts.find((p: any) => p.username === user.username);
                 const userId = userPost?.userId || user.username;
                 

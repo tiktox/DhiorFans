@@ -16,7 +16,11 @@ const POSTS_KEY = 'dhirofans_posts';
 
 const loadPosts = (): Post[] => {
   if (typeof window === 'undefined') return [];
-  return JSON.parse(localStorage.getItem(POSTS_KEY) || '[]');
+  try {
+    return JSON.parse(localStorage.getItem(POSTS_KEY) || '[]');
+  } catch {
+    return [];
+  }
 };
 
 const savePosts = (posts: Post[]): void => {
@@ -31,7 +35,7 @@ export const createPost = (postData: Omit<Post, 'id' | 'timestamp' | 'likes' | '
   
   const newPost: Post = {
     ...postData,
-    id: `post_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    id: `post_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`,
     timestamp: Date.now(),
     likes: 0,
     comments: 0,
@@ -47,7 +51,7 @@ export const createPost = (postData: Omit<Post, 'id' | 'timestamp' | 'likes' | '
 };
 
 export const getAllPosts = (): Post[] => {
-  const posts = loadPosts();
+  const posts = loadPosts(); // Esto obtiene TODAS las publicaciones de localStorage
   
   // Si hay menos de 3 posts, generar datos de prueba automáticamente
   if (posts.length < 3) {
@@ -55,7 +59,8 @@ export const getAllPosts = (): Post[] => {
     return loadPosts();
   }
   
-  return posts;
+  // Ordenar por timestamp descendente (más recientes primero)
+  return posts.sort((a, b) => b.timestamp - a.timestamp);
 };
 
 const generateSamplePosts = () => {
@@ -114,7 +119,7 @@ export const getUserPosts = (userId: string): Post[] => {
 
 export const searchPostsByTitle = (query: string): Post[] => {
   if (!query.trim()) return [];
-  const posts = getAllPosts(); // Usar getAllPosts para asegurar que hay datos
+  const posts = loadPosts(); // Usar loadPosts directamente para obtener TODAS las publicaciones
   return posts.filter(post => 
     post.title.toLowerCase().includes(query.toLowerCase())
   ).sort((a, b) => b.timestamp - a.timestamp);

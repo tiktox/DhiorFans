@@ -19,14 +19,11 @@ export default function Home() {
 
   useEffect(() => {
     if (auth.currentUser) {
-      setUserData(getUserData());
-    }
-  }, []);
-  
-  // Recargar datos del usuario cuando se actualice el feed
-  useEffect(() => {
-    if (auth.currentUser) {
-      setUserData(getUserData());
+      try {
+        setUserData(getUserData());
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      }
     }
   }, [refreshFeed]);
 
@@ -72,6 +69,26 @@ export default function Home() {
     />;
   }
 
+  const handleExternalProfile = (userId: string) => {
+    // Si es el usuario actual, ir a su perfil
+    if (auth.currentUser && userId === auth.currentUser.uid) {
+      setCurrentView('profile');
+      return;
+    }
+    
+    // Si es otro usuario, ir al perfil externo
+    try {
+      const userData = getUserDataById(userId);
+      if (userData) {
+        setExternalUserId(userId);
+        setExternalUserData(userData);
+        setCurrentView('external-profile');
+      }
+    } catch (error) {
+      console.error('Error loading external profile:', error);
+    }
+  };
+
   if (currentView === 'external-profile' && externalUserId && externalUserData) {
     return <ExternalProfile 
       userId={externalUserId}
@@ -83,22 +100,6 @@ export default function Home() {
       }}
     />;
   }
-
-  const handleExternalProfile = (userId: string) => {
-    // Si es el usuario actual, ir a su perfil
-    if (auth.currentUser && userId === auth.currentUser.uid) {
-      setCurrentView('profile');
-      return;
-    }
-    
-    // Si es otro usuario, ir al perfil externo
-    const userData = getUserDataById(userId);
-    if (userData) {
-      setExternalUserId(userId);
-      setExternalUserData(userData);
-      setCurrentView('external-profile');
-    }
-  };
 
   return (
     <div className="home-container">
@@ -129,7 +130,7 @@ export default function Home() {
           </button>
         </div>
         
-        {/* Botón temporal para generar datos */}
+        {/* Development reset button - remove in production */}
         <div style={{ position: 'absolute', top: '10px', right: '10px' }}>
           <button 
             onClick={() => {

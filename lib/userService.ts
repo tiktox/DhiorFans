@@ -219,11 +219,25 @@ export const getUserDataById = (userId: string): UserData | null => {
 export const searchUsers = (query: string): UserData[] => {
   if (!query.trim()) return [];
   
-  // Asegurar que hay datos de usuarios disponibles
-  const allUsers = getAllUsers();
-  
-  return allUsers.filter(user => 
-    user.username.toLowerCase().includes(query.toLowerCase()) ||
-    user.fullName.toLowerCase().includes(query.toLowerCase())
-  );
+  try {
+    // Asegurar que hay datos de usuarios disponibles
+    const allUsers = getAllUsers();
+    
+    return allUsers.filter(user => 
+      user.username.toLowerCase().includes(query.toLowerCase()) ||
+      user.fullName.toLowerCase().includes(query.toLowerCase())
+    ).sort((a, b) => {
+      // Priorizar coincidencias exactas en username
+      const aUsernameMatch = a.username.toLowerCase() === query.toLowerCase();
+      const bUsernameMatch = b.username.toLowerCase() === query.toLowerCase();
+      if (aUsernameMatch && !bUsernameMatch) return -1;
+      if (!aUsernameMatch && bUsernameMatch) return 1;
+      
+      // Luego por nombre completo
+      return a.fullName.localeCompare(b.fullName);
+    });
+  } catch (error) {
+    console.error('Error searching users:', error);
+    return [];
+  }
 };
