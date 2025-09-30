@@ -128,6 +128,27 @@ export default function Home() {
             Amigos
           </button>
         </div>
+        
+        {/* Botón temporal para generar datos */}
+        <div style={{ position: 'absolute', top: '10px', right: '10px' }}>
+          <button 
+            onClick={() => {
+              localStorage.removeItem('dhirofans_posts');
+              setRefreshFeed(prev => prev + 1);
+            }}
+            style={{
+              background: 'rgba(0,0,0,0.7)',
+              color: 'white',
+              border: 'none',
+              padding: '8px 12px',
+              borderRadius: '15px',
+              fontSize: '12px',
+              cursor: 'pointer'
+            }}
+          >
+            🔄 Reset
+          </button>
+        </div>
       </div>
 
       {/* Bottom Navigation Bar */}

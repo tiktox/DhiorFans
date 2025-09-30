@@ -121,22 +121,36 @@ export const getAllUsers = (): UserData[] => {
       // Crear datos básicos para usuarios que no han editado su perfil
       const userPost = posts.find((post: any) => post.userId === userId);
       if (userPost) {
-        users.push({
-          fullName: userPost.username || 'Usuario',
+        const userData = {
+          fullName: getSampleUserData(userPost.username).fullName,
           username: userPost.username || `user_${userId.slice(-6)}`,
           email: '',
-          bio: '',
+          bio: getSampleUserData(userPost.username).bio,
           link: '',
           profilePicture: userPost.profilePicture || '',
-          followers: 0,
-          following: 0,
+          followers: Math.floor(Math.random() * 500),
+          following: Math.floor(Math.random() * 200),
           posts: posts.filter((p: any) => p.userId === userId).length
-        });
+        };
+        users.push(userData);
+        
+        // Guardar el usuario generado
+        localStorage.setItem(`dhirofans_user_${userId}`, JSON.stringify(userData));
       }
     }
   });
   
   return users;
+};
+
+const getSampleUserData = (username: string) => {
+  const sampleData: { [key: string]: { fullName: string; bio: string } } = {
+    'maria_garcia': { fullName: 'María García', bio: 'Amante de la fotografía 📸' },
+    'carlos_lopez': { fullName: 'Carlos López', bio: 'Creador de contenido 🎥' },
+    'ana_martinez': { fullName: 'Ana Martínez', bio: 'Diseñadora gráfica ✨' }
+  };
+  
+  return sampleData[username] || { fullName: username, bio: 'Usuario de DhiorFans' };
 };
 
 export const getUserData = (): UserData => {
@@ -182,17 +196,21 @@ export const getUserDataById = (userId: string): UserData | null => {
   const posts = JSON.parse(localStorage.getItem('dhirofans_posts') || '[]');
   const userPost = posts.find((post: any) => post.userId === userId);
   if (userPost) {
-    return {
-      fullName: userPost.username || 'Usuario',
+    const userData = {
+      fullName: getSampleUserData(userPost.username).fullName,
       username: userPost.username || `user_${userId.slice(-6)}`,
       email: '',
-      bio: '',
+      bio: getSampleUserData(userPost.username).bio,
       link: '',
       profilePicture: userPost.profilePicture || '',
-      followers: 0,
-      following: 0,
+      followers: Math.floor(Math.random() * 500),
+      following: Math.floor(Math.random() * 200),
       posts: posts.filter((p: any) => p.userId === userId).length
     };
+    
+    // Guardar el usuario generado
+    localStorage.setItem(`dhirofans_user_${userId}`, JSON.stringify(userData));
+    return userData;
   }
   
   return null;
@@ -200,7 +218,10 @@ export const getUserDataById = (userId: string): UserData | null => {
 
 export const searchUsers = (query: string): UserData[] => {
   if (!query.trim()) return [];
+  
+  // Asegurar que hay datos de usuarios disponibles
   const allUsers = getAllUsers();
+  
   return allUsers.filter(user => 
     user.username.toLowerCase().includes(query.toLowerCase()) ||
     user.fullName.toLowerCase().includes(query.toLowerCase())

@@ -32,10 +32,7 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
   const loadReels = () => {
     const allReels = getReels();
     const allPosts = getAllPosts();
-    console.log('=== DEBUG FEED ===');
-    console.log('Reels encontrados:', allReels.length);
-    console.log('Posts encontrados:', allPosts.length);
-    console.log('Posts data:', allPosts);
+    console.log('Feed cargado - Reels:', allReels.length, 'Posts:', allPosts.length);
     
     setReels(allReels);
     setPosts(allPosts);
@@ -59,8 +56,7 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
     
     // Combinar reels y posts convertidos, ordenar por timestamp
     const combined = [...allReels, ...postsAsReels].sort((a, b) => b.timestamp - a.timestamp);
-    console.log('Contenido final combinado:', combined.length, 'elementos');
-    console.log('Usuarios únicos:', Array.from(new Set(combined.map(c => c.userId))));
+    console.log('Contenido total:', combined.length, 'de', Array.from(new Set(combined.map(c => c.userId))).length, 'usuarios');
     setAllContent(combined);
     
     // Si hay un postId inicial, encontrar su índice
