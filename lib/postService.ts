@@ -52,12 +52,17 @@ export const createPost = (postData: Omit<Post, 'id' | 'timestamp' | 'likes' | '
 
 export const getAllPosts = (): Post[] => {
   const posts = loadPosts(); // Esto obtiene TODAS las publicaciones de localStorage
+  console.log('🔍 getAllPosts() - Posts encontrados:', posts.length);
+  console.log('🔍 getAllPosts() - Posts data:', posts);
   
   // Si no hay posts, usar testData para generar datos consistentes
   if (posts.length === 0) {
+    console.log('🔍 No hay posts, generando testData...');
     const { generateTestData } = require('./testData');
     generateTestData();
-    return loadPosts();
+    const newPosts = loadPosts();
+    console.log('🔍 Después de generar testData:', newPosts.length, 'posts');
+    return newPosts;
   }
   
   // Ordenar por timestamp descendente (más recientes primero)

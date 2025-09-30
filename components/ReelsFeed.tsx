@@ -33,7 +33,10 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
     try {
       const allReels = getReels();
       const allPosts = getAllPosts(); // Esto ya obtiene TODAS las publicaciones de TODOS los usuarios
-      console.log('Feed cargado - Reels:', allReels.length, 'Posts:', allPosts.length);
+      console.log('🔍 DEBUG Feed cargado:');
+      console.log('- Reels:', allReels.length);
+      console.log('- Posts:', allPosts.length);
+      console.log('- Posts data:', allPosts);
       
       setReels(allReels);
       setPosts(allPosts);
@@ -41,6 +44,7 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
       // Convertir posts a formato reel para compatibilidad
       const postsAsReels: Reel[] = allPosts.map(post => {
         const userData = getUserDataById(post.userId);
+        console.log(`🔍 Post ${post.id} - userId: ${post.userId}, userData:`, userData);
         return {
           id: post.id,
           userId: post.userId,
@@ -57,7 +61,9 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
       
       // Combinar reels y posts convertidos, ordenar por timestamp
       const combined = [...allReels, ...postsAsReels].sort((a, b) => b.timestamp - a.timestamp);
-      console.log('Contenido total:', combined.length, 'de', Array.from(new Set(combined.map(c => c.userId))).length, 'usuarios');
+      console.log('🔍 Contenido final:', combined.length, 'items');
+      console.log('🔍 Usuarios únicos:', Array.from(new Set(combined.map(c => c.userId))).length);
+      console.log('🔍 Combined data:', combined);
       setAllContent(combined);
       
       // Si hay un postId inicial, encontrar su índice
@@ -68,7 +74,7 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
         setCurrentIndex(0);
       }
     } catch (error) {
-      console.error('Error loading feed:', error);
+      console.error('❌ Error loading feed:', error);
       setAllContent([]);
     }
   };

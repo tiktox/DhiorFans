@@ -2,7 +2,11 @@
 export const generateTestData = () => {
   // No limpiar datos existentes, solo agregar si no existen
   const existingPosts = JSON.parse(localStorage.getItem('dhirofans_posts') || '[]');
-  if (existingPosts.length > 0) return; // Ya hay datos
+  console.log('🔍 generateTestData() - Posts existentes:', existingPosts.length);
+  if (existingPosts.length > 0) {
+    console.log('🔍 Ya hay datos, no generando nuevos');
+    return; // Ya hay datos
+  }
   
   // Crear usuarios de prueba
   const testUsers = [
