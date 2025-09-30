@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Reel } from '../lib/reelsService';
+import { Reel } from '../lib/reelsService'; // Asumimos que la interfaz Reel existe
 import { getUserDataById } from '../lib/userService';
 import { deletePost } from '../lib/postService';
 import { auth } from '../lib/firebase';
@@ -72,8 +72,8 @@ export default function ReelPlayer({ reel, isActive, onProfileClick, onPostDelet
   // Identificador para diferenciar entre imagen y video
   const isImage = reel.mediaType === 'image';
   
-  const handleDeletePost = () => {
-    if (auth.currentUser && deletePost(reel.id, auth.currentUser.uid)) {
+  const handleDeletePost = async () => {
+    if (auth.currentUser && await deletePost(reel.id, auth.currentUser.uid)) {
       setShowDeleteConfirm(false);
       onPostDeleted?.();
     }

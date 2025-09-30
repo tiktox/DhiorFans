@@ -20,24 +20,20 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
   const [currentView, setCurrentView] = useState('profile');
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
-  useEffect(() => {
-    if (auth.currentUser) {
-      setUserData(getUserData());
-      setUserPosts(getUserPosts(auth.currentUser.uid));
-    }
-  }, []);
-  
   // Función para recargar posts del usuario
-  const reloadUserPosts = () => {
+  const reloadUserData = async () => {
     if (auth.currentUser) {
-      setUserPosts(getUserPosts(auth.currentUser.uid));
+      const data = await getUserData();
+      setUserData(data);
+      const posts = await getUserPosts(auth.currentUser.uid);
+      setUserPosts(posts);
     }
   };
   
   // Exponer la función de recarga para uso externo
   useEffect(() => {
     // Recargar posts cuando el componente se monta
-    reloadUserPosts();
+    reloadUserData();
   }, []);
 
   if (!userData) {

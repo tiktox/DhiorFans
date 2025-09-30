@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { auth } from '../lib/firebase';
+import { auth, db } from '../lib/firebase';
 import { getUserData, getUserDataById, UserData } from '../lib/userService';
 import Profile from './Profile';
 import Search from './Search';
@@ -18,13 +18,17 @@ export default function Home() {
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (auth.currentUser) {
-      try {
-        setUserData(getUserData());
-      } catch (error) {
-        console.error('Error loading user data:', error);
+    const loadData = async () => {
+      if (auth.currentUser) {
+        try {
+          const data = await getUserData();
+          setUserData(data);
+        } catch (error) {
+          console.error('Error loading user data:', error);
+        }
       }
-    }
+    };
+    loadData();
   }, [refreshFeed]);
 
   if (currentView === 'profile') {
@@ -69,16 +73,17 @@ export default function Home() {
     />;
   }
 
-  const handleExternalProfile = (userId: string) => {
+  const handleExternalProfile = async (userId: string) => {
     // Si es el usuario actual, ir a su perfil
     if (auth.currentUser && userId === auth.currentUser.uid) {
       setCurrentView('profile');
       return;
     }
-    
+
     // Si es otro usuario, ir al perfil externo
     try {
-      const userData = getUserDataById(userId);
+      // getUserDataById debe ser async si usa Firestore
+      const userData = await getUserDataById(userId);
       if (userData) {
         setExternalUserId(userId);
         setExternalUserData(userData);

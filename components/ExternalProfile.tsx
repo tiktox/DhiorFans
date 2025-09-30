@@ -14,7 +14,10 @@ export default function ExternalProfile({ userId, userData, onNavigateBack }: Ex
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
   useEffect(() => {
-    setUserPosts(getUserPosts(userId));
+    const loadPosts = async () => {
+      setUserPosts(await getUserPosts(userId));
+    };
+    loadPosts();
   }, [userId]);
 
   return (

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { getReels, Reel } from '../lib/reelsService';
+import { Reel } from '../lib/reelsService'; // Asumimos que la interfaz Reel existe
 import { getAllPosts, Post } from '../lib/postService';
 import { getUserDataById } from '../lib/userService';
 import ReelPlayer from './ReelPlayer';
@@ -13,8 +13,6 @@ interface ReelsFeedProps {
 }
 
 export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId, onPostDeleted }: ReelsFeedProps) {
-  const [reels, setReels] = useState<Reel[]>([]);
-  const [posts, setPosts] = useState<Post[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [allContent, setAllContent] = useState<Reel[]>([]);
 
@@ -22,15 +20,12 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
 
   // Recargar cuando el componente se monta (para capturar nuevas publicaciones)
   useEffect(() => {
-    loadReels();
+    loadContent();
   }, []);
 
-  const loadReels = () => {
-    const allReels = getReels();
-    const allPosts = getAllPosts();
-    setReels(allReels);
-    setPosts(allPosts);
-    
+  const loadContent = async () => {
+    const allPosts = await getAllPosts();
+
     // Convertir posts a formato reel para compatibilidad
     const postsAsReels: Reel[] = allPosts.map(post => ({
       id: post.id,
@@ -45,9 +40,8 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
       title: post.title
     }));
     
-    // Combinar reels y posts convertidos, ordenar por timestamp
-    const combined = [...allReels, ...postsAsReels].sort((a, b) => b.timestamp - a.timestamp);
-    setAllContent(combined);
+    // Por ahora solo usamos posts. Si se agregan reels, se combinarían aquí.
+    setAllContent(postsAsReels);
     
     // Si hay un postId inicial, encontrar su índice
     if (initialPostId) {
@@ -115,7 +109,7 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
           isActive={index === currentIndex}
           onProfileClick={onExternalProfile}
           onPostDeleted={() => {
-            loadReels();
+            loadContent();
             onPostDeleted?.();
           }}
         />

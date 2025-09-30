@@ -34,8 +34,8 @@ export default function Publish({ onNavigateHome, onPublish }: PublishProps) {
         }
         const mediaUrl = await uploadFile(selectedFile, auth.currentUser.uid);
         const mediaType = selectedFile.type.startsWith('video/') ? 'video' : 'image';
-        
-        const newPost = createPost({
+
+        await createPost({
           userId: auth.currentUser.uid,
           username: userData?.username || 'Usuario',
           profilePicture: userData?.profilePicture,
@@ -44,7 +44,7 @@ export default function Publish({ onNavigateHome, onPublish }: PublishProps) {
           mediaUrl,
           mediaType
         });
-        
+
         // Limpiar formulario
         setSelectedFile(null);
         setTitle('');

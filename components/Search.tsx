@@ -15,20 +15,24 @@ export default function Search({ onNavigateHome, onViewPost, onViewProfile }: Se
   const [userResults, setUserResults] = useState<UserData[]>([]);
 
   useEffect(() => {
-    if (searchQuery.trim()) {
-      if (activeFilter === 'publicaciones') {
-        const results = searchPostsByTitle(searchQuery);
-        setSearchResults(results);
-        setUserResults([]);
+    const performSearch = async () => {
+      if (searchQuery.trim()) {
+        if (activeFilter === 'publicaciones') {
+          const results = await searchPostsByTitle(searchQuery);
+          setSearchResults(results);
+          setUserResults([]);
+        } else {
+          // La búsqueda de usuarios también debería ser async si usa Firestore
+          const results = await searchUsers(searchQuery);
+          setUserResults(results);
+          setSearchResults([]);
+        }
       } else {
-        const results = searchUsers(searchQuery);
-        setUserResults(results);
         setSearchResults([]);
+        setUserResults([]);
       }
-    } else {
-      setSearchResults([]);
-      setUserResults([]);
-    }
+    };
+    performSearch();
   }, [searchQuery, activeFilter]);
 
   return (
