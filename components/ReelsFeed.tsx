@@ -60,7 +60,7 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
     // Combinar reels y posts convertidos, ordenar por timestamp
     const combined = [...allReels, ...postsAsReels].sort((a, b) => b.timestamp - a.timestamp);
     console.log('Contenido final combinado:', combined.length, 'elementos');
-    console.log('Usuarios únicos:', [...new Set(combined.map(c => c.userId))]);
+    console.log('Usuarios únicos:', Array.from(new Set(combined.map(c => c.userId))));
     setAllContent(combined);
     
     // Si hay un postId inicial, encontrar su índice
