@@ -28,7 +28,7 @@ export default function Publish({ onNavigateHome, onPublish }: PublishProps) {
     if (selectedFile && title.trim() && auth.currentUser && !isUploading) {
       setIsUploading(true);
       try {
-        const userData = getUserData();
+        const userData = await getUserData();
         if (!userData) {
           throw new Error('No se pudo obtener los datos del usuario');
         }

@@ -31,7 +31,7 @@ export default function AuthForm() {
       if (isLogin) {
         await signInWithEmailAndPassword(auth, email, password);
         // Ensure user data exists for existing users
-        const currentData = getUserData();
+        const currentData = await getUserData();
         if (!currentData.fullName || currentData.fullName === currentData.email) {
           const formattedUsername = email.split('@')[0].replace(/\s+/g, '_');
           await saveUserData({

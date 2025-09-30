@@ -45,7 +45,7 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
     
     // Si hay un postId inicial, encontrar su índice
     if (initialPostId) {
-      const postIndex = combined.findIndex(item => item.id === initialPostId);
+      const postIndex = postsAsReels.findIndex(item => item.id === initialPostId);
       setCurrentIndex(postIndex >= 0 ? postIndex : 0);
     } else {
       setCurrentIndex(0);
