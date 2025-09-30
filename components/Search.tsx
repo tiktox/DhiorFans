@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { searchPostsByTitle, Post } from '../lib/postService';
-import { getUserDataById } from '../lib/userService';
+import { getUserDataById, searchUsers, UserData } from '../lib/userService';
 
 interface SearchProps {
   onNavigateHome: () => void;
@@ -11,13 +11,22 @@ export default function Search({ onNavigateHome, onViewPost }: SearchProps) {
   const [activeFilter, setActiveFilter] = useState('usuarios');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Post[]>([]);
+  const [userResults, setUserResults] = useState<UserData[]>([]);
 
   useEffect(() => {
-    if (activeFilter === 'publicaciones' && searchQuery.trim()) {
-      const results = searchPostsByTitle(searchQuery);
-      setSearchResults(results);
+    if (searchQuery.trim()) {
+      if (activeFilter === 'publicaciones') {
+        const results = searchPostsByTitle(searchQuery);
+        setSearchResults(results);
+        setUserResults([]);
+      } else {
+        const results = searchUsers(searchQuery);
+        setUserResults(results);
+        setSearchResults([]);
+      }
     } else {
       setSearchResults([]);
+      setUserResults([]);
     }
   }, [searchQuery, activeFilter]);
 
@@ -69,7 +78,32 @@ export default function Search({ onNavigateHome, onViewPost }: SearchProps) {
       <div className="search-results">
         {activeFilter === 'usuarios' ? (
           <div className="users-results">
-            {/* Usuarios results will be loaded here */}
+            {searchQuery.trim() === '' ? (
+              <div className="no-search">
+                <p>Busca usuarios por nombre o username</p>
+              </div>
+            ) : userResults.length === 0 ? (
+              <div className="no-results">
+                <p>No se encontraron usuarios</p>
+              </div>
+            ) : (
+              userResults.map(user => (
+                <div key={user.username} className="user-result">
+                  <div className="user-avatar">
+                    {user.profilePicture ? (
+                      <img src={user.profilePicture} alt={user.fullName} />
+                    ) : (
+                      <div className="default-avatar">👤</div>
+                    )}
+                  </div>
+                  <div className="user-info">
+                    <h3 className="user-fullname">{user.fullName}</h3>
+                    <p className="user-username">@{user.username}</p>
+                    {user.bio && <p className="user-bio">{user.bio}</p>}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         ) : (
           <div className="posts-results">

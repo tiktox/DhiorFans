@@ -149,3 +149,12 @@ export const getUserDataById = (userId: string): UserData | null => {
   }
   return null;
 };
+
+export const searchUsers = (query: string): UserData[] => {
+  if (!query.trim()) return [];
+  const allUsers = getAllUsers();
+  return allUsers.filter(user => 
+    user.username.toLowerCase().includes(query.toLowerCase()) ||
+    user.fullName.toLowerCase().includes(query.toLowerCase())
+  );
+};

@@ -32,6 +32,7 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
   const loadReels = () => {
     const allReels = getReels();
     const allPosts = getAllPosts();
+    console.log('Cargando contenido - Reels:', allReels.length, 'Posts:', allPosts.length);
     setReels(allReels);
     setPosts(allPosts);
     
@@ -51,6 +52,7 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
     
     // Combinar reels y posts convertidos, ordenar por timestamp
     const combined = [...allReels, ...postsAsReels].sort((a, b) => b.timestamp - a.timestamp);
+    console.log('Contenido combinado:', combined.length, 'elementos');
     setAllContent(combined);
     
     // Si hay un postId inicial, encontrar su índice
@@ -98,7 +100,7 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
   if (allContent.length === 0) {
     return (
       <div className="empty-feed-background">
-        <p>No hay reels disponibles</p>
+        <p>No hay contenido disponible</p>
         <p>¡Sé el primero en publicar!</p>
       </div>
     );
