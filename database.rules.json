@@ -1,0 +1,47 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read": "$uid === auth.uid || root.child('users').child(auth.uid).child('isPublic').val() === true",
+        ".write": "$uid === auth.uid",
+        ".validate": "auth != null"
+      }
+    },
+    "posts": {
+      "$postId": {
+        ".read": "true",
+        ".write": "auth != null && auth.uid === data.child('authorId').val()",
+        ".validate": "newData.hasChildren(['authorId', 'content', 'timestamp'])"
+      }
+    },
+    "comments": {
+      "$postId": {
+        "$commentId": {
+          ".read": "true",
+          ".write": "auth != null",
+          ".validate": "newData.hasChildren(['authorId', 'content', 'timestamp']) && newData.child('authorId').val() === auth.uid"
+        }
+      }
+    },
+    "likes": {
+      "$postId": {
+        "$uid": {
+          ".read": "true",
+          ".write": "auth != null && $uid === auth.uid",
+          ".validate": "newData.isBoolean()"
+        }
+      }
+    },
+    "followers": {
+      "$uid": {
+        "$followerId": {
+          ".read": "true",
+          ".write": "auth != null && $followerId === auth.uid",
+          ".validate": "newData.isBoolean()"
+        }
+      }
+    },
+    ".read": "false",
+    ".write": "false"
+  }
+}

@@ -1,0 +1,255 @@
+/* Publish Screen Styles */
+.publish-container {
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.publish-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  border-bottom: 1px solid #333;
+}
+
+.publish-header .back-btn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s;
+}
+
+.publish-header .back-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.publish-header h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.publish-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.file-selector {
+  text-align: center;
+  padding: 60px 20px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.media-icon {
+  color: #666;
+  margin-bottom: 30px;
+}
+
+.file-selector h3 {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 10px 0;
+  color: white;
+}
+
+.file-selector p {
+  color: #999;
+  margin-bottom: 40px;
+  font-size: 16px;
+}
+
+.media-filters {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 40px;
+  justify-content: center;
+}
+
+.filter-btn {
+  background: #333;
+  border: none;
+  color: #999;
+  padding: 12px 24px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.filter-btn:hover {
+  background: #444;
+  color: white;
+}
+
+.filter-btn.active {
+  background: #2196f3;
+  color: white;
+}
+
+.select-media-btn {
+  background: #2196f3;
+  color: white;
+  padding: 16px 32px;
+  border-radius: 30px;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 600;
+  border: none;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.select-media-btn:hover {
+  background: #1976d2;
+  transform: translateY(-2px);
+}
+
+.publish-form {
+  max-width: 100%;
+}
+
+.media-preview {
+  margin-bottom: 30px;
+  border-radius: 15px;
+  overflow: hidden;
+  background: #111;
+}
+
+.media-preview img,
+.media-preview video {
+  width: 100%;
+  height: auto;
+  max-height: 400px;
+  object-fit: cover;
+  display: block;
+}
+
+.form-section {
+  margin-bottom: 30px;
+}
+
+.input-group {
+  margin-bottom: 25px;
+}
+
+.input-group label {
+  display: block;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.title-input,
+.description-input {
+  width: 100%;
+  background: #222;
+  border: 2px solid #333;
+  border-radius: 12px;
+  color: white;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.3s;
+  box-sizing: border-box;
+}
+
+.title-input:focus,
+.description-input:focus {
+  border-color: #2196f3;
+}
+
+.title-input {
+  padding: 16px 20px;
+  font-weight: 500;
+}
+
+.description-input {
+  padding: 16px 20px;
+  min-height: 120px;
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.title-input::placeholder,
+.description-input::placeholder {
+  color: #666;
+}
+
+.publish-actions {
+  padding: 20px;
+  border-top: 1px solid #333;
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.cancel-btn,
+.publish-btn {
+  flex: 1;
+  max-width: 150px;
+  padding: 16px 24px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.cancel-btn {
+  background: none;
+  border: 2px solid #555;
+  color: #999;
+}
+
+.cancel-btn:hover {
+  border-color: #777;
+  color: white;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.publish-btn {
+  background: #2196f3;
+  border: none;
+  color: white;
+}
+
+.publish-btn:hover {
+  background: #1976d2;
+  transform: translateY(-1px);
+}
+
+.publish-btn:disabled {
+  background: #555;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (min-width: 768px) {
+  .publish-container {
+    width: 350px;
+    margin: 0 auto;
+    border: 1px solid #333;
+    border-radius: 15px;
+    max-height: 620px;
+  }
+}
