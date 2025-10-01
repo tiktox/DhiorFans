@@ -15,30 +15,35 @@ export interface Reel {
 }
 
 export const saveReel = (videoFile: File, description: string): Promise<Reel> => {
-  return new Promise(async (resolve) => {
-    const userData = await getUserData();
-    const videoUrl = URL.createObjectURL(videoFile);
-    
-    const reel: Reel = {
-      id: Date.now().toString(),
-      userId: auth.currentUser?.uid || '',
-      username: userData.username,
-      fullName: userData.fullName,
-      profilePicture: userData.profilePicture || '',
-      videoUrl,
-      description,
-      timestamp: Date.now()
-    };
+  return new Promise(async (resolve, reject) => {
+    try {
+      const userData = await getUserData();
+      const videoUrl = URL.createObjectURL(videoFile);
+      
+      const reel: Reel = {
+        id: Date.now().toString(),
+        userId: auth.currentUser?.uid || '',
+        username: userData.username,
+        fullName: userData.fullName,
+        profilePicture: userData.profilePicture || '',
+        videoUrl,
+        description,
+        timestamp: Date.now()
+      };
 
-    const existingReels = JSON.parse(localStorage.getItem('dhirofans_reels') || '[]');
-    existingReels.unshift(reel);
-    localStorage.setItem('dhirofans_reels', JSON.stringify(existingReels));
-    
-    // Update user posts count
-    const { saveUserData } = await import('./userService');
-    await saveUserData({ posts: userData.posts + 1 });
-    
-    resolve(reel);
+      const existingReels = JSON.parse(localStorage.getItem('dhirofans_reels') || '[]');
+      existingReels.unshift(reel);
+      localStorage.setItem('dhirofans_reels', JSON.stringify(existingReels));
+      
+      // Update user posts count
+      const { saveUserData } = await import('./userService');
+      await saveUserData({ posts: userData.posts + 1 });
+      
+      resolve(reel);
+    } catch (error) {
+      console.error('Error saving reel:', error);
+      reject(error);
+    }
   });
 };
 

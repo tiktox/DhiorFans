@@ -24,8 +24,14 @@ const formatUsername = (username: string): string => {
 export const saveUserData = async (userData: Partial<UserData>) => {
   if (!auth.currentUser) throw new Error('Usuario no autenticado');
   
-  const userRef = doc(usersCollection, auth.currentUser.uid);
-  await setDoc(userRef, userData, { merge: true });
+  try {
+    const userRef = doc(usersCollection, auth.currentUser.uid);
+    await setDoc(userRef, userData, { merge: true });
+    console.log('Datos de usuario guardados correctamente');
+  } catch (error) {
+    console.error('Error al guardar datos del usuario:', error);
+    throw error;
+  }
 };
 
 const canChangeUsername = (lastChange?: number): boolean => {

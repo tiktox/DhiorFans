@@ -33,7 +33,7 @@ export default function Home() {
 
   if (currentView === 'profile') {
     return <Profile 
-      key={refreshFeed} // Forzar re-render cuando se actualice refreshFeed
+      key={`profile-${refreshFeed}`} // Forzar re-render cuando se actualice refreshFeed
       onNavigateHome={() => {
         setSelectedPostId(null);
         setCurrentView('home');

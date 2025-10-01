@@ -140,7 +140,7 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
               )}
             </div>
             <div className="user-details">
-              <div className="username">{authorData?.fullName || '...'}</div>
+              <div className="username">@{authorData?.username || '...'}</div>
               {post.title && <div className="post-title">{post.title}</div>}
               {post.description && <div className="description">{post.description}</div>}
             </div>

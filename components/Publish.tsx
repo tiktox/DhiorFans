@@ -43,6 +43,10 @@ export default function Publish({ onNavigateHome, onPublish }: PublishProps) {
           mediaType
         });
 
+        // Actualizar contador de posts del usuario
+        const { saveUserData } = await import('../lib/userService');
+        await saveUserData({ posts: userData.posts + 1 });
+
         // Limpiar formulario
         setSelectedFile(null);
         setTitle('');

@@ -23,16 +23,26 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
   // Función para recargar posts del usuario
   const reloadUserData = async () => {
     if (auth.currentUser) {
-      const data = await getUserData();
-      setUserData(data);
-      const posts = await getUserPosts(auth.currentUser.uid);
-      setUserPosts(posts);
+      try {
+        const data = await getUserData();
+        setUserData(data);
+        const posts = await getUserPosts(auth.currentUser.uid);
+        setUserPosts(posts);
+        console.log('Posts del usuario cargados:', posts.length);
+      } catch (error) {
+        console.error('Error al cargar datos del usuario:', error);
+      }
     }
   };
   
   // Exponer la función de recarga para uso externo
   useEffect(() => {
     // Recargar posts cuando el componente se monta
+    reloadUserData();
+  }, []);
+
+  // Recargar datos cuando el usuario regrese al perfil
+  useEffect(() => {
     reloadUserData();
   }, []);
 
