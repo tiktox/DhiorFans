@@ -37,8 +37,6 @@ export default function Publish({ onNavigateHome, onPublish }: PublishProps) {
 
         await createPost({
           userId: auth.currentUser.uid,
-          username: userData?.username || 'Usuario',
-          profilePicture: userData?.profilePicture,
           title: title.trim(),
           description: description.trim(),
           mediaUrl,

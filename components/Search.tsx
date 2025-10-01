@@ -1,11 +1,49 @@
 import { useState, useEffect } from 'react';
-import { searchPostsByTitle, Post } from '../lib/postService';
+import { searchPostsByTitle, Post, getUserPosts } from '../lib/postService';
 import { getUserDataById, searchUsers, UserData } from '../lib/userService';
 
 interface SearchProps {
   onNavigateHome: () => void;
   onViewPost?: (postId: string) => void;
   onViewProfile?: (userId: string) => void;
+}
+
+const PostResultItem = ({ post, onViewPost }: { post: Post, onViewPost?: (postId: string) => void }) => {
+  const [postUserData, setPostUserData] = useState<UserData | null>(null);
+
+  useEffect(() => {
+    const loadAuthorData = async () => {
+      if (post.userId) {
+        const data = await getUserDataById(post.userId);
+        setPostUserData(data);
+      }
+    };
+    loadAuthorData();
+  }, [post.userId]);
+
+  return (
+    <div className="post-result" onClick={() => onViewPost?.(post.id)}>
+      <div className="post-thumbnail">
+        {post.mediaType === 'video' ? (
+          <video src={post.mediaUrl} />
+        ) : (
+          <img src={post.mediaUrl} alt={post.title} />
+        )}
+      </div>
+      <div className="post-info">
+        <h3 className="post-result-title">{post.title}</h3>
+        <p className="post-result-description">{post.description}</p>
+        <div className="post-meta">
+          <span className="post-author">@{postUserData?.username || '...'}</span>
+          <span className="post-date">{new Date(post.timestamp).toLocaleDateString()}</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+interface UserWithId extends UserData {
+  id: string;
 }
 
 export default function Search({ onNavigateHome, onViewPost, onViewProfile }: SearchProps) {
@@ -92,34 +130,22 @@ export default function Search({ onNavigateHome, onViewPost, onViewProfile }: Se
                 <p>No se encontraron usuarios</p>
               </div>
             ) : (
-              userResults.map(user => {
-                // Buscar el userId real del usuario
-                let posts = [];
-                try {
-                  posts = JSON.parse(localStorage.getItem('dhirofans_posts') || '[]');
-                } catch {
-                  posts = [];
-                }
-                const userPost = posts.find((p: any) => p.username === user.username);
-                const userId = userPost?.userId || user.username;
-                
-                return (
-                  <div key={user.username} className="user-result" onClick={() => onViewProfile?.(userId)}>
-                    <div className="user-avatar">
-                      {user.profilePicture ? (
-                        <img src={user.profilePicture} alt={user.fullName} />
-                      ) : (
-                        <div className="default-avatar">👤</div>
-                      )}
-                    </div>
-                    <div className="user-info">
-                      <h3 className="user-fullname">{user.fullName}</h3>
-                      <p className="user-username">@{user.username}</p>
-                      {user.bio && <p className="user-bio">{user.bio}</p>}
-                    </div>
+              userResults.map(user => (
+                <div key={(user as UserWithId).id} className="user-result" onClick={() => onViewProfile?.((user as UserWithId).id)}>
+                  <div className="user-avatar">
+                    {user.profilePicture ? (
+                      <img src={user.profilePicture} alt={user.fullName} />
+                    ) : (
+                      <div className="default-avatar">👤</div>
+                    )}
                   </div>
-                );
-              })
+                  <div className="user-info">
+                    <h3 className="user-fullname">{user.fullName}</h3>
+                    <p className="user-username">@{user.username}</p>
+                    {user.bio && <p className="user-bio">{user.bio}</p>}
+                  </div>
+                </div>
+              ))
             )}
           </div>
         ) : (
@@ -133,31 +159,7 @@ export default function Search({ onNavigateHome, onViewPost, onViewProfile }: Se
                 <p>No se encontraron publicaciones</p>
               </div>
             ) : (
-              searchResults.map(post => { 
-                // NOTA: Esto puede ser ineficiente si hay muchos resultados.
-                // En una app real, los datos del usuario vendrían junto con el post.
-                const [postUserData, setPostUserData] = useState<UserData | null>(null);
-                useEffect(() => { async function load() { setPostUserData(await getUserDataById(post.userId)); } load(); }, [post.userId]);
-                return (
-                  <div key={post.id} className="post-result" onClick={() => onViewPost?.(post.id)}>
-                    <div className="post-thumbnail">
-                      {post.mediaType === 'video' ? (
-                        <video src={post.mediaUrl} />
-                      ) : (
-                        <img src={post.mediaUrl} alt={post.title} />
-                      )}
-                    </div>
-                    <div className="post-info">
-                      <h3 className="post-result-title">{post.title}</h3>
-                      <p className="post-result-description">{post.description}</p>
-                      <div className="post-meta">
-                        <span className="post-author">@{postUserData?.username || '...'}</span>
-                        <span className="post-date">{new Date(post.timestamp).toLocaleDateString()}</span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
+              searchResults.map(post => <PostResultItem key={post.id} post={post} onViewPost={onViewPost} />)
             )}
           </div>
         )}

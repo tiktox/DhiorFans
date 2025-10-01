@@ -3,8 +3,6 @@ import { collection, addDoc, getDocs, query, orderBy, doc, deleteDoc, where, Tim
 export interface Post {
   id: string;
   userId: string;
-  username: string;
-  profilePicture?: string;
   title: string;
   description: string;
   mediaUrl: string;
@@ -16,7 +14,7 @@ export interface Post {
 
 const postsCollection = collection(db, 'posts');
 
-export const createPost = async (postData: Omit<Post, 'id' | 'timestamp' | 'likes' | 'comments'>): Promise<Post> => {
+export const createPost = async (postData: Omit<Post, 'id' | 'timestamp' | 'likes' | 'comments' | 'username' | 'profilePicture'>): Promise<Post> => {
   if (!postData.title?.trim()) throw new Error('El título es requerido');
   if (!postData.mediaUrl) throw new Error('La URL del archivo es requerida');
   if (!postData.userId) throw new Error('El usuario es requerido');

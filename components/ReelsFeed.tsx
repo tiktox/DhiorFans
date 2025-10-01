@@ -1,9 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Reel } from '../lib/reelsService'; // Asumimos que la interfaz Reel existe
 import { getAllPosts, Post } from '../lib/postService';
-import { getUserDataById } from '../lib/userService';
 import ReelPlayer from './ReelPlayer';
-import ExternalProfile from './ExternalProfile';
 
 interface ReelsFeedProps {
   activeTab: string;
@@ -14,7 +11,7 @@ interface ReelsFeedProps {
 
 export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId, onPostDeleted }: ReelsFeedProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [allContent, setAllContent] = useState<Reel[]>([]);
+  const [allContent, setAllContent] = useState<Post[]>([]);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -25,27 +22,14 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
 
   const loadContent = async () => {
     const allPosts = await getAllPosts();
-
-    // Convertir posts a formato reel para compatibilidad
-    const postsAsReels: Reel[] = allPosts.map(post => ({
-      id: post.id,
-      userId: post.userId,
-      username: post.username,
-      fullName: post.username,
-      profilePicture: post.profilePicture || '',
-      videoUrl: post.mediaUrl,
-      description: post.description,
-      timestamp: post.timestamp,
-      mediaType: post.mediaType,
-      title: post.title
-    }));
     
-    // Por ahora solo usamos posts. Si se agregan reels, se combinarían aquí.
-    setAllContent(postsAsReels);
+    // Ordenar por timestamp descendente (más recientes primero)
+    const sortedPosts = allPosts.sort((a, b) => b.timestamp - a.timestamp);
+    setAllContent(sortedPosts);
     
     // Si hay un postId inicial, encontrar su índice
     if (initialPostId) {
-      const postIndex = postsAsReels.findIndex(item => item.id === initialPostId);
+      const postIndex = sortedPosts.findIndex(item => item.id === initialPostId);
       setCurrentIndex(postIndex >= 0 ? postIndex : 0);
     } else {
       setCurrentIndex(0);
@@ -105,7 +89,7 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
       {allContent.map((content, index) => (
         <ReelPlayer
           key={content.id}
-          reel={content}
+          post={content}
           isActive={index === currentIndex}
           onProfileClick={onExternalProfile}
           onPostDeleted={() => {

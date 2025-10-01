@@ -1,25 +1,32 @@
 import { useState, useRef, useEffect } from 'react';
-import { Reel } from '../lib/reelsService'; // Asumimos que la interfaz Reel existe
-import { getUserDataById } from '../lib/userService';
-import { deletePost } from '../lib/postService';
+import { getUserDataById, UserData } from '../lib/userService';
+import { deletePost, Post } from '../lib/postService';
 import { auth } from '../lib/firebase';
-import ExternalProfile from './ExternalProfile';
 
 interface ReelPlayerProps {
-  reel: Reel;
+  post: Post;
   isActive: boolean;
   onProfileClick?: (userId: string) => void;
   onPostDeleted?: () => void;
 }
 
-export default function ReelPlayer({ reel, isActive, onProfileClick, onPostDeleted }: ReelPlayerProps) {
+export default function ReelPlayer({ post, isActive, onProfileClick, onPostDeleted }: ReelPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [progress, setProgress] = useState(0);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [authorData, setAuthorData] = useState<UserData | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   
-  const isOwner = auth.currentUser && auth.currentUser.uid === reel.userId;
+  const isOwner = auth.currentUser && auth.currentUser.uid === post.userId;
+
+  useEffect(() => {
+    const fetchAuthorData = async () => {
+      const data = await getUserDataById(post.userId);
+      setAuthorData(data);
+    };
+    fetchAuthorData();
+  }, [post.userId]);
 
   useEffect(() => {
     if (videoRef.current) {
@@ -70,10 +77,10 @@ export default function ReelPlayer({ reel, isActive, onProfileClick, onPostDelet
   };
 
   // Identificador para diferenciar entre imagen y video
-  const isImage = reel.mediaType === 'image';
+  const isImage = post.mediaType === 'image';
   
   const handleDeletePost = async () => {
-    if (auth.currentUser && await deletePost(reel.id, auth.currentUser.uid)) {
+    if (auth.currentUser && await deletePost(post.id, auth.currentUser.uid)) {
       setShowDeleteConfirm(false);
       onPostDeleted?.();
     }
@@ -83,18 +90,18 @@ export default function ReelPlayer({ reel, isActive, onProfileClick, onPostDelet
     <div 
       className={`reel-container ${isImage ? 'image-content' : 'video-content'}`}
       data-content-type={isImage ? 'image' : 'video'}
-      data-media-id={reel.id}
+      data-media-id={post.id}
     >
       {isImage ? (
         <img
-          src={reel.videoUrl}
-          alt={reel.description}
+          src={post.mediaUrl}
+          alt={post.description}
           className="reel-image"
         />
       ) : (
         <video
           ref={videoRef}
-          src={reel.videoUrl}
+          src={post.mediaUrl}
           loop
           muted={isMuted}
           onTimeUpdate={handleTimeUpdate}
@@ -125,17 +132,17 @@ export default function ReelPlayer({ reel, isActive, onProfileClick, onPostDelet
         
         <div className="reel-info">
           <div className="user-info">
-            <div className="profile-pic" onClick={() => onProfileClick?.(reel.userId)}>
-              {reel.profilePicture ? (
-                <img src={reel.profilePicture} alt={reel.username} />
+            <div className="profile-pic" onClick={() => onProfileClick?.(post.userId)}>
+              {authorData?.profilePicture ? (
+                <img src={authorData.profilePicture} alt={authorData.username} />
               ) : (
-                <div className="default-avatar">{reel.fullName[0]?.toUpperCase()}</div>
+                <div className="default-avatar">{authorData?.fullName[0]?.toUpperCase()}</div>
               )}
             </div>
             <div className="user-details">
-              <div className="username">{reel.fullName}</div>
-              {reel.title && <div className="post-title">{reel.title}</div>}
-              {reel.description && <div className="description">{reel.description}</div>}
+              <div className="username">{authorData?.fullName || '...'}</div>
+              {post.title && <div className="post-title">{post.title}</div>}
+              {post.description && <div className="description">{post.description}</div>}
             </div>
           </div>
         </div>

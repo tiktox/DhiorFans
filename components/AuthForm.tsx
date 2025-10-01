@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, User } from 'firebase/auth';
-import { auth } from '../lib/firebase';
+import { auth, db } from '../lib/firebase';
 import { saveUserData, getUserData } from '../lib/userService';
 import Home from './Home';
 
@@ -31,7 +31,7 @@ export default function AuthForm() {
       if (isLogin) {
         await signInWithEmailAndPassword(auth, email, password);
         // Ensure user data exists for existing users
-        const currentData = await getUserData();
+        const currentData = await getUserData(); // This is already async, which is good
         if (!currentData.fullName || currentData.fullName === currentData.email) {
           const formattedUsername = email.split('@')[0].replace(/\s+/g, '_');
           await saveUserData({
