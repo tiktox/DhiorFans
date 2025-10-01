@@ -36,18 +36,18 @@ export default function EditProfile({ userData, onNavigateBack, onSave }: EditPr
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    const usernameValidation = await validateUsername(
+      formData.username,
+      userData.username,
+      userData.lastUsernameChange
+    );
+    
+    if (!usernameValidation.valid) {
+      setUsernameError(usernameValidation.error || '');
+      return;
+    }
+    
     try {
-      const usernameValidation = await validateUsername(
-        formData.username,
-        userData.username,
-        userData.lastUsernameChange
-      );
-      
-      if (!usernameValidation.valid) {
-        setUsernameError(usernameValidation.error || '');
-        return;
-      }
-      
       const updatedData: UserData = {
         ...userData,
         fullName: formData.fullName,
@@ -62,9 +62,9 @@ export default function EditProfile({ userData, onNavigateBack, onSave }: EditPr
       await saveUserData(updatedData);
       onSave(updatedData);
       onNavigateBack();
-    } catch (error) {
-      console.error('Error al guardar perfil:', error);
-      alert('Error al guardar los cambios. Inténtalo de nuevo.');
+    } catch (error: any) {
+      console.error('Error en handleSubmit:', error);
+      alert(error.message || 'Error al guardar los cambios. Inténtalo de nuevo.');
     }
   };
 

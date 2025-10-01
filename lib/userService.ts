@@ -15,22 +15,30 @@ export interface UserData {
   posts: number;
 }
 
-const usersCollection = collection(db, 'users');
+// Removed usersCollection constant to use direct references
 
 const formatUsername = (username: string): string => {
   return username.replace(/\s+/g, '_').toLowerCase();
 };
 
 export const saveUserData = async (userData: Partial<UserData>) => {
-  if (!auth.currentUser) throw new Error('Usuario no autenticado');
+  if (!auth.currentUser) {
+    throw new Error('Usuario no autenticado');
+  }
   
   try {
-    const userRef = doc(usersCollection, auth.currentUser.uid);
+    const userRef = doc(db, 'users', auth.currentUser.uid);
     await setDoc(userRef, userData, { merge: true });
-    console.log('Datos de usuario guardados correctamente');
-  } catch (error) {
-    console.error('Error al guardar datos del usuario:', error);
-    throw error;
+    console.log('✅ Datos guardados correctamente');
+  } catch (error: any) {
+    console.error('❌ Error en saveUserData:', error);
+    if (error.code === 'permission-denied') {
+      throw new Error('No tienes permisos para guardar estos datos');
+    } else if (error.code === 'unavailable') {
+      throw new Error('Servicio no disponible. Inténtalo más tarde');
+    } else {
+      throw new Error('Error al guardar: ' + (error.message || 'Error desconocido'));
+    }
   }
 };
 
@@ -66,7 +74,7 @@ export const validateUsername = async (username: string, currentUsername: string
 };
 
 export const getAllUsers = async (): Promise<UserData[]> => {
-  const querySnapshot = await getDocs(usersCollection);
+  const querySnapshot = await getDocs(collection(db, 'users'));
   const users: UserData[] = [];
   querySnapshot.forEach((doc) => {
     users.push(doc.data() as UserData);
@@ -76,7 +84,7 @@ export const getAllUsers = async (): Promise<UserData[]> => {
 
 export const getUserData = async (): Promise<UserData> => {
   if (auth.currentUser) {
-    const userRef = doc(usersCollection, auth.currentUser.uid);
+    const userRef = doc(db, 'users', auth.currentUser.uid);
     const docSnap = await getDoc(userRef);
 
     if (docSnap.exists()) {
@@ -104,7 +112,7 @@ export const getUserData = async (): Promise<UserData> => {
 
 export const getUserDataById = async (userId: string): Promise<UserData | null> => {
   if (!userId) return null;
-  const userRef = doc(usersCollection, userId);
+  const userRef = doc(db, 'users', userId);
   const docSnap = await getDoc(userRef);
 
   if (docSnap.exists()) {
@@ -122,12 +130,12 @@ export const searchUsers = async (searchQuery: string): Promise<UserData[]> => {
   // Para una app real, se usaría un servicio como Algolia.
   // Aquí, hacemos dos consultas (una para username, una para fullName) y las unimos.
   
-  const usernameQuery = query(usersCollection, 
+  const usernameQuery = query(collection(db, 'users'), 
     where('username', '>=', lowerCaseQuery),
     where('username', '<=', lowerCaseQuery + '\uf8ff')
   );
 
-  const fullNameQuery = query(usersCollection, 
+  const fullNameQuery = query(collection(db, 'users'), 
     where('fullName', '>=', lowerCaseQuery),
     where('fullName', '<=', lowerCaseQuery + '\uf8ff')
   );
