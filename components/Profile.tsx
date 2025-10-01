@@ -138,7 +138,7 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
       {/* User Posts Grid */}
       {userPosts.length > 0 && (
         <div className="user-posts-grid">
-          {userPosts.map((post) => (
+          {userPosts.map((post) => ( // Aquí se muestran los posts del usuario
             <div key={post.id} className="post-thumbnail" onClick={() => onViewPost?.(post.id)}>
               {post.mediaType === 'video' ? (
                 <video src={post.mediaUrl} />

@@ -103,6 +103,10 @@ export default function Home() {
         setExternalUserId(null);
         setExternalUserData(null);
       }}
+      onViewPost={(postId) => {
+        setSelectedPostId(postId);
+        setCurrentView('home');
+      }}
     />;
   }
 

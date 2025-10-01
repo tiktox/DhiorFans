@@ -7,9 +7,10 @@ interface ExternalProfileProps {
   userId: string;
   userData: UserData;
   onNavigateBack: () => void;
+  onViewPost?: (postId: string) => void;
 }
 
-export default function ExternalProfile({ userId, userData, onNavigateBack }: ExternalProfileProps) {
+export default function ExternalProfile({ userId, userData, onNavigateBack, onViewPost }: ExternalProfileProps) {
   const [userPosts, setUserPosts] = useState<Post[]>([]);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
@@ -99,8 +100,8 @@ export default function ExternalProfile({ userId, userData, onNavigateBack }: Ex
       {/* User Posts Grid */}
       {userPosts.length > 0 && (
         <div className="user-posts-grid">
-          {userPosts.map((post) => (
-            <div key={post.id} className="post-thumbnail" onClick={() => setSelectedPost(post)}>
+          {userPosts.map((post) => ( // Aquí se muestran los posts del usuario
+            <div key={post.id} className="post-thumbnail" onClick={() => onViewPost?.(post.id)}>
               {post.mediaType === 'video' ? (
                 <video src={post.mediaUrl} />
               ) : (

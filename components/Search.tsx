@@ -133,8 +133,11 @@ export default function Search({ onNavigateHome, onViewPost, onViewProfile }: Se
                 <p>No se encontraron publicaciones</p>
               </div>
             ) : (
-              searchResults.map(post => {
-                const userData = getUserDataById(post.userId);
+              searchResults.map(post => { 
+                // NOTA: Esto puede ser ineficiente si hay muchos resultados.
+                // En una app real, los datos del usuario vendrían junto con el post.
+                const [postUserData, setPostUserData] = useState<UserData | null>(null);
+                useEffect(() => { async function load() { setPostUserData(await getUserDataById(post.userId)); } load(); }, [post.userId]);
                 return (
                   <div key={post.id} className="post-result" onClick={() => onViewPost?.(post.id)}>
                     <div className="post-thumbnail">
@@ -148,7 +151,7 @@ export default function Search({ onNavigateHome, onViewPost, onViewProfile }: Se
                       <h3 className="post-result-title">{post.title}</h3>
                       <p className="post-result-description">{post.description}</p>
                       <div className="post-meta">
-                        <span className="post-author">@{userData?.username || 'Usuario'}</span>
+                        <span className="post-author">@{postUserData?.username || '...'}</span>
                         <span className="post-date">{new Date(post.timestamp).toLocaleDateString()}</span>
                       </div>
                     </div>
