@@ -36,7 +36,7 @@ export default function EditProfile({ userData, onNavigateBack, onSave }: EditPr
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const usernameValidation = validateUsername(
+    const usernameValidation = await validateUsername(
       formData.username,
       userData.username,
       userData.lastUsernameChange

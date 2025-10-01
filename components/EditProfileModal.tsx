@@ -38,7 +38,7 @@ export default function EditProfileModal({ isOpen, onClose, userData, onSave }: 
     e.preventDefault();
     
     // Validate username
-    const usernameValidation = validateUsername(
+    const usernameValidation = await validateUsername(
       formData.username,
       userData.username,
       userData.lastUsernameChange
