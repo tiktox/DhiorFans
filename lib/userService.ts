@@ -1,4 +1,3 @@
-git add .
 import { auth } from './firebase';
 import { updateProfile } from 'firebase/auth';
 
