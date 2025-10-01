@@ -50,7 +50,7 @@ const canChangeUsername = (lastChange?: number): boolean => {
 
 const isUsernameAvailable = async (username: string): Promise<boolean> => {
   const formattedUsername = formatUsername(username);
-  const q = query(usersCollection, where('username', '==', formattedUsername));
+  const q = query(collection(db, 'users'), where('username', '==', formattedUsername));
   const querySnapshot = await getDocs(q);
   return querySnapshot.empty;
 };

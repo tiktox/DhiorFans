@@ -1,5 +1,6 @@
-import { auth } from './firebase';
+import { auth, db } from './firebase';
 import { getUserData } from './userService';
+import { collection, addDoc, getDocs, query, orderBy, Timestamp } from 'firebase/firestore';
 
 export interface Reel {
   id: string;
@@ -14,40 +15,46 @@ export interface Reel {
   title?: string;
 }
 
-export const saveReel = (videoFile: File, description: string): Promise<Reel> => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const userData = await getUserData();
-      const videoUrl = URL.createObjectURL(videoFile);
-      
-      const reel: Reel = {
-        id: Date.now().toString(),
-        userId: auth.currentUser?.uid || '',
-        username: userData.username,
-        fullName: userData.fullName,
-        profilePicture: userData.profilePicture || '',
-        videoUrl,
-        description,
-        timestamp: Date.now()
-      };
-
-      const existingReels = JSON.parse(localStorage.getItem('dhirofans_reels') || '[]');
-      existingReels.unshift(reel);
-      localStorage.setItem('dhirofans_reels', JSON.stringify(existingReels));
-      
-      // Update user posts count
-      const { saveUserData } = await import('./userService');
-      await saveUserData({ posts: userData.posts + 1 });
-      
-      resolve(reel);
-    } catch (error) {
-      console.error('Error saving reel:', error);
-      reject(error);
-    }
-  });
+export const saveReel = async (videoFile: File, description: string): Promise<Reel> => {
+  if (!auth.currentUser) throw new Error('Usuario no autenticado');
+  
+  const userData = await getUserData();
+  const videoUrl = URL.createObjectURL(videoFile);
+  
+  const reelData = {
+    userId: auth.currentUser.uid,
+    username: userData.username,
+    fullName: userData.fullName,
+    profilePicture: userData.profilePicture || '',
+    videoUrl,
+    description,
+    timestamp: Timestamp.now()
+  };
+  
+  const docRef = await addDoc(collection(db, 'reels'), reelData);
+  
+  // Update user posts count
+  const { saveUserData } = await import('./userService');
+  await saveUserData({ posts: userData.posts + 1 });
+  
+  return {
+    id: docRef.id,
+    ...reelData,
+    timestamp: reelData.timestamp.toMillis()
+  };
 };
 
-export const getReels = (): Reel[] => {
-  if (typeof window === 'undefined') return [];
-  return JSON.parse(localStorage.getItem('dhirofans_reels') || '[]');
+export const getReels = async (): Promise<Reel[]> => {
+  const q = query(collection(db, 'reels'), orderBy('timestamp', 'desc'));
+  const querySnapshot = await getDocs(q);
+  const reels: Reel[] = [];
+  querySnapshot.forEach((doc) => {
+    const data = doc.data();
+    reels.push({
+      id: doc.id,
+      ...data,
+      timestamp: (data.timestamp as Timestamp).toMillis(),
+    } as Reel);
+  });
+  return reels;
 };

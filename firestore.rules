@@ -8,6 +8,12 @@ service cloud.firestore {
       allow write: if request.auth != null;
     }
     
+    // Permitir lectura pública de reels
+    match /reels/{reelId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
     // Permitir a usuarios gestionar su propio perfil
     match /users/{userId} {
       allow read: if true;
