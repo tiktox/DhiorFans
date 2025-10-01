@@ -16,7 +16,7 @@ export interface Reel {
 
 export const saveReel = (videoFile: File, description: string): Promise<Reel> => {
   return new Promise(async (resolve) => {
-    const userData = getUserData();
+    const userData = await getUserData();
     const videoUrl = URL.createObjectURL(videoFile);
     
     const reel: Reel = {
