@@ -97,20 +97,31 @@ export default function ExternalProfile({ userId, userData, onNavigateBack, onVi
         </button>
       </div>
 
-      {/* User Posts Grid */}
-      {userPosts.length > 0 && (
-        <div className="user-posts-grid">
-          {userPosts.map((post) => ( // Aquí se muestran los posts del usuario
-            <div key={post.id} className="post-thumbnail" onClick={() => onViewPost?.(post.id)}>
+      {/* Posts Grid */}
+      <div className="posts-grid">
+        {userPosts.length > 0 ? (
+          userPosts.map((post) => (
+            <div 
+              key={post.id} 
+              className="post-thumbnail"
+              onClick={() => onViewPost?.(post.id)}
+            >
               {post.mediaType === 'video' ? (
-                <video src={post.mediaUrl} />
+                <video src={post.mediaUrl} className="post-media" />
               ) : (
-                <img src={post.mediaUrl} alt={post.title} />
+                <img src={post.mediaUrl} alt={post.title} className="post-media" />
               )}
+              <div className="post-overlay">
+                <span className="post-title">{post.title}</span>
+              </div>
             </div>
-          ))}
-        </div>
-      )}
+          ))
+        ) : (
+          <div className="no-posts">
+            <p>No hay publicaciones</p>
+          </div>
+        )}
+      </div>
 
       {/* Post Modal */}
       {selectedPost && (

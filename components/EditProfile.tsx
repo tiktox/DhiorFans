@@ -48,19 +48,30 @@ export default function EditProfile({ userData, onNavigateBack, onSave }: EditPr
     }
     
     try {
-      const updatedData: UserData = {
-        ...userData,
+      const updatedData: Partial<UserData> = {
         fullName: formData.fullName,
         username: formData.username,
         bio: formData.bio,
         link: formData.link,
-        gender: formData.gender || undefined,
         profilePicture: formData.profilePicture,
         lastUsernameChange: formData.username !== userData.username ? Date.now() : userData.lastUsernameChange
       };
+      
+      // Solo agregar gender si tiene valor
+      if (formData.gender) {
+        updatedData.gender = formData.gender as 'Hombre' | 'Mujer';
+      }
 
+      console.log('💾 Guardando perfil actualizado:', updatedData);
       await saveUserData(updatedData);
-      onSave(updatedData);
+      
+      // Crear objeto completo para onSave
+      const completeData: UserData = {
+        ...userData,
+        ...updatedData
+      };
+      console.log('✅ Perfil actualizado exitosamente');
+      onSave(completeData);
       onNavigateBack();
     } catch (error: any) {
       console.error('Error en handleSubmit:', error);

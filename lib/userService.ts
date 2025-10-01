@@ -27,9 +27,27 @@ export const saveUserData = async (userData: Partial<UserData>) => {
   }
   
   try {
+    // Filtrar valores undefined
+    const cleanData = Object.fromEntries(
+      Object.entries(userData).filter(([_, value]) => value !== undefined)
+    );
+    
+    console.log('🔄 Guardando datos:', cleanData);
+    console.log('👤 Usuario ID:', auth.currentUser.uid);
+    
     const userRef = doc(db, 'users', auth.currentUser.uid);
-    await setDoc(userRef, userData, { merge: true });
-    console.log('✅ Datos guardados correctamente');
+    await setDoc(userRef, cleanData, { merge: true });
+    
+    console.log('✅ Datos guardados correctamente en Firebase');
+    
+    // Verificar que se guardó
+    const savedDoc = await getDoc(userRef);
+    if (savedDoc.exists()) {
+      console.log('✅ Verificación: Datos encontrados en Firebase:', savedDoc.data());
+    } else {
+      console.log('❌ Verificación: No se encontraron datos en Firebase');
+    }
+    
   } catch (error: any) {
     console.error('❌ Error en saveUserData:', error);
     if (error.code === 'permission-denied') {
@@ -90,24 +108,31 @@ export const getUserData = async (): Promise<UserData> => {
     if (docSnap.exists()) {
       return docSnap.data() as UserData;
     }
+    
+    // Si no existe, crear datos por defecto y guardarlos
+    const defaultUsername = auth.currentUser?.email?.split('@')[0] || '';
+    const formattedUsername = formatUsername(defaultUsername);
+    
+    const defaultData: UserData = {
+      fullName: auth.currentUser?.displayName || defaultUsername,
+      username: formattedUsername,
+      email: auth.currentUser?.email || '',
+      bio: '',
+      link: '',
+      profilePicture: '',
+      followers: 0,
+      following: 0,
+      posts: 0
+    };
+    
+    // Guardar los datos por defecto
+    console.log('🆕 Creando usuario nuevo con datos:', defaultData);
+    await setDoc(userRef, defaultData);
+    console.log('✅ Usuario nuevo creado en Firebase');
+    return defaultData;
   }
   
-  const defaultUsername = auth.currentUser?.email?.split('@')[0] || '';
-  const formattedUsername = formatUsername(defaultUsername);
-  
-  return {
-    fullName: auth.currentUser?.displayName || defaultUsername,
-    username: formattedUsername,
-    email: auth.currentUser?.email || '',
-    bio: '',
-    link: '',
-    gender: undefined,
-    profilePicture: '',
-    lastUsernameChange: undefined,
-    followers: 0,
-    following: 0,
-    posts: 0
-  };
+  throw new Error('Usuario no autenticado');
 };
 
 export const getUserDataById = async (userId: string): Promise<UserData | null> => {

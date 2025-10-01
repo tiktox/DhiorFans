@@ -1,5 +1,6 @@
-import { db } from './firebase';
+import { auth, db } from './firebase';
 import { collection, addDoc, getDocs, query, orderBy, doc, deleteDoc, where, Timestamp } from 'firebase/firestore';
+import { getPostLikesCount, checkUserLike } from './likeService';
 export interface Post {
   id: string;
   userId: string;
@@ -10,6 +11,8 @@ export interface Post {
   timestamp: number;
   likes: number;
   comments: number;
+  likesCount?: number;
+  isLikedByUser?: boolean;
 }
 
 const postsCollection = collection(db, 'posts');
@@ -29,7 +32,11 @@ export const createPost = async (postData: Omit<Post, 'id' | 'timestamp' | 'like
   };
   
   const docRef = await addDoc(postsCollection, newPostData);
-  console.log('Nueva publicación creada en Firestore con ID:', docRef.id);
+  console.log('✅ Nueva publicación creada en Firestore:');
+  console.log('  - ID:', docRef.id);
+  console.log('  - Usuario:', postData.userId);
+  console.log('  - Título:', postData.title);
+  console.log('  - Tipo:', postData.mediaType);
 
   return {
     ...newPostData,
@@ -39,46 +46,84 @@ export const createPost = async (postData: Omit<Post, 'id' | 'timestamp' | 'like
 };
 
 export const getAllPosts = async (): Promise<Post[]> => {
+  console.log('🔍 getAllPosts() - Obteniendo todos los posts...');
   const q = query(postsCollection, orderBy('timestamp', 'desc'));
   const querySnapshot = await getDocs(q);
   const posts: Post[] = [];
-  querySnapshot.forEach((doc) => {
-    const data = doc.data();
+  
+  console.log('🔍 getAllPosts() - Documentos encontrados:', querySnapshot.size);
+  
+  for (const docSnap of querySnapshot.docs) {
+    const data = docSnap.data();
+    const postId = docSnap.id;
+    
+    // Obtener información de likes
+    const likesCount = await getPostLikesCount(postId);
+    const isLikedByUser = auth.currentUser ? 
+      await checkUserLike(postId, auth.currentUser.uid) !== null : false;
+    
     posts.push({
-      id: doc.id,
+      id: postId,
       ...data,
       timestamp: (data.timestamp as Timestamp).toMillis(),
+      likesCount,
+      isLikedByUser
     } as Post);
-  });
-  console.log('🔍 getAllPosts() - Posts encontrados en Firestore:', posts.length);
+  }
+  
+  console.log('✅ getAllPosts() - Posts encontrados en Firestore:', posts.length);
   return posts;
 };
 
 
 
 export const getUserPosts = async (userId: string): Promise<Post[]> => {
-  const q = query(postsCollection, where('userId', '==', userId), orderBy('timestamp', 'desc'));
-  const querySnapshot = await getDocs(q);
-  const posts: Post[] = [];
-  querySnapshot.forEach((doc) => {
-    const data = doc.data();
-    posts.push({
-      id: doc.id,
-      ...data,
-      timestamp: (data.timestamp as Timestamp).toMillis(),
-    } as Post);
-  });
-  return posts;
+  console.log('🔍 getUserPosts() - Buscando posts para usuario:', userId);
+  
+  try {
+    const q = query(postsCollection, where('userId', '==', userId), orderBy('timestamp', 'desc'));
+    console.log('🔍 Query creada, ejecutando...');
+    
+    const querySnapshot = await getDocs(q);
+    console.log('🔍 Query ejecutada, documentos encontrados:', querySnapshot.size);
+    
+    const posts: Post[] = [];
+    
+    for (const docSnap of querySnapshot.docs) {
+      const data = docSnap.data();
+      const postId = docSnap.id;
+      
+      // Obtener información de likes
+      const likesCount = await getPostLikesCount(postId);
+      const isLikedByUser = auth.currentUser ? 
+        await checkUserLike(postId, auth.currentUser.uid) !== null : false;
+      
+      posts.push({
+        id: postId,
+        ...data,
+        timestamp: (data.timestamp as Timestamp).toMillis(),
+        likesCount,
+        isLikedByUser
+      } as Post);
+    }
+    
+    console.log('✅ getUserPosts() - Total posts procesados:', posts.length);
+    return posts;
+    
+  } catch (error) {
+    console.error('❌ Error en getUserPosts:', error);
+    return [];
+  }
 };
 
-export const searchPostsByTitle = async (query: string): Promise<Post[]> => {
-  if (!query.trim()) return [];
+export const searchPostsByTitle = async (searchQuery: string): Promise<Post[]> => {
+  if (!searchQuery.trim()) return [];
   // Nota: Firestore no soporta búsquedas de tipo "includes" de forma nativa y eficiente.
   // Esta implementación trae todos los posts y filtra en el cliente.
   // Para apps grandes, se recomienda un servicio de búsqueda como Algolia.
   const posts = await getAllPosts();
   return posts.filter(post => 
-    post.title.toLowerCase().includes(query.toLowerCase())
+    post.title.toLowerCase().includes(searchQuery.toLowerCase())
   ).sort((a, b) => b.timestamp - a.timestamp);
 };
 

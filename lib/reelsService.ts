@@ -1,5 +1,6 @@
 import { auth, db } from './firebase';
 import { getUserData } from './userService';
+import { createPost } from './postService';
 import { collection, addDoc, getDocs, query, orderBy, Timestamp } from 'firebase/firestore';
 
 export interface Reel {
@@ -15,11 +16,22 @@ export interface Reel {
   title?: string;
 }
 
-export const saveReel = async (videoFile: File, description: string): Promise<Reel> => {
+export const saveReel = async (videoFile: File, description: string, title?: string): Promise<Reel> => {
   if (!auth.currentUser) throw new Error('Usuario no autenticado');
   
   const userData = await getUserData();
   const videoUrl = URL.createObjectURL(videoFile);
+  
+  // Crear el post en la colección de posts para que aparezca en el perfil
+  const postData = {
+    userId: auth.currentUser.uid,
+    title: title || description || 'Video',
+    description: description || '',
+    mediaUrl: videoUrl,
+    mediaType: 'video' as const
+  };
+  
+  const createdPost = await createPost(postData);
   
   const reelData = {
     userId: auth.currentUser.uid,

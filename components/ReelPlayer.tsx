@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { getUserDataById, UserData } from '../lib/userService';
 import { deletePost, Post } from '../lib/postService';
+import { toggleLike } from '../lib/likeService';
 import { auth } from '../lib/firebase';
 
 interface ReelPlayerProps {
@@ -16,7 +17,11 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
   const [progress, setProgress] = useState(0);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [authorData, setAuthorData] = useState<UserData | null>(null);
+  const [isLiked, setIsLiked] = useState(post.isLikedByUser || false);
+  const [likesCount, setLikesCount] = useState(post.likesCount || 0);
+  const [showLikeAnimation, setShowLikeAnimation] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const lastTapRef = useRef<number>(0);
   
   const isOwner = auth.currentUser && auth.currentUser.uid === post.userId;
 
@@ -86,6 +91,34 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
     }
   };
 
+  const handleLike = async () => {
+    if (!auth.currentUser) return;
+    
+    try {
+      const result = await toggleLike(post.id);
+      setIsLiked(result.isLiked);
+      setLikesCount(result.likesCount);
+      
+      if (result.isLiked) {
+        setShowLikeAnimation(true);
+        setTimeout(() => setShowLikeAnimation(false), 1000);
+      }
+    } catch (error) {
+      console.error('Error al dar like:', error);
+    }
+  };
+
+  const handleDoubleClick = () => {
+    const now = Date.now();
+    const timeDiff = now - lastTapRef.current;
+    
+    if (timeDiff < 300) {
+      handleLike();
+    }
+    
+    lastTapRef.current = now;
+  };
+
   return (
     <div 
       className={`reel-container ${isImage ? 'image-content' : 'video-content'}`}
@@ -114,8 +147,22 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
       {!isImage && (
         <div 
           className="video-click-overlay"
-          onClick={togglePlayPause}
+          onClick={handleDoubleClick}
         />
+      )}
+      
+      {isImage && (
+        <div 
+          className="image-click-overlay"
+          onClick={handleDoubleClick}
+        />
+      )}
+      
+      {/* Animación de like */}
+      {showLikeAnimation && (
+        <div className="like-animation">
+          ❤️
+        </div>
       )}
       
       <div className="reel-overlay">
@@ -136,7 +183,7 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
               {authorData?.profilePicture ? (
                 <img src={authorData.profilePicture} alt={authorData.username} />
               ) : (
-                <div className="default-avatar">{authorData?.fullName[0]?.toUpperCase()}</div>
+                <div className="default-avatar">{authorData?.fullName?.[0]?.toUpperCase() || '?'}</div>
               )}
             </div>
             <div className="user-details">
@@ -148,10 +195,11 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
         </div>
         
         <div className="reel-side-controls">
-          <button className="side-control-btn like-btn">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <button className={`side-control-btn like-btn ${isLiked ? 'liked' : ''}`} onClick={handleLike}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill={isLiked ? "#ff3040" : "none"} stroke="currentColor" strokeWidth="2">
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
             </svg>
+            <span className="like-count">{likesCount}</span>
           </button>
           <button className="side-control-btn comment-btn">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
