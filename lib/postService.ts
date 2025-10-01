@@ -118,13 +118,50 @@ export const getUserPosts = async (userId: string): Promise<Post[]> => {
 
 export const searchPostsByTitle = async (searchQuery: string): Promise<Post[]> => {
   if (!searchQuery.trim()) return [];
-  // Nota: Firestore no soporta búsquedas de tipo "includes" de forma nativa y eficiente.
-  // Esta implementación trae todos los posts y filtra en el cliente.
-  // Para apps grandes, se recomienda un servicio de búsqueda como Algolia.
-  const posts = await getAllPosts();
-  return posts.filter(post => 
-    post.title.toLowerCase().includes(searchQuery.toLowerCase())
-  ).sort((a, b) => b.timestamp - a.timestamp);
+  
+  try {
+    const q = query(postsCollection, orderBy('timestamp', 'desc'));
+    const querySnapshot = await getDocs(q);
+    const posts: Post[] = [];
+    const lowerQuery = searchQuery.toLowerCase();
+    
+    for (const docSnap of querySnapshot.docs) {
+      const data = docSnap.data();
+      const postId = docSnap.id;
+      
+      // Filtrar por título y descripción
+      const matchesTitle = data.title?.toLowerCase().includes(lowerQuery);
+      const matchesDescription = data.description?.toLowerCase().includes(lowerQuery);
+      
+      if (matchesTitle || matchesDescription) {
+        // Obtener información de likes
+        const likesCount = await getPostLikesCount(postId);
+        const isLikedByUser = auth.currentUser ? 
+          await checkUserLike(postId, auth.currentUser.uid) !== null : false;
+        
+        posts.push({
+          id: postId,
+          ...data,
+          timestamp: (data.timestamp as Timestamp).toMillis(),
+          likesCount,
+          isLikedByUser
+        } as Post);
+      }
+    }
+    
+    return posts.sort((a, b) => {
+      // Priorizar coincidencias exactas en título
+      const aExact = a.title.toLowerCase() === lowerQuery;
+      const bExact = b.title.toLowerCase() === lowerQuery;
+      if (aExact && !bExact) return -1;
+      if (!aExact && bExact) return 1;
+      return b.timestamp - a.timestamp;
+    });
+    
+  } catch (error) {
+    console.error('Error searching posts:', error);
+    return [];
+  }
 };
 
 export const deletePost = async (postId: string, userId: string): Promise<boolean> => {

@@ -1088,6 +1088,12 @@ body {
   font-weight: 500;
 }
 
+.post-likes {
+  color: #ff3040;
+  font-size: 12px;
+  font-weight: 500;
+}
+
 .no-search,
 .no-results {
   text-align: center;
@@ -1856,11 +1862,17 @@ body {
   transform: scale(1.1);
 }
 
+.like-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
 .like-count {
-  display: block;
   font-size: 12px;
   font-weight: 600;
-  margin-top: 4px;
+  color: white;
   text-align: center;
 }
 
@@ -1903,4 +1915,16 @@ body {
 
 .video-click-overlay {
   cursor: pointer;
+}
+
+/* Search Loading */
+.search-loading {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+.search-loading p {
+  margin: 0;
+  font-size: 14px;
 }

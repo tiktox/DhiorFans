@@ -146,47 +146,41 @@ export const getUserDataById = async (userId: string): Promise<UserData | null> 
   return null;
 };
 
-export const searchUsers = async (searchQuery: string): Promise<UserData[]> => {
+export interface UserWithId extends UserData {
+  id: string;
+}
+
+export const searchUsers = async (searchQuery: string): Promise<UserWithId[]> => {
   if (!searchQuery.trim()) return [];
   
-  const lowerCaseQuery = searchQuery.toLowerCase();
-  
-  // Firestore no soporta búsquedas "includes" de forma nativa.
-  // Para una app real, se usaría un servicio como Algolia.
-  // Aquí, hacemos dos consultas (una para username, una para fullName) y las unimos.
-  
-  const usernameQuery = query(collection(db, 'users'), 
-    where('username', '>=', lowerCaseQuery),
-    where('username', '<=', lowerCaseQuery + '\uf8ff')
-  );
-
-  const fullNameQuery = query(collection(db, 'users'), 
-    where('fullName', '>=', lowerCaseQuery),
-    where('fullName', '<=', lowerCaseQuery + '\uf8ff')
-  );
-
   try {
-    const [usernameSnapshot, fullNameSnapshot] = await Promise.all([
-      getDocs(usernameQuery),
-      getDocs(fullNameQuery)
-    ]);
-
-    const usersMap = new Map<string, UserData>();
-
-    usernameSnapshot.forEach(doc => {
-      if (!usersMap.has(doc.id)) {
-        usersMap.set(doc.id, { ...doc.data(), id: doc.id } as any);
+    // Obtener todos los usuarios y filtrar en cliente
+    const querySnapshot = await getDocs(collection(db, 'users'));
+    const users: UserWithId[] = [];
+    const lowerQuery = searchQuery.toLowerCase();
+    
+    querySnapshot.forEach((doc) => {
+      const userData = doc.data() as UserData;
+      const matchesUsername = userData.username?.toLowerCase().includes(lowerQuery);
+      const matchesFullName = userData.fullName?.toLowerCase().includes(lowerQuery);
+      
+      if (matchesUsername || matchesFullName) {
+        users.push({
+          ...userData,
+          id: doc.id
+        });
       }
     });
-
-    fullNameSnapshot.forEach(doc => {
-      if (!usersMap.has(doc.id)) {
-        usersMap.set(doc.id, { ...doc.data(), id: doc.id } as any);
-      }
+    
+    return users.sort((a, b) => {
+      // Priorizar coincidencias exactas en username
+      const aExact = a.username.toLowerCase() === lowerQuery;
+      const bExact = b.username.toLowerCase() === lowerQuery;
+      if (aExact && !bExact) return -1;
+      if (!aExact && bExact) return 1;
+      return a.fullName.localeCompare(b.fullName);
     });
-
-    return Array.from(usersMap.values());
-
+    
   } catch (error) {
     console.error('Error searching users:', error);
     return [];

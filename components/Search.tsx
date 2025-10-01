@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { searchPostsByTitle, Post, getUserPosts } from '../lib/postService';
-import { getUserDataById, searchUsers, UserData } from '../lib/userService';
+import { searchPostsByTitle, Post } from '../lib/postService';
+import { getUserDataById, searchUsers, UserData, UserWithId } from '../lib/userService';
 
 interface SearchProps {
   onNavigateHome: () => void;
@@ -35,6 +35,7 @@ const PostResultItem = ({ post, onViewPost }: { post: Post, onViewPost?: (postId
         <p className="post-result-description">{post.description}</p>
         <div className="post-meta">
           <span className="post-author">@{postUserData?.username || '...'}</span>
+          <span className="post-likes">❤️ {post.likesCount || 0}</span>
           <span className="post-date">{new Date(post.timestamp).toLocaleDateString()}</span>
         </div>
       </div>
@@ -42,35 +43,42 @@ const PostResultItem = ({ post, onViewPost }: { post: Post, onViewPost?: (postId
   );
 };
 
-interface UserWithId extends UserData {
-  id: string;
-}
-
 export default function Search({ onNavigateHome, onViewPost, onViewProfile }: SearchProps) {
   const [activeFilter, setActiveFilter] = useState('usuarios');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Post[]>([]);
-  const [userResults, setUserResults] = useState<UserData[]>([]);
+  const [userResults, setUserResults] = useState<UserWithId[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const performSearch = async () => {
       if (searchQuery.trim()) {
-        if (activeFilter === 'publicaciones') {
-          const results = await searchPostsByTitle(searchQuery);
-          setSearchResults(results);
-          setUserResults([]);
-        } else {
-          // La búsqueda de usuarios también debería ser async si usa Firestore
-          const results = await searchUsers(searchQuery);
-          setUserResults(results);
-          setSearchResults([]);
+        setIsLoading(true);
+        try {
+          if (activeFilter === 'publicaciones') {
+            const results = await searchPostsByTitle(searchQuery);
+            setSearchResults(results);
+            setUserResults([]);
+          } else {
+            const results = await searchUsers(searchQuery);
+            setUserResults(results);
+            setSearchResults([]);
+          }
+        } catch (error) {
+          console.error('Error en búsqueda:', error);
+        } finally {
+          setIsLoading(false);
         }
       } else {
         setSearchResults([]);
         setUserResults([]);
+        setIsLoading(false);
       }
     };
-    performSearch();
+    
+    // Debounce para evitar muchas consultas
+    const timeoutId = setTimeout(performSearch, 300);
+    return () => clearTimeout(timeoutId);
   }, [searchQuery, activeFilter]);
 
   return (
@@ -117,6 +125,13 @@ export default function Search({ onNavigateHome, onViewPost, onViewProfile }: Se
         </button>
       </div>
 
+      {/* Loading indicator */}
+      {isLoading && (
+        <div className="search-loading">
+          <p>Buscando...</p>
+        </div>
+      )}
+      
       {/* Results Section */}
       <div className="search-results">
         {activeFilter === 'usuarios' ? (
@@ -131,7 +146,7 @@ export default function Search({ onNavigateHome, onViewPost, onViewProfile }: Se
               </div>
             ) : (
               userResults.map(user => (
-                <div key={(user as UserWithId).id} className="user-result" onClick={() => onViewProfile?.((user as UserWithId).id)}>
+                <div key={user.id} className="user-result" onClick={() => onViewProfile?.(user.id)}>
                   <div className="user-avatar">
                     {user.profilePicture ? (
                       <img src={user.profilePicture} alt={user.fullName} />
