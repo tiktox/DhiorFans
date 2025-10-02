@@ -146,6 +146,21 @@ export const getUserDataById = async (userId: string): Promise<UserData | null> 
   return null;
 };
 
+export const getUsersDataByIds = async (userIds: string[]): Promise<{[key: string]: UserData}> => {
+  const userData: {[key: string]: UserData} = {};
+  
+  const promises = userIds.map(async (userId) => {
+    if (!userId) return;
+    const data = await getUserDataById(userId);
+    if (data) {
+      userData[userId] = data;
+    }
+  });
+  
+  await Promise.all(promises);
+  return userData;
+};
+
 export interface UserWithId extends UserData {
   id: string;
 }

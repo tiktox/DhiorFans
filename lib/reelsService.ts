@@ -1,4 +1,5 @@
-import { auth, db } from './firebase';
+import { auth, db, storage } from './firebase'; // 1. Importar storage
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'; // 2. Importar funciones de storage
 import { getUserData } from './userService';
 import { createPost } from './postService';
 import { collection, addDoc, getDocs, query, orderBy, Timestamp } from 'firebase/firestore';
@@ -19,15 +20,19 @@ export interface Reel {
 export const saveReel = async (videoFile: File, description: string, title?: string): Promise<Reel> => {
   if (!auth.currentUser) throw new Error('Usuario no autenticado');
   
+  // 3. Subir el video a Firebase Storage
+  const storageRef = ref(storage, `reels/${auth.currentUser.uid}/${Date.now()}-${videoFile.name}`);
+  await uploadBytes(storageRef, videoFile);
+  const videoUrl = await getDownloadURL(storageRef); // 4. Obtener la URL pública
+
   const userData = await getUserData();
-  const videoUrl = URL.createObjectURL(videoFile);
   
   // Crear el post en la colección de posts para que aparezca en el perfil
   const postData = {
     userId: auth.currentUser.uid,
     title: title || description || 'Video',
     description: description || '',
-    mediaUrl: videoUrl,
+    mediaUrl: videoUrl, // 5. Usar la URL de Firebase Storage
     mediaType: 'video' as const
   };
   
@@ -40,7 +45,8 @@ export const saveReel = async (videoFile: File, description: string, title?: str
     profilePicture: userData.profilePicture || '',
     videoUrl,
     description,
-    timestamp: Timestamp.now()
+    timestamp: Timestamp.now(),
+    commentsCount: 0 // Inicializar el contador de comentarios
   };
   
   const docRef = await addDoc(collection(db, 'reels'), reelData);

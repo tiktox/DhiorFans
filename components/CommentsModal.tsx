@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { auth } from '../lib/firebase';
-import { getUserDataById, UserData } from '../lib/userService';
-import { addComment, getCommentsWithReplies, Comment } from '../lib/commentService';
+import { getUsersDataByIds, UserData } from '../lib/userService';
+import { createComment, getCommentsForPost, Comment } from '../lib/commentService';
 
 interface CommentWithReplies extends Comment {
   replies?: Comment[];
@@ -29,44 +29,64 @@ export default function CommentsModal({ postId, isOpen, onClose }: CommentsModal
 
   const loadComments = async () => {
     try {
-      const commentsData = await getCommentsWithReplies(postId);
-      setComments(commentsData);
+      const commentsData = await getCommentsForPost(postId);
+      
+      // Organizar comentarios con respuestas anidadas
+      const commentsMap = new Map<string, CommentWithReplies>();
+      const rootComments: CommentWithReplies[] = [];
+      
+      // Crear mapa de comentarios
+      commentsData.forEach(comment => {
+        commentsMap.set(comment.id, { ...comment, replies: [] });
+      });
+      
+      // Organizar jerarquía
+      commentsData.forEach(comment => {
+        if (comment.parentId) {
+          const parent = commentsMap.get(comment.parentId);
+          if (parent) {
+            parent.replies!.push(commentsMap.get(comment.id)!);
+          }
+        } else {
+          rootComments.push(commentsMap.get(comment.id)!);
+        }
+      });
+      
+      setComments(rootComments);
 
-      // Cargar datos de usuarios
+      // Cargar datos de usuarios en batch
       const userIds = new Set<string>();
       commentsData.forEach(comment => {
         userIds.add(comment.userId);
-        comment.replies?.forEach(reply => userIds.add(reply.userId));
       });
 
-      const userData: {[key: string]: UserData} = {};
-      const userIdArray = Array.from(userIds);
-      for (let i = 0; i < userIdArray.length; i++) {
-        const userId = userIdArray[i];
-        try {
-          const data = await getUserDataById(userId);
-          if (data) {
-            userData[userId] = data;
-          }
-        } catch (error) {
-          console.error('Error cargando datos de usuario:', error);
-        }
-      }
+      const userData = await getUsersDataByIds(Array.from(userIds));
       setUsersData(userData);
     } catch (error) {
       console.error('Error cargando comentarios:', error);
+      setComments([]);
     }
   };
 
   const handleAddComment = async () => {
-    if (!newComment.trim() || !auth.currentUser) return;
+    if (!newComment.trim()) {
+      return;
+    }
+    
+    if (!auth.currentUser) {
+      alert('Debes iniciar sesión para comentar');
+      return;
+    }
 
     try {
-      await addComment(postId, newComment);
+      const comment = await createComment(postId, newComment);
+      
+      // Actualización optimista: agregar al estado local
+      setComments(prev => [...prev, { ...comment, replies: [] }]);
       setNewComment('');
-      await loadComments(); // Recargar comentarios
     } catch (error) {
       console.error('Error agregando comentario:', error);
+      alert(`Error al publicar comentario: ${error}`);
     }
   };
 
@@ -74,12 +94,21 @@ export default function CommentsModal({ postId, isOpen, onClose }: CommentsModal
     if (!replyText.trim() || !auth.currentUser) return;
 
     try {
-      await addComment(postId, replyText, commentId);
+      const reply = await createComment(postId, replyText, 'reels', commentId);
+      
+      // Actualización optimista: agregar respuesta al comentario padre
+      setComments(prev => prev.map(comment => 
+        comment.id === commentId 
+          ? { ...comment, replies: [...(comment.replies || []), reply] }
+          : comment
+      ));
+      
       setReplyText('');
       setReplyingTo(null);
-      await loadComments(); // Recargar comentarios
+      setExpandedReplies(prev => new Set([...prev, commentId]));
     } catch (error) {
       console.error('Error agregando respuesta:', error);
+      alert('Error al publicar respuesta. Verifica tu conexión.');
     }
   };
 
@@ -118,9 +147,9 @@ export default function CommentsModal({ postId, isOpen, onClose }: CommentsModal
         <div className="comments-header">
           <h3>Comentarios</h3>
           <button className="close-btn" onClick={onClose}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="15" y1="5" x2="5" y2="15"></line>
+              <line x1="5" y1="5" x2="15" y2="15"></line>
             </svg>
           </button>
         </div>
@@ -136,9 +165,9 @@ export default function CommentsModal({ postId, isOpen, onClose }: CommentsModal
           />
           {newComment.trim() && (
             <button className="send-comment-btn" onClick={handleAddComment}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="22" y1="2" x2="11" y2="13"></line>
-                <polygon points="22,2 15,22 11,13 2,9"></polygon>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="2" x2="9" y2="11"></line>
+                <polygon points="18,2 12,18 9,11 2,8"></polygon>
               </svg>
             </button>
           )}
@@ -172,7 +201,7 @@ export default function CommentsModal({ postId, isOpen, onClose }: CommentsModal
                       {formatTimeAgo(comment.timestamp)}
                     </span>
                   </div>
-                  <div className="comment-text">{comment.content}</div>
+                  <div className="comment-text">{comment.text}</div>
                   <div className="comment-actions">
                     <button 
                       className="reply-btn"
@@ -228,7 +257,7 @@ export default function CommentsModal({ postId, isOpen, onClose }: CommentsModal
                             {formatTimeAgo(reply.timestamp)}
                           </span>
                         </div>
-                        <div className="comment-text">{reply.content}</div>
+                        <div className="comment-text">{reply.text}</div>
                       </div>
                     </div>
                   ))}
