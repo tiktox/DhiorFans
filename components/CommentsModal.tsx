@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { auth } from '../lib/firebase';
 import { getUsersDataByIds, UserData } from '../lib/userService';
-import { createComment, getCommentsForPost, Comment } from '../lib/commentService';
+import { Comment } from '../lib/commentService';
+import { useComments } from '../hooks/useComments';
 
 interface CommentWithReplies extends Comment {
   replies?: Comment[];
@@ -14,101 +15,137 @@ interface CommentsModalProps {
 }
 
 export default function CommentsModal({ postId, isOpen, onClose }: CommentsModalProps) {
+  const { loadComments, addComment, getPostComments, toggleReplies } = useComments();
+  const { comments: flatComments, hasMore, loading, expandedReplies } = getPostComments(postId);
+  
   const [comments, setComments] = useState<CommentWithReplies[]>([]);
   const [newComment, setNewComment] = useState('');
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
-  const [expandedReplies, setExpandedReplies] = useState<Set<string>>(new Set());
   const [usersData, setUsersData] = useState<{[key: string]: UserData}>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [toast, setToast] = useState<{message: string; type: 'error' | 'success'} | null>(null);
 
   useEffect(() => {
     if (isOpen) {
-      loadComments();
+      const { comments } = getPostComments(postId);
+      if (comments.length === 0) {
+        loadComments(postId, 10, true);
+      }
     }
-  }, [isOpen, postId]);
+  }, [isOpen, postId, loadComments, getPostComments]);
 
-  const loadComments = async () => {
-    try {
-      const commentsData = await getCommentsForPost(postId);
-      
-      // Organizar comentarios con respuestas anidadas
-      const commentsMap = new Map<string, CommentWithReplies>();
-      const rootComments: CommentWithReplies[] = [];
-      
-      // Crear mapa de comentarios
-      commentsData.forEach(comment => {
-        commentsMap.set(comment.id, { ...comment, replies: [] });
-      });
-      
-      // Organizar jerarquía
-      commentsData.forEach(comment => {
-        if (comment.parentId) {
-          const parent = commentsMap.get(comment.parentId);
-          if (parent) {
-            parent.replies!.push(commentsMap.get(comment.id)!);
-          }
-        } else {
-          rootComments.push(commentsMap.get(comment.id)!);
+  // Auto-ocultar toast después de 3 segundos
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
+  // Organizar comentarios planos en estructura anidada
+  useEffect(() => {
+    if (!flatComments || flatComments.length === 0) {
+      setComments([]);
+      return;
+    }
+
+    const commentsMap = new Map<string, CommentWithReplies>();
+    const rootComments: CommentWithReplies[] = [];
+    
+    // Crear mapa de comentarios
+    flatComments.forEach(comment => {
+      commentsMap.set(comment.id, { ...comment, replies: [] });
+    });
+    
+    // Organizar jerarquía
+    flatComments.forEach(comment => {
+      if (comment.parentId) {
+        const parent = commentsMap.get(comment.parentId);
+        if (parent) {
+          parent.replies!.push(commentsMap.get(comment.id)!);
         }
-      });
-      
-      setComments(rootComments);
+      } else {
+        rootComments.push(commentsMap.get(comment.id)!);
+      }
+    });
+    
+    setComments(rootComments);
+  }, [flatComments]);
 
-      // Cargar datos de usuarios en batch
+  // Cargar datos de usuarios cuando cambien los comentarios
+  useEffect(() => {
+    const loadUsersData = async () => {
+      if (!flatComments || flatComments.length === 0) return;
+
       const userIds = new Set<string>();
-      commentsData.forEach(comment => {
+      flatComments.forEach(comment => {
         userIds.add(comment.userId);
       });
 
-      const userData = await getUsersDataByIds(Array.from(userIds));
-      setUsersData(userData);
-    } catch (error) {
-      console.error('Error cargando comentarios:', error);
-      setComments([]);
-    }
-  };
+      if (userIds.size > 0) {
+        try {
+          const userData = await getUsersDataByIds(Array.from(userIds));
+          setUsersData(userData);
+        } catch (error) {
+          console.error('Error cargando datos de usuarios:', error);
+        }
+      }
+    };
+
+    loadUsersData();
+  }, [flatComments]);
 
   const handleAddComment = async () => {
-    if (!newComment.trim()) {
+    const trimmedComment = newComment.trim();
+    
+    if (!trimmedComment || isSubmitting) {
+      return;
+    }
+    
+    // Validaciones
+    if (trimmedComment.length > 500) {
+      setToast({message: 'El comentario no puede exceder 500 caracteres', type: 'error'});
       return;
     }
     
     if (!auth.currentUser) {
-      alert('Debes iniciar sesión para comentar');
+      setToast({message: 'Debes iniciar sesión para comentar', type: 'error'});
       return;
     }
 
+    setIsSubmitting(true);
     try {
-      const comment = await createComment(postId, newComment);
-      
-      // Actualización optimista: agregar al estado local
-      setComments(prev => [...prev, { ...comment, replies: [] }]);
+      await addComment(postId, trimmedComment);
       setNewComment('');
+      setToast({message: 'Comentario publicado', type: 'success'});
     } catch (error) {
       console.error('Error agregando comentario:', error);
-      alert(`Error al publicar comentario: ${error}`);
+      setToast({message: 'Error al publicar comentario', type: 'error'});
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleAddReply = async (commentId: string) => {
-    if (!replyText.trim() || !auth.currentUser) return;
+    const trimmedReply = replyText.trim();
+    
+    if (!trimmedReply || !auth.currentUser) return;
+    
+    // Validaciones
+    if (trimmedReply.length > 500) {
+      setToast({message: 'La respuesta no puede exceder 500 caracteres', type: 'error'});
+      return;
+    }
 
     try {
-      const reply = await createComment(postId, replyText, 'reels', commentId);
-      
-      // Actualización optimista: agregar respuesta al comentario padre
-      setComments(prev => prev.map(comment => 
-        comment.id === commentId 
-          ? { ...comment, replies: [...(comment.replies || []), reply] }
-          : comment
-      ));
-      
+      await addComment(postId, trimmedReply, 'reels', commentId);
       setReplyText('');
       setReplyingTo(null);
-      setExpandedReplies(prev => new Set([...prev, commentId]));
+      toggleReplies(postId, commentId);
     } catch (error) {
       console.error('Error agregando respuesta:', error);
-      alert('Error al publicar respuesta. Verifica tu conexión.');
+      setToast({message: 'Error al publicar respuesta', type: 'error'});
     }
   };
 
@@ -127,16 +164,8 @@ export default function CommentsModal({ postId, isOpen, onClose }: CommentsModal
     return `${days}d`;
   };
 
-  const toggleReplies = (commentId: string) => {
-    setExpandedReplies(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(commentId)) {
-        newSet.delete(commentId);
-      } else {
-        newSet.add(commentId);
-      }
-      return newSet;
-    });
+  const handleToggleReplies = (commentId: string) => {
+    toggleReplies(postId, commentId);
   };
 
   if (!isOpen) return null;
@@ -163,18 +192,28 @@ export default function CommentsModal({ postId, isOpen, onClose }: CommentsModal
             onKeyPress={(e) => e.key === 'Enter' && handleAddComment()}
             maxLength={500}
           />
+          <div className="char-counter">{newComment.length}/500</div>
           {newComment.trim() && (
-            <button className="send-comment-btn" onClick={handleAddComment}>
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="18" y1="2" x2="9" y2="11"></line>
-                <polygon points="18,2 12,18 9,11 2,8"></polygon>
-              </svg>
+            <button className="send-comment-btn" onClick={handleAddComment} disabled={isSubmitting}>
+              {isSubmitting ? (
+                <div style={{width: '20px', height: '20px', border: '2px solid #fff', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 1s linear infinite'}}></div>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="2" x2="9" y2="11"></line>
+                  <polygon points="18,2 12,18 9,11 2,8"></polygon>
+                </svg>
+              )}
             </button>
           )}
         </div>
 
         <div className="comments-list">
-          {comments.length === 0 ? (
+          {loading ? (
+            <div className="no-comments">
+              <div style={{width: '30px', height: '30px', border: '3px solid #333', borderTop: '3px solid #fff', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto'}}></div>
+              <p>Cargando comentarios...</p>
+            </div>
+          ) : comments.length === 0 ? (
             <div className="no-comments">
               <p>No hay comentarios aún</p>
               <p>¡Sé el primero en comentar!</p>
@@ -212,7 +251,7 @@ export default function CommentsModal({ postId, isOpen, onClose }: CommentsModal
                     {comment.replies && comment.replies.length > 0 && (
                       <button 
                         className="view-replies-btn"
-                        onClick={() => toggleReplies(comment.id)}
+                        onClick={() => handleToggleReplies(comment.id)}
                       >
                         Ver {comment.replies.length} respuestas
                       </button>
@@ -229,6 +268,7 @@ export default function CommentsModal({ postId, isOpen, onClose }: CommentsModal
                     value={replyText}
                     onChange={(e) => setReplyText(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleAddReply(comment.id)}
+                    maxLength={500}
                     autoFocus
                   />
                   <button onClick={() => setReplyingTo(null)}>Cancelar</button>
@@ -267,6 +307,13 @@ export default function CommentsModal({ postId, isOpen, onClose }: CommentsModal
             ))
           )}
         </div>
+        
+        {/* Toast de notificaciones */}
+        {toast && (
+          <div className={`toast toast-${toast.type}`} onClick={() => setToast(null)}>
+            {toast.message}
+          </div>
+        )}
       </div>
     </div>
   );

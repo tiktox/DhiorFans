@@ -10,6 +10,9 @@ import {
   doc,
   updateDoc,
   increment,
+  limit,
+  startAfter,
+  QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { getUserData } from './userService';
 
@@ -71,22 +74,54 @@ export const createComment = async (
   };
 };
 
+export interface CommentsPage {
+  comments: Comment[];
+  lastDoc?: QueryDocumentSnapshot;
+  hasMore: boolean;
+}
+
 /**
- * Obtiene todos los comentarios para un post específico, ordenados por fecha.
+ * Obtiene comentarios paginados para un post específico.
  * @param postId El ID del post (o reel).
- * @returns Una lista de comentarios.
+ * @param pageSize Número de comentarios por página (default: 10).
+ * @param lastDoc Último documento para paginación.
+ * @returns Página de comentarios con información de paginación.
  */
-export const getCommentsForPost = async (postId: string): Promise<Comment[]> => {
-  const q = query(
+export const getCommentsForPost = async (
+  postId: string,
+  pageSize: number = 10,
+  lastDoc?: QueryDocumentSnapshot
+): Promise<CommentsPage> => {
+  let q = query(
     collection(db, 'comments'),
     where('postId', '==', postId),
-    orderBy('timestamp', 'asc')
+    orderBy('timestamp', 'asc'),
+    limit(pageSize + 1)
   );
 
+  if (lastDoc) {
+    q = query(
+      collection(db, 'comments'),
+      where('postId', '==', postId),
+      orderBy('timestamp', 'asc'),
+      startAfter(lastDoc),
+      limit(pageSize + 1)
+    );
+  }
+
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => ({
+  const docs = querySnapshot.docs;
+  const hasMore = docs.length > pageSize;
+  
+  const comments = docs.slice(0, pageSize).map(doc => ({
     id: doc.id,
     ...doc.data(),
     timestamp: (doc.data().timestamp as Timestamp).toMillis(),
   })) as Comment[];
+
+  return {
+    comments,
+    lastDoc: hasMore ? docs[pageSize - 1] : undefined,
+    hasMore,
+  };
 };
