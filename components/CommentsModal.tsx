@@ -12,9 +12,10 @@ interface CommentsModalProps {
   postId: string;
   isOpen: boolean;
   onClose: () => void;
+  onProfileClick?: (userId: string) => void;
 }
 
-export default function CommentsModal({ postId, isOpen, onClose }: CommentsModalProps) {
+export default function CommentsModal({ postId, isOpen, onClose, onProfileClick }: CommentsModalProps) {
   const { loadComments, addComment, getPostComments, toggleReplies } = useComments();
   const { comments: flatComments, hasMore, loading, expandedReplies } = getPostComments(postId);
   
@@ -35,10 +36,10 @@ export default function CommentsModal({ postId, isOpen, onClose }: CommentsModal
     }
   }, [isOpen, postId, loadComments, getPostComments]);
 
-  // Auto-ocultar toast después de 3 segundos
+  // Auto-ocultar toast después de 1 segundo
   useEffect(() => {
     if (toast) {
-      const timer = setTimeout(() => setToast(null), 3000);
+      const timer = setTimeout(() => setToast(null), 1000);
       return () => clearTimeout(timer);
     }
   }, [toast]);
@@ -208,12 +209,7 @@ export default function CommentsModal({ postId, isOpen, onClose }: CommentsModal
         </div>
 
         <div className="comments-list">
-          {loading ? (
-            <div className="no-comments">
-              <div style={{width: '30px', height: '30px', border: '3px solid #333', borderTop: '3px solid #fff', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto'}}></div>
-              <p>Cargando comentarios...</p>
-            </div>
-          ) : comments.length === 0 ? (
+          {comments.length === 0 ? (
             <div className="no-comments">
               <p>No hay comentarios aún</p>
               <p>¡Sé el primero en comentar!</p>
@@ -222,7 +218,7 @@ export default function CommentsModal({ postId, isOpen, onClose }: CommentsModal
             comments.map((comment) => (
             <div key={comment.id} className="comment-item">
               <div className="comment-main">
-                <div className="comment-avatar">
+                <div className="comment-avatar" onClick={() => onProfileClick?.(comment.userId)} style={{ cursor: 'pointer' }}>
                   {usersData[comment.userId]?.profilePicture ? (
                     <img src={usersData[comment.userId].profilePicture} alt="Avatar" />
                   ) : (
@@ -279,7 +275,7 @@ export default function CommentsModal({ postId, isOpen, onClose }: CommentsModal
                 <div className="replies-list">
                   {comment.replies.map((reply) => (
                     <div key={reply.id} className="reply-item">
-                      <div className="comment-avatar">
+                      <div className="comment-avatar" onClick={() => onProfileClick?.(reply.userId)} style={{ cursor: 'pointer' }}>
                         {usersData[reply.userId]?.profilePicture ? (
                           <img src={usersData[reply.userId].profilePicture} alt="Avatar" />
                         ) : (

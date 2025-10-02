@@ -274,6 +274,7 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
           // Actualizar contador después de cerrar modal
           getPostCommentsCount(post.id).then(setCommentsCount);
         }}
+        onProfileClick={onProfileClick}
       />
     </div>
   );

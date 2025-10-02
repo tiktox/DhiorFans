@@ -12,6 +12,7 @@ interface ReelsFeedProps {
 export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId, onPostDeleted }: ReelsFeedProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [allContent, setAllContent] = useState<Post[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -34,6 +35,8 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
     } else {
       setCurrentIndex(0);
     }
+    
+    setTimeout(() => setIsLoading(false), 100);
   };
 
   const handleWheel = (e: React.WheelEvent) => {
@@ -69,11 +72,12 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
     }
   }, [currentIndex]);
 
-  if (allContent.length === 0) {
+
+
+  if (isLoading) {
     return (
-      <div className="empty-feed-background">
-        <p>No hay reels disponibles</p>
-        <p>¡Sé el primero en publicar!</p>
+      <div className="reels-background" style={{ background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: '30px', height: '30px', border: '3px solid #333', borderTop: '3px solid #fff', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
       </div>
     );
   }

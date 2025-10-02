@@ -123,43 +123,8 @@ export default function Home() {
       
       {/* UI Elements on top */}
       <div className="home-ui-overlay">
-        {/* Top Section with Tabs */}
-        <div className="content-tabs">
-          <button 
-            className={`tab ${activeTab === 'para-ti' ? 'active' : ''}`}
-            onClick={() => setActiveTab('para-ti')}
-          >
-            Para ti
-          </button>
-          <button 
-            className={`tab ${activeTab === 'amigos' ? 'active' : ''}`}
-            onClick={() => setActiveTab('amigos')}
-          >
-            Amigos
-          </button>
-        </div>
-        
-        {/* Development reset button - remove in production */}
-        <div style={{ position: 'absolute', top: '10px', right: '10px' }}>
-          <button 
-            onClick={() => {
-              const { forceGenerateTestData } = require('../lib/testData');
-              forceGenerateTestData();
-              setRefreshFeed(prev => prev + 1);
-            }}
-            style={{
-              background: 'rgba(0,0,0,0.7)',
-              color: 'white',
-              border: 'none',
-              padding: '8px 12px',
-              borderRadius: '15px',
-              fontSize: '12px',
-              cursor: 'pointer'
-            }}
-          >
-            🔄 Reset
-          </button>
-        </div>
+
+
       </div>
 
       {/* Bottom Navigation Bar */}
