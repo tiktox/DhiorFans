@@ -40,7 +40,9 @@ export default function CommentsModal({ postId, isOpen, onClose }: CommentsModal
       });
 
       const userData: {[key: string]: UserData} = {};
-      for (const userId of userIds) {
+      const userIdArray = Array.from(userIds);
+      for (let i = 0; i < userIdArray.length; i++) {
+        const userId = userIdArray[i];
         try {
           const data = await getUserDataById(userId);
           if (data) {
