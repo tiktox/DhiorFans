@@ -177,7 +177,7 @@
 }
 
 .reel-overlay {
-  position: absolute;
+  position: fixed;
   bottom: 120px;
   left: 0;
   right: 0;
@@ -185,6 +185,15 @@
   color: white;
   z-index: 50;
   pointer-events: auto;
+}
+
+@media (min-width: 768px) {
+  .reel-overlay {
+    left: 50%;
+    transform: translateX(-50%);
+    width: 350px;
+    right: auto;
+  }
 }
 
 .user-info {
@@ -255,13 +264,19 @@
 }
 
 .reel-side-controls {
-  position: absolute;
+  position: fixed;
   right: 15px;
   bottom: 150px;
   display: flex;
   flex-direction: column;
   gap: 20px;
   z-index: 60;
+}
+
+@media (min-width: 768px) {
+  .reel-side-controls {
+    right: calc(50% - 175px + 15px);
+  }
 }
 
 .side-control-btn {

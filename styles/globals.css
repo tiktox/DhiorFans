@@ -1611,7 +1611,7 @@ body {
 
 /* Delete Post Button */
 .delete-post-btn {
-  position: absolute;
+  position: fixed;
   top: 20px;
   right: 20px;
   background: rgba(0, 0, 0, 0.7);
@@ -1624,12 +1624,18 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10;
+  z-index: 70;
   transition: background 0.3s;
 }
 
 .delete-post-btn:hover {
   background: rgba(220, 53, 69, 0.8);
+}
+
+@media (min-width: 768px) {
+  .delete-post-btn {
+    right: calc(50% - 175px + 20px);
+  }
 }
 
 /* Delete Confirmation Modal */

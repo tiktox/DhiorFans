@@ -176,35 +176,46 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
         </div>
       )}
       
-      <div className="reel-overlay">
-        {isOwner && (
-          <div className="delete-post-btn" onClick={() => setShowDeleteConfirm(true)}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="3,6 5,6 21,6"/>
-              <path d="m19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"/>
-              <line x1="10" y1="11" x2="10" y2="17"/>
-              <line x1="14" y1="11" x2="14" y2="17"/>
-            </svg>
-          </div>
-        )}
-        
-        <div className="reel-info">
-          <div className="user-info">
-            <div className="profile-pic" onClick={() => onProfileClick?.(post.userId)}>
-              {authorData?.profilePicture ? (
-                <img src={authorData.profilePicture} alt={authorData.username} />
-              ) : (
-                <div className="default-avatar">{authorData?.fullName?.[0]?.toUpperCase() || '?'}</div>
-              )}
+      {isActive && (
+        <div className="reel-overlay">
+          {isOwner && (
+            <div className="delete-post-btn" onClick={() => setShowDeleteConfirm(true)}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="3,6 5,6 21,6"/>
+                <path d="m19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"/>
+                <line x1="10" y1="11" x2="10" y2="17"/>
+                <line x1="14" y1="11" x2="14" y2="17"/>
+              </svg>
             </div>
-            <div className="user-details">
-              <div className="username">@{authorData?.username || '...'}</div>
-              {post.title && <div className="post-title">{post.title}</div>}
-              {post.description && <div className="description">{post.description}</div>}
+          )}
+          
+          <div className="reel-info">
+            <div className="user-info">
+              <div className="profile-pic" onClick={() => onProfileClick?.(post.userId)}>
+                {authorData?.profilePicture ? (
+                  <img src={authorData.profilePicture} alt={authorData.username} />
+                ) : (
+                  <div className="default-avatar">{authorData?.fullName?.[0]?.toUpperCase() || '?'}</div>
+                )}
+              </div>
+              <div className="user-details">
+                <div className="username">@{authorData?.username || '...'}</div>
+                {post.title && <div className="post-title">{post.title}</div>}
+                {post.description && <div className="description">{post.description}</div>}
+              </div>
             </div>
           </div>
+          
+          {/* Línea de tiempo solo visible en videos, no en imágenes */}
+          {!isImage && (
+            <div className="progress-bar" onClick={handleSeek} onTouchStart={handleSeek}>
+              <div className="progress-fill" style={{ width: `${progress}%` }} />
+            </div>
+          )}
         </div>
-        
+      )}
+      
+      {isActive && (
         <div className="reel-side-controls">
           <div className="like-container">
             <button className={`side-control-btn like-btn ${isLiked ? 'liked' : ''}`} onClick={handleLike}>
@@ -241,14 +252,7 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
             </button>
           )}
         </div>
-        
-        {/* Línea de tiempo solo visible en videos, no en imágenes */}
-        {!isImage && (
-          <div className="progress-bar" onClick={handleSeek} onTouchStart={handleSeek}>
-            <div className="progress-fill" style={{ width: `${progress}%` }} />
-          </div>
-        )}
-      </div>
+      )}
       
       {/* Modal de confirmación de eliminación */}
       {showDeleteConfirm && (
