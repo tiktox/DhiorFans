@@ -3,6 +3,8 @@ import { getUserDataById, UserData } from '../lib/userService';
 import { deletePost, Post } from '../lib/postService';
 import { toggleLike } from '../lib/likeService';
 import { auth } from '../lib/firebase';
+import { getPostCommentsCount } from '../lib/commentCountService';
+import CommentsModal from './CommentsModal';
 
 interface ReelPlayerProps {
   post: Post;
@@ -20,6 +22,8 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
   const [isLiked, setIsLiked] = useState(post.isLikedByUser || false);
   const [likesCount, setLikesCount] = useState(post.likesCount || 0);
   const [showLikeAnimation, setShowLikeAnimation] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+  const [commentsCount, setCommentsCount] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const lastTapRef = useRef<number>(0);
   
@@ -30,8 +34,15 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
       const data = await getUserDataById(post.userId);
       setAuthorData(data);
     };
+    
+    const fetchCommentsCount = async () => {
+      const count = await getPostCommentsCount(post.id);
+      setCommentsCount(count);
+    };
+    
     fetchAuthorData();
-  }, [post.userId]);
+    fetchCommentsCount();
+  }, [post.userId, post.id]);
 
   useEffect(() => {
     if (videoRef.current) {
@@ -203,11 +214,14 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
             </button>
             <span className="like-count">{likesCount}</span>
           </div>
-          <button className="side-control-btn comment-btn">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            </svg>
-          </button>
+          <div className="comment-container">
+            <button className="side-control-btn comment-btn" onClick={() => setShowComments(true)}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+            </button>
+            {commentsCount > 0 && <span className="comment-count">{commentsCount}</span>}
+          </div>
           <button className="side-control-btn share-btn">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/>
@@ -250,6 +264,17 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
           </div>
         </div>
       )}
+      
+      {/* Modal de comentarios */}
+      <CommentsModal 
+        postId={post.id}
+        isOpen={showComments}
+        onClose={() => {
+          setShowComments(false);
+          // Actualizar contador después de cerrar modal
+          getPostCommentsCount(post.id).then(setCommentsCount);
+        }}
+      />
     </div>
   );
 }
