@@ -157,7 +157,10 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
             <div 
               key={post.id} 
               className="post-thumbnail"
-              onClick={() => onViewPost?.(post.id)}
+              onClick={() => {
+                console.log('📱 Clic en post del perfil:', post.id);
+                onViewPost?.(post.id);
+              }}
             >
               {post.mediaType === 'video' ? (
                 <video src={post.mediaUrl} className="post-media" />

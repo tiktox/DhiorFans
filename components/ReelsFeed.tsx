@@ -16,10 +16,10 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Recargar cuando el componente se monta (para capturar nuevas publicaciones)
+  // Recargar cuando el componente se monta o cambia initialPostId
   useEffect(() => {
     loadContent();
-  }, []);
+  }, [initialPostId]);
 
   const loadContent = async () => {
     const allPosts = await getAllPosts();
@@ -28,15 +28,23 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
     const sortedPosts = allPosts.sort((a, b) => b.timestamp - a.timestamp);
     setAllContent(sortedPosts);
     
-    // Si hay un postId inicial, encontrar su índice
-    if (initialPostId) {
-      const postIndex = sortedPosts.findIndex(item => item.id === initialPostId);
-      setCurrentIndex(postIndex >= 0 ? postIndex : 0);
-    } else {
-      setCurrentIndex(0);
-    }
-    
-    setTimeout(() => setIsLoading(false), 100);
+    // Si hay un postId inicial, encontrar su índice después de que se actualice el estado
+    setTimeout(() => {
+      if (initialPostId) {
+        console.log('🎯 Buscando post:', initialPostId);
+        const postIndex = sortedPosts.findIndex(item => item.id === initialPostId);
+        console.log('📍 Índice encontrado:', postIndex, 'de', sortedPosts.length, 'posts');
+        if (postIndex >= 0) {
+          setCurrentIndex(postIndex);
+        } else {
+          console.log('❌ Post no encontrado, mostrando el primero');
+          setCurrentIndex(0);
+        }
+      } else {
+        setCurrentIndex(0);
+      }
+      setIsLoading(false);
+    }, 100);
   };
 
   const handleWheel = (e: React.WheelEvent) => {
@@ -64,13 +72,13 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
   };
 
   useEffect(() => {
-    if (containerRef.current) {
+    if (containerRef.current && !isLoading) {
       containerRef.current.scrollTo({
         top: currentIndex * window.innerHeight,
-        behavior: 'smooth'
+        behavior: initialPostId ? 'auto' : 'smooth'
       });
     }
-  }, [currentIndex]);
+  }, [currentIndex, isLoading, initialPostId]);
 
 
 

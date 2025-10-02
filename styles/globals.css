@@ -11,6 +11,7 @@ body {
 
 @import url('./reels.css');
 @import url('./publish.css');
+@import url('./comments.css');
 
 .auth-container {
   position: relative;
