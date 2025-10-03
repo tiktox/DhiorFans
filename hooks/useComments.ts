@@ -54,7 +54,7 @@ export const useComments = () => {
         }
       }));
     }
-  }, []);
+  }, [setCommentsState]);
 
   const addComment = useCallback(async (
     postId: string,
@@ -79,7 +79,7 @@ export const useComments = () => {
       console.error('Error adding comment:', error);
       throw error;
     }
-  }, []);
+  }, [setCommentsState]);
 
   const toggleReplies = useCallback((postId: string, commentId: string) => {
     setCommentsState(prev => {
@@ -105,7 +105,7 @@ export const useComments = () => {
         }
       };
     });
-  }, []);
+  }, [setCommentsState]);
 
   const getPostComments = useCallback((postId: string) => {
     return commentsState[postId] || {

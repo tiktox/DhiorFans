@@ -1,21 +1,7 @@
 {
   "indexes": [
     {
-      "collectionGroup": "posts",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "userId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "timestamp",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "likes",
+      "collectionGroup": "comments",
       "queryScope": "COLLECTION",
       "fields": [
         {
@@ -23,11 +9,10 @@
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "userId",
+          "fieldPath": "timestamp",
           "order": "ASCENDING"
         }
       ]
     }
-  ],
-  "fieldOverrides": []
+  ]
 }

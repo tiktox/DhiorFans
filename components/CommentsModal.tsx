@@ -34,7 +34,7 @@ export default function CommentsModal({ postId, isOpen, onClose, onProfileClick 
         loadComments(postId, 10, true);
       }
     }
-  }, [isOpen, postId, loadComments, getPostComments]);
+  }, [isOpen, postId]);
 
   // Auto-ocultar toast después de 1 segundo
   useEffect(() => {
