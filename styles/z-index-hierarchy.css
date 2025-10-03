@@ -1,0 +1,47 @@
+/* Z-Index Hierarchy - Orden de prioridad visual */
+
+/* Nivel 1: Elementos de fondo */
+/* z-index: -1 a 0 */
+
+/* Nivel 2: Contenido normal */
+/* z-index: 1 a 99 */
+
+/* Nivel 3: Navegación y UI básica */
+/* z-index: 100 a 999 */
+
+/* Nivel 4: Modales y overlays menores */
+/* z-index: 1000 a 9999 */
+
+/* Nivel 5: Navegación principal */
+/* z-index: 10000 a 99999 */
+
+/* Nivel 6: Modales críticos */
+/* z-index: 100000 a 999999 */
+
+/* Nivel 7: Sistema de comentarios (MÁXIMA PRIORIDAD) */
+/* z-index: 999999999+ */
+
+/* Forzar que el modal de comentarios esté por encima de TODO */
+.comments-modal-overlay {
+  z-index: 999999999 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+}
+
+.comments-modal {
+  z-index: 999999998 !important;
+  position: relative !important;
+}
+
+/* Asegurar que ningún elemento pueda estar por encima */
+* {
+  max-z-index: 999999997;
+}
+
+/* Regla específica para elementos del sistema */
+body, html {
+  isolation: isolate;
+}

@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import ReactDOM from 'react-dom';
 import { auth } from '../lib/firebase';
 import { getUsersDataByIds, UserData } from '../lib/userService';
 import { Comment } from '../lib/commentService';
@@ -26,6 +27,7 @@ export default function CommentsModal({ postId, isOpen, onClose, onProfileClick 
   const [usersData, setUsersData] = useState<{[key: string]: UserData}>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toast, setToast] = useState<{message: string; type: 'error' | 'success'} | null>(null);
+  const [modalRoot, setModalRoot] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -34,7 +36,12 @@ export default function CommentsModal({ postId, isOpen, onClose, onProfileClick 
         loadComments(postId, 10, true);
       }
     }
-  }, [isOpen, postId]);
+  }, [isOpen, postId, loadComments, getPostComments]);
+
+  // Asegurarnos de que el código solo se ejecute en el cliente
+  useEffect(() => {
+    setModalRoot(document.body);
+  }, []);
 
   // Auto-ocultar toast después de 1 segundo
   useEffect(() => {
@@ -131,7 +138,14 @@ export default function CommentsModal({ postId, isOpen, onClose, onProfileClick 
   const handleAddReply = async (commentId: string) => {
     const trimmedReply = replyText.trim();
     
-    if (!trimmedReply || !auth.currentUser) return;
+    if (!trimmedReply || isSubmitting) {
+      return;
+    }
+    
+    if (!auth.currentUser) {
+      setToast({message: 'Debes iniciar sesión para responder', type: 'error'});
+      return;
+    }
     
     // Validaciones
     if (trimmedReply.length > 500) {
@@ -139,14 +153,21 @@ export default function CommentsModal({ postId, isOpen, onClose, onProfileClick 
       return;
     }
 
+    setIsSubmitting(true);
     try {
       await addComment(postId, trimmedReply, 'reels', commentId);
       setReplyText('');
       setReplyingTo(null);
-      toggleReplies(postId, commentId);
+      setToast({message: 'Respuesta publicada', type: 'success'});
+      // Expandir automáticamente las respuestas para mostrar la nueva
+      if (!expandedReplies.has(commentId)) {
+        toggleReplies(postId, commentId);
+      }
     } catch (error) {
       console.error('Error agregando respuesta:', error);
       setToast({message: 'Error al publicar respuesta', type: 'error'});
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -171,7 +192,7 @@ export default function CommentsModal({ postId, isOpen, onClose, onProfileClick 
 
   if (!isOpen) return null;
 
-  return (
+  const modalContent = (
     <div className="comments-modal-overlay">
       <div className="comments-modal">
         <div className="comments-header">
@@ -258,16 +279,33 @@ export default function CommentsModal({ postId, isOpen, onClose, onProfileClick 
 
               {replyingTo === comment.id && (
                 <div className="reply-input">
-                  <input
-                    type="text"
-                    placeholder="Escribe una respuesta..."
-                    value={replyText}
-                    onChange={(e) => setReplyText(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleAddReply(comment.id)}
-                    maxLength={500}
-                    autoFocus
-                  />
-                  <button onClick={() => setReplyingTo(null)}>Cancelar</button>
+                  <div className="reply-input-container">
+                    <input
+                      type="text"
+                      placeholder="Escribe una respuesta..."
+                      value={replyText}
+                      onChange={(e) => setReplyText(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && replyText.trim() && handleAddReply(comment.id)}
+                      maxLength={500}
+                      autoFocus
+                    />
+                    <div className="reply-char-counter">{replyText.length}/500</div>
+                  </div>
+                  <div className="reply-actions">
+                    <button className="cancel-reply-btn" onClick={() => {
+                      setReplyingTo(null);
+                      setReplyText('');
+                    }}>Cancelar</button>
+                    {replyText.trim() && (
+                      <button 
+                        className="publish-reply-btn" 
+                        onClick={() => handleAddReply(comment.id)}
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? 'Publicando...' : 'Responder'}
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -313,4 +351,8 @@ export default function CommentsModal({ postId, isOpen, onClose, onProfileClick 
       </div>
     </div>
   );
+
+  if (!modalRoot) return null;
+
+  return ReactDOM.createPortal(modalContent, modalRoot);
 }
