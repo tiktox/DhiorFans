@@ -1635,7 +1635,8 @@ body {
 
 @media (min-width: 768px) {
   .delete-post-btn {
-    right: calc(50% - 175px + 20px);
+    right: 20px;
+    top: -299px;
   }
 }
 
