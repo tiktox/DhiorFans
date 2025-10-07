@@ -1,0 +1,40 @@
+/* CSS Variables for Design System */
+:root {
+  /* Border Radius System */
+  --radius-xs: 4px;   /* Small elements */
+  --radius-sm: 8px;   /* Buttons, inputs */
+  --radius-md: 12px;  /* Cards, modals */
+  --radius-lg: 16px;  /* Large containers */
+  --radius-xl: 24px;  /* Special elements */
+  --radius-full: 50%; /* Circular elements */
+
+  /* Spacing System */
+  --space-xs: 4px;    /* Tight spacing */
+  --space-sm: 8px;    /* Small spacing */
+  --space-md: 12px;   /* Medium spacing */
+  --space-lg: 16px;   /* Large spacing */
+  --space-xl: 20px;   /* Extra large spacing */
+  --space-2xl: 24px;  /* Double extra large */
+  --space-3xl: 32px;  /* Triple extra large */
+
+  /* Color System */
+  --color-bg-primary: #000;
+  --color-bg-secondary: #111;
+  --color-bg-tertiary: #1a1a1a;
+  --color-bg-quaternary: #222;
+  --color-border-primary: #333;
+  --color-border-secondary: #444;
+  --color-border-tertiary: #555;
+  --color-text-muted: #666;
+  --color-text-secondary: #999;
+  --color-text-primary: #ccc;
+  --color-text-white: #fff;
+  --color-accent: #2196f3;
+  --color-accent-hover: #1976d2;
+
+  /* Responsive Breakpoints */
+  --breakpoint-sm: 480px;   /* Small mobile */
+  --breakpoint-md: 768px;   /* Tablet */
+  --breakpoint-lg: 1024px;  /* Desktop */
+  --breakpoint-xl: 1200px;  /* Large desktop */
+}

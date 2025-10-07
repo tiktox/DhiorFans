@@ -1,47 +1,48 @@
-/* Z-Index Hierarchy - Orden de prioridad visual */
+/*
+Z-INDEX HIERARCHY - DHIROFANS
+===============================
 
-/* Nivel 1: Elementos de fondo */
-/* z-index: -1 a 0 */
+JERARQUÍA ORGANIZADA DE Z-INDEX PARA MANTENER CONSISTENCIA:
 
-/* Nivel 2: Contenido normal */
-/* z-index: 1 a 99 */
+NIVEL 1 - BACKGROUND (-1 a 0):
+- background-video: -1
 
-/* Nivel 3: Navegación y UI básica */
-/* z-index: 100 a 999 */
+NIVEL 2 - BASE CONTENT (1 a 10):
+- empty-feed-background: 1
+- search-input-icon: 1
+- post-modal-close: 1
+- image-click-overlay: 5
+- video-click-overlay: 10
+- external-profile-header: 10
 
-/* Nivel 4: Modales y overlays menores */
-/* z-index: 1000 a 9999 */
+NIVEL 3 - INTERACTIVE ELEMENTS (20 a 50):
+- play-pause-indicator: 20
+- like-animation: 30
+- reel-overlay: 50
 
-/* Nivel 5: Navegación principal */
-/* z-index: 10000 a 99999 */
+NIVEL 4 - CONTROLS (60 a 90):
+- reel-side-controls: 60
+- delete-post-btn: 80
+- time-indicator: 90
 
-/* Nivel 6: Modales críticos */
-/* z-index: 100000 a 999999 */
+NIVEL 5 - NAVIGATION (100 a 110):
+- bottom-nav: 100
+- like-animation (globals): 100
+- publish-modal-overlay: 110
 
-/* Nivel 7: Sistema de comentarios (MÁXIMA PRIORIDAD) */
-/* z-index: 999999999+ */
+NIVEL 6 - MODALS (120 a 150):
+- post-modal-overlay: 120
+- delete-confirm-overlay: 150
 
-/* Forzar que el modal de comentarios esté por encima de TODO */
-.comments-modal-overlay {
-  z-index: 999999999 !important;
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-}
+NIVEL 7 - NOTIFICATIONS (200+):
+- toast: 200
 
-.comments-modal {
-  z-index: 999999998 !important;
-  position: relative !important;
-}
+NIVEL 8 - OVERLAYS PRINCIPALES (1000+):
+- modal-overlay: 1000
+- publish-overlay: 1000
 
-/* Asegurar que ningún elemento pueda estar por encima */
-* {
-  max-z-index: 999999997;
-}
-
-/* Regla específica para elementos del sistema */
-body, html {
-  isolation: isolate;
-}
+REGLAS:
+- Nunca usar z-index > 5000
+- Mantener gaps de 10 entre niveles
+- Documentar cambios aquí
+*/

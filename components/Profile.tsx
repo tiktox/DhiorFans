@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { auth } from '../lib/firebase';
 import { getUserData, UserData } from '../lib/userService';
 import { getUserPosts, Post } from '../lib/postService';
+import { getUserTokens, initializeUserTokens, claimDailyTokens, canClaimTokens, TokenData } from '../lib/tokenService';
 
 import EditProfile from './EditProfile';
 import Settings from './Settings';
@@ -19,6 +20,7 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [currentView, setCurrentView] = useState('profile');
   const [userPosts, setUserPosts] = useState<Post[]>([]);
+  const [tokenData, setTokenData] = useState<TokenData | null>(null);
 
   // Función para recargar datos del usuario
   const reloadUserData = async () => {
@@ -34,6 +36,21 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
         const posts = await getUserPosts(auth.currentUser.uid);
         console.log('📄 Posts encontrados:', posts.length, posts);
         setUserPosts(posts);
+        
+        // Cargar tokens del usuario (inicializar si no existen)
+        const tokens = await initializeUserTokens(auth.currentUser.uid);
+        setTokenData(tokens);
+        console.log('🪙 Tokens cargados para perfil propio:', tokens);
+        
+        // Intentar reclamar tokens automáticamente si es posible
+        if (canClaimTokens(tokens.lastClaim)) {
+          const result = await claimDailyTokens(auth.currentUser.uid, data.followers || 0);
+          if (result.success) {
+            const updatedTokens = { ...tokens, tokens: result.totalTokens, lastClaim: Date.now() };
+            setTokenData(updatedTokens);
+            console.log(`✅ Tokens reclamados automáticamente: +${result.tokensEarned} (Total: ${result.totalTokens})`);
+          }
+        }
       } catch (error) {
         console.error('❌ Error al cargar datos del usuario:', error);
       }
@@ -48,8 +65,37 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
 
   // Recargar datos cuando el usuario regrese al perfil
   useEffect(() => {
-    reloadUserData();
+    const handleFocus = () => {
+      reloadUserData();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, []);
+
+  // Exponer función de recarga para uso externo
+  useEffect(() => {
+    (window as any).reloadProfileData = reloadUserData;
+    return () => {
+      delete (window as any).reloadProfileData;
+    };
+  }, []);
+
+  const autoClaimTokens = async () => {
+    if (!auth.currentUser || !userData || !tokenData) return;
+    
+    if (canClaimTokens(tokenData.lastClaim)) {
+      try {
+        const result = await claimDailyTokens(auth.currentUser.uid, userData.followers || 0);
+        if (result.success) {
+          setTokenData(prev => prev ? { ...prev, tokens: result.totalTokens, lastClaim: Date.now() } : null);
+          console.log(`✅ Tokens reclamados automáticamente: +${result.tokensEarned} (Total: ${result.totalTokens})`);
+        }
+      } catch (error) {
+        console.error('Error al reclamar tokens automáticamente:', error);
+      }
+    }
+  };
 
   if (!userData) {
     return <div className="profile-container">Cargando...</div>;
@@ -71,9 +117,12 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
   }
   return (
     <div className="profile-container">
-      {/* Centered Username Header */}
-      <div className="profile-centered-header">
+      {/* Header with username and settings */}
+      <div className="profile-header-with-settings">
         <h2 className="centered-username">{userData.username}</h2>
+        <button className="settings-btn-header" onClick={() => setCurrentView('settings')}>
+          ⚙️
+        </button>
       </div>
 
       {/* Centered Profile Picture */}
@@ -93,15 +142,15 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
       {/* Centered Stats */}
       <div className="centered-stats">
         <div className="stat-item">
-          <span className="stat-number">{userData.posts || 0}</span>
+          <span className="stat-number">{userPosts.length}</span>
           <span className="stat-label">Publicaciones</span>
         </div>
         <div className="stat-item">
-          <span className="stat-number">{userData.followers}</span>
+          <span className="stat-number">{userData.followers || 0}</span>
           <span className="stat-label">Seguidores</span>
         </div>
         <div className="stat-item">
-          <span className="stat-number">{userData.following}</span>
+          <span className="stat-number">{userData.following || 0}</span>
           <span className="stat-label">Seguidos</span>
         </div>
       </div>
@@ -142,12 +191,9 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
             <rect x="3" y="14" width="7" height="7"/>
           </svg>
         </button>
-        <button className="action-btn tokens-btn">
-          Tokens 1.3 M
-        </button>
-        <button className="action-btn settings-btn" onClick={() => setCurrentView('settings')}>
-          ⚙️
-        </button>
+        <div className="action-btn tokens-btn">
+          🪙 {tokenData?.tokens || 0}
+        </div>
       </div>
 
       {/* Posts Grid */}
@@ -175,6 +221,9 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
         ) : (
           <div className="no-posts">
             <p>No hay publicaciones aún</p>
+            <p style={{fontSize: '12px', color: '#666', marginTop: '10px'}}>
+              Si acabas de crear contenido, puede tardar unos minutos en aparecer
+            </p>
           </div>
         )}
       </div>

@@ -1,6 +1,7 @@
 import { auth, db } from './firebase';
 import { collection, addDoc, getDocs, query, orderBy, doc, deleteDoc, where, Timestamp } from 'firebase/firestore';
 import { getPostLikesCount, checkUserLike } from './likeService';
+import { handleIndexError, showIndexMessage } from './indexStatus';
 export interface Post {
   id: string;
   userId: string;
@@ -81,6 +82,7 @@ export const getUserPosts = async (userId: string): Promise<Post[]> => {
   console.log('🔍 getUserPosts() - Buscando posts para usuario:', userId);
   
   try {
+    // Intentar con query optimizada (requiere índice)
     const q = query(postsCollection, where('userId', '==', userId), orderBy('timestamp', 'desc'));
     console.log('🔍 Query creada, ejecutando...');
     
@@ -110,8 +112,58 @@ export const getUserPosts = async (userId: string): Promise<Post[]> => {
     console.log('✅ getUserPosts() - Total posts procesados:', posts.length);
     return posts;
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Error en getUserPosts:', error);
+    
+    // Si el error es por falta de índice, usar método alternativo
+    if (handleIndexError(error)) {
+      showIndexMessage();
+      console.log('🔄 Usando método alternativo sin índice...');
+      return await getUserPostsFallback(userId);
+    }
+    
+    return [];
+  }
+};
+
+// Método alternativo que no requiere índice compuesto
+const getUserPostsFallback = async (userId: string): Promise<Post[]> => {
+  try {
+    // Obtener todos los posts y filtrar en cliente
+    const q = query(postsCollection);
+    const querySnapshot = await getDocs(q);
+    const posts: Post[] = [];
+    
+    for (const docSnap of querySnapshot.docs) {
+      const data = docSnap.data();
+      
+      // Filtrar por userId
+      if (data.userId === userId) {
+        const postId = docSnap.id;
+        
+        // Obtener información de likes
+        const likesCount = await getPostLikesCount(postId);
+        const isLikedByUser = auth.currentUser ? 
+          await checkUserLike(postId, auth.currentUser.uid) !== null : false;
+        
+        posts.push({
+          id: postId,
+          ...data,
+          timestamp: (data.timestamp as Timestamp).toMillis(),
+          likesCount,
+          isLikedByUser
+        } as Post);
+      }
+    }
+    
+    // Ordenar por timestamp descendente
+    posts.sort((a, b) => b.timestamp - a.timestamp);
+    
+    console.log('✅ getUserPostsFallback() - Posts encontrados:', posts.length);
+    return posts;
+    
+  } catch (error) {
+    console.error('❌ Error en getUserPostsFallback:', error);
     return [];
   }
 };

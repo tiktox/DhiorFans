@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { getUserPosts, Post } from '../lib/postService';
 import { UserData } from '../lib/userService';
+import { followUser, unfollowUser, isFollowing } from '../lib/followService';
+import { getUserTokens, TokenData } from '../lib/tokenService';
 import PostModal from './PostModal';
 
 interface ExternalProfileProps {
@@ -13,13 +15,86 @@ interface ExternalProfileProps {
 export default function ExternalProfile({ userId, userData, onNavigateBack, onViewPost }: ExternalProfileProps) {
   const [userPosts, setUserPosts] = useState<Post[]>([]);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [isFollowingUser, setIsFollowingUser] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [followersCount, setFollowersCount] = useState(userData.followers || 0);
+  const [toast, setToast] = useState<{message: string; type: 'error' | 'success'} | null>(null);
+  const [tokenData, setTokenData] = useState<TokenData | null>(null);
 
   useEffect(() => {
-    const loadPosts = async () => {
-      setUserPosts(await getUserPosts(userId));
+    const loadData = async () => {
+      try {
+        console.log('🔄 Cargando datos del perfil externo para usuario:', userId);
+        
+        const [posts, following] = await Promise.all([
+          getUserPosts(userId),
+          isFollowing(userId)
+        ]);
+        
+        setUserPosts(posts);
+        setIsFollowingUser(following);
+        
+        // Actualizar contador de seguidores con el valor actual de userData
+        setFollowersCount(userData.followers || 0);
+        
+        console.log('👤 Estado de seguimiento:', following ? 'Siguiendo' : 'No siguiendo');
+        console.log('📊 Seguidores actuales:', userData.followers);
+        
+        // Cargar tokens del usuario
+        try {
+          const tokens = await getUserTokens(userId);
+          setTokenData(tokens);
+          console.log('🪙 Tokens cargados para usuario externo:', tokens);
+        } catch (tokenError) {
+          console.log('⚠️ Error cargando tokens, usando valores por defecto:', tokenError);
+          setTokenData({ tokens: 0, lastClaim: 0, followersCount: 0 });
+        }
+      } catch (error) {
+        console.error('Error cargando datos del perfil:', error);
+      }
     };
-    loadPosts();
-  }, [userId]);
+    loadData();
+  }, [userId, userData.followers]);
+
+  const handleFollowToggle = async () => {
+    if (isLoading) return;
+    
+    setIsLoading(true);
+    try {
+      // Verificar estado actual antes de la acción
+      const currentFollowingState = await isFollowing(userId);
+      
+      if (currentFollowingState) {
+        await unfollowUser(userId);
+        setIsFollowingUser(false);
+        setFollowersCount(prev => Math.max(0, prev - 1));
+        setToast({message: 'Has dejado de seguir a este usuario', type: 'success'});
+      } else {
+        await followUser(userId);
+        setIsFollowingUser(true);
+        setFollowersCount(prev => prev + 1);
+        setToast({message: 'Ahora sigues a este usuario', type: 'success'});
+      }
+      
+      // Recargar datos del perfil principal si está disponible
+      if ((window as any).reloadProfileData) {
+        (window as any).reloadProfileData();
+      }
+    } catch (error: any) {
+      console.error('Error al cambiar seguimiento:', error);
+      setToast({message: 'Error de permisos. Verifica tu conexión.', type: 'error'});
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Auto-ocultar toast
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   return (
     <div className="profile-container">
@@ -58,11 +133,11 @@ export default function ExternalProfile({ userId, userData, onNavigateBack, onVi
           <span className="stat-label">Publicaciones</span>
         </div>
         <div className="stat-item">
-          <span className="stat-number">{userData.followers}</span>
+          <span className="stat-number">{followersCount}</span>
           <span className="stat-label">Seguidores</span>
         </div>
         <div className="stat-item">
-          <span className="stat-number">{userData.following}</span>
+          <span className="stat-number">{userData.following || 0}</span>
           <span className="stat-label">Seguidos</span>
         </div>
       </div>
@@ -90,10 +165,27 @@ export default function ExternalProfile({ userId, userData, onNavigateBack, onVi
         </div>
       )}
 
-      {/* Follow Button */}
+      {/* Follow Button and Tokens */}
       <div className="centered-actions">
-        <button className="action-btn follow-btn">
-          Seguir
+        <button 
+          className={`action-btn ${isFollowingUser ? 'following-btn' : 'follow-btn'}`}
+          onClick={handleFollowToggle}
+          disabled={isLoading}
+          onMouseEnter={(e) => {
+            if (isFollowingUser && !isLoading) {
+              e.currentTarget.textContent = 'Dejar de seguir';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (isFollowingUser && !isLoading) {
+              e.currentTarget.textContent = 'Siguiendo';
+            }
+          }}
+        >
+          {isLoading ? 'Cargando...' : (isFollowingUser ? 'Siguiendo' : 'Seguir')}
+        </button>
+        <button className="action-btn tokens-btn-external" title={`Tokens: ${tokenData?.tokens || 0}`}>
+          🪙 {tokenData?.tokens || 0}
         </button>
       </div>
 
@@ -129,6 +221,13 @@ export default function ExternalProfile({ userId, userData, onNavigateBack, onVi
           post={selectedPost} 
           onClose={() => setSelectedPost(null)} 
         />
+      )}
+
+      {/* Toast de notificaciones */}
+      {toast && (
+        <div className={`toast toast-${toast.type}`} onClick={() => setToast(null)}>
+          {toast.message}
+        </div>
       )}
     </div>
   );

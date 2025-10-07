@@ -15,7 +15,6 @@ export default function EditProfile({ userData, onNavigateBack, onSave }: EditPr
     username: '',
     bio: '',
     link: '',
-    gender: '' as 'Hombre' | 'Mujer' | '',
     profilePicture: ''
   });
   const [usernameError, setUsernameError] = useState('');
@@ -27,7 +26,6 @@ export default function EditProfile({ userData, onNavigateBack, onSave }: EditPr
         username: userData.username || '',
         bio: userData.bio || '',
         link: userData.link || '',
-        gender: userData.gender || '',
         profilePicture: userData.profilePicture || ''
       });
     }
@@ -56,11 +54,6 @@ export default function EditProfile({ userData, onNavigateBack, onSave }: EditPr
         profilePicture: formData.profilePicture,
         lastUsernameChange: formData.username !== userData.username ? Date.now() : userData.lastUsernameChange
       };
-      
-      // Solo agregar gender si tiene valor
-      if (formData.gender) {
-        updatedData.gender = formData.gender as 'Hombre' | 'Mujer';
-      }
 
       console.log('💾 Guardando perfil actualizado:', updatedData);
       await saveUserData(updatedData);
@@ -183,17 +176,7 @@ export default function EditProfile({ userData, onNavigateBack, onSave }: EditPr
           />
         </div>
 
-        <div className="form-group">
-          <label>Sexo</label>
-          <select
-            value={formData.gender}
-            onChange={(e) => setFormData({ ...formData, gender: e.target.value as 'Hombre' | 'Mujer' | '' })}
-          >
-            <option value="">Seleccionar</option>
-            <option value="Hombre">Hombre</option>
-            <option value="Mujer">Mujer</option>
-          </select>
-        </div>
+
 
         <div className="edit-profile-actions">
           <button type="submit" className="save-btn">
