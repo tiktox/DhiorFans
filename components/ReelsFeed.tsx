@@ -71,14 +71,7 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
     }
   };
 
-  useEffect(() => {
-    if (containerRef.current && !isLoading) {
-      containerRef.current.scrollTo({
-        top: currentIndex * window.innerHeight,
-        behavior: initialPostId ? 'auto' : 'smooth'
-      });
-    }
-  }, [currentIndex, isLoading, initialPostId]);
+  // Eliminar el scroll acumulativo problemático
 
 
 
@@ -93,22 +86,32 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
   return (
     <div 
       className="reels-background" 
-      ref={containerRef}
       onWheel={handleWheel}
       onTouchStart={(e) => handleTouchStart.current.y = e.touches[0].clientY}
       onTouchMove={handleTouchMove}
     >
       {allContent.map((content, index) => (
-        <ReelPlayer
+        <div
           key={content.id}
-          post={content}
-          isActive={index === currentIndex}
-          onProfileClick={onExternalProfile}
-          onPostDeleted={() => {
-            loadContent();
-            onPostDeleted?.();
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            display: index === currentIndex ? 'block' : 'none'
           }}
-        />
+        >
+          <ReelPlayer
+            post={content}
+            isActive={index === currentIndex}
+            onProfileClick={onExternalProfile}
+            onPostDeleted={() => {
+              loadContent();
+              onPostDeleted?.();
+            }}
+          />
+        </div>
       ))}
     </div>
   );
