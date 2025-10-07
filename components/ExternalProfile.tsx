@@ -44,7 +44,7 @@ export default function ExternalProfile({ userId, userData, onNavigateBack, onVi
         try {
           const tokens = await getUserTokens(userId);
           setTokenData(tokens);
-          console.log('🪙 Tokens cargados para usuario externo:', tokens);
+          console.log('🪙 Tokens cargados para usuario externo:', userId, tokens);
         } catch (tokenError) {
           console.log('⚠️ Error cargando tokens, usando valores por defecto:', tokenError);
           setTokenData({ tokens: 0, lastClaim: 0, followersCount: 0 });
@@ -184,9 +184,9 @@ export default function ExternalProfile({ userId, userData, onNavigateBack, onVi
         >
           {isLoading ? 'Cargando...' : (isFollowingUser ? 'Siguiendo' : 'Seguir')}
         </button>
-        <button className="action-btn tokens-btn-external" title={`Tokens: ${tokenData?.tokens || 0}`}>
+        <div className="action-btn tokens-btn-external" title={`Tokens: ${tokenData?.tokens || 0}`}>
           🪙 {tokenData?.tokens || 0}
-        </button>
+        </div>
       </div>
 
       {/* Posts Grid */}

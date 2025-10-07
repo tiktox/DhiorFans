@@ -179,6 +179,18 @@
     height: 100%;
     object-fit: contain;
   }
+  
+  .reel-overlay {
+    bottom: 120px;
+  }
+  
+  .reel-side-controls {
+    bottom: 150px;
+  }
+  
+  .progress-bar {
+    bottom: 90px;
+  }
 }
 
 /* Desktop */
@@ -189,6 +201,18 @@
   
   .reel-container {
     width: 350px;
+  }
+  
+  .reel-overlay {
+    bottom: 120px;
+  }
+  
+  .reel-side-controls {
+    bottom: 150px;
+  }
+  
+  .progress-bar {
+    bottom: 90px;
   }
 }
 
@@ -218,7 +242,7 @@
 
 .reel-overlay {
   position: absolute;
-  bottom: 120px;
+  bottom: 180px;
   left: 0;
   right: 0;
   padding: 20px;
@@ -227,10 +251,10 @@
   pointer-events: auto;
 }
 .progress-bar {
-  top: calc(100% - 17.5%);
+  top: calc(100% - 20%);
   width: calc(100% - 180px);
   position: absolute;
-  bottom: 90px;
+  bottom: 150px;
   left: 90px;
   right: 90px;
   height: 4px;
@@ -320,7 +344,7 @@
 .reel-side-controls {
   position: absolute;
   right: var(--space-lg);
-  bottom: 150px;
+  bottom: 210px;
   display: flex;
   flex-direction: column;
   gap: var(--space-xl);
