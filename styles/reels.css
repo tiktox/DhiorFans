@@ -187,17 +187,17 @@
   }
   
   .reel-overlay {
-    bottom: 120px;
+    bottom: 160px;
     padding: var(--space-lg);
   }
   
   .reel-side-controls {
-    bottom: 150px;
+    bottom: 190px;
     right: var(--space-md);
   }
   
   .progress-bar {
-    bottom: 90px;
+    bottom: 130px;
     left: var(--space-lg);
     right: var(--space-lg);
     width: calc(100% - 2 * var(--space-lg));
@@ -267,6 +267,7 @@
   }
   
   .user-info {
+    top:calc(100px - 10px);
     max-width: calc(100% - 50px);
   }
   
@@ -318,6 +319,7 @@
   pointer-events: auto;
 }
 .progress-bar {
+  top: calc(500px - 1px);
   position: absolute;
   bottom: 150px;
   left: 90px;
