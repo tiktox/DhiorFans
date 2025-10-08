@@ -68,7 +68,7 @@
 /* MOBILE ELEMENTS POSITIONING */
 .reel-overlay {
   position: absolute;
-  bottom: 280px;
+  bottom: 180px;
   left: 0;
   right: 0;
   padding: 20px;
@@ -89,7 +89,7 @@
 
 .progress-bar {
   position: absolute;
-  bottom: 100px;
+  bottom: 180px;
   left: 90px;
   right: 90px;
   width: calc(100% - 180px);
