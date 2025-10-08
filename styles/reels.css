@@ -187,17 +187,17 @@
   }
   
   .reel-overlay {
-    bottom: 160px;
+    bottom: 120px;
     padding: var(--space-lg);
   }
   
   .reel-side-controls {
-    bottom: 190px;
+    bottom: 150px;
     right: var(--space-md);
   }
   
   .progress-bar {
-    bottom: 130px;
+    bottom: 90px;
     left: var(--space-lg);
     right: var(--space-lg);
     width: calc(100% - 2 * var(--space-lg));
@@ -237,18 +237,18 @@
   }
   
   .reel-overlay {
-    bottom: 100px;
+    bottom: 120px;
     padding: var(--space-lg);
   }
   
   .reel-side-controls {
-    bottom: 130px;
+    bottom: 150px;
     right: var(--space-md);
     gap: var(--space-lg);
   }
   
   .progress-bar {
-    bottom: 70px;
+    bottom: 90px;
     left: var(--space-lg);
     right: var(--space-lg);
     width: calc(100% - 2 * var(--space-lg));
@@ -267,7 +267,6 @@
   }
   
   .user-info {
-    top:calc(100px - 10px);
     max-width: calc(100% - 50px);
   }
   
@@ -319,7 +318,6 @@
   pointer-events: auto;
 }
 .progress-bar {
-  top: calc(500px - 1px);
   position: absolute;
   bottom: 150px;
   left: 90px;
