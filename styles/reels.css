@@ -167,29 +167,49 @@
 @media (min-width: 768px) {
   .reels-background {
     width: 400px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
   }
   
   .reel-container {
     width: 400px;
+    border-radius: var(--radius-lg);
   }
   
   .reel-video,
   .reel-image {
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
+    border-radius: var(--radius-lg);
   }
   
   .reel-overlay {
     bottom: 120px;
+    padding: var(--space-lg);
   }
   
   .reel-side-controls {
     bottom: 150px;
+    right: var(--space-md);
   }
   
   .progress-bar {
     bottom: 90px;
+    left: var(--space-lg);
+    right: var(--space-lg);
+    width: calc(100% - 2 * var(--space-lg));
+  }
+  
+  .side-control-btn {
+    width: 44px;
+    height: 44px;
+  }
+  
+  .user-info {
+    max-width: calc(100% - 60px);
   }
 }
 
@@ -197,22 +217,69 @@
 @media (min-width: 1024px) {
   .reels-background {
     width: 350px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: var(--radius-xl);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
   }
   
   .reel-container {
     width: 350px;
+    border-radius: var(--radius-xl);
+  }
+  
+  .reel-video,
+  .reel-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: var(--radius-xl);
   }
   
   .reel-overlay {
-    bottom: 120px;
+    bottom: 100px;
+    padding: var(--space-lg);
   }
   
   .reel-side-controls {
-    bottom: 150px;
+    bottom: 130px;
+    right: var(--space-md);
+    gap: var(--space-lg);
   }
   
   .progress-bar {
-    bottom: 90px;
+    bottom: 70px;
+    left: var(--space-lg);
+    right: var(--space-lg);
+    width: calc(100% - 2 * var(--space-lg));
+  }
+  
+  .side-control-btn {
+    width: 40px;
+    height: 40px;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+  }
+  
+  .side-control-btn:hover {
+    transform: scale(1.15);
+    background: rgba(0, 0, 0, 0.9);
+  }
+  
+  .user-info {
+    max-width: calc(100% - 50px);
+  }
+  
+  .username {
+    font-size: 15px;
+  }
+  
+  .post-title {
+    font-size: 14px;
+  }
+  
+  .description {
+    font-size: 13px;
   }
 }
 
@@ -251,12 +318,11 @@
   pointer-events: auto;
 }
 .progress-bar {
-  top: calc(100% - 20%);
-  width: calc(100% - 180px);
   position: absolute;
   bottom: 150px;
   left: 90px;
   right: 90px;
+  width: calc(100% - 180px);
   height: 4px;
   background: rgba(255, 255, 255, 0.3);
   border-radius: 2px;
@@ -433,6 +499,13 @@
   overflow: hidden;
 }
 
+/* Tablet y Desktop - Centrado mejorado */
+@media (min-width: 768px) {
+  .reel-container {
+    margin: 0 auto;
+  }
+}
+
 /* Asegúrate de que el video tenga position relative */
 .reel-video {
   width: 100%;
@@ -523,6 +596,42 @@
   animation: likeAnimation 0.8s ease-out;
 }
 
+/* Tablet */
+@media (min-width: 768px) {
+  .like-animation {
+    font-size: 50px;
+  }
+  
+  .play-pause-indicator {
+    font-size: 40px;
+  }
+  
+  .time-indicator {
+    font-size: 15px;
+    padding: var(--space-sm) var(--space-lg);
+  }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  .like-animation {
+    font-size: 45px;
+  }
+  
+  .play-pause-indicator {
+    font-size: 35px;
+  }
+  
+  .time-indicator {
+    font-size: 14px;
+    padding: var(--space-sm) var(--space-md);
+  }
+  
+  .empty-feed-background p {
+    font-size: 16px;
+  }
+}
+
 @keyframes likeAnimation {
   0% {
     opacity: 0;
@@ -575,5 +684,75 @@
   to {
     opacity: 1;
     transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* Estilos adicionales para tablet y desktop */
+@media (min-width: 768px) {
+  .video-click-overlay {
+    touch-action: none;
+  }
+  
+  .video-progress-container {
+    height: 4px;
+  }
+  
+  .video-progress-container:hover {
+    height: 6px;
+  }
+  
+  .profile-pic {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .like-count,
+  .comment-count {
+    font-size: 11px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .reels-background:hover {
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+  }
+  
+  .video-progress-container {
+    height: 3px;
+  }
+  
+  .video-progress-container:hover {
+    height: 5px;
+  }
+  
+  .profile-pic {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .like-count,
+  .comment-count {
+    font-size: 10px;
+  }
+  
+  .reel-side-controls {
+    opacity: 0.9;
+  }
+  
+  .reel-side-controls:hover {
+    opacity: 1;
+  }
+}
+
+/* Mejoras de accesibilidad para desktop */
+@media (min-width: 1024px) and (hover: hover) {
+  .side-control-btn:focus {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+  
+  .progress-bar:focus {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
   }
 }

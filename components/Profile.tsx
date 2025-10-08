@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { auth } from '../lib/firebase';
 import { getUserData, UserData } from '../lib/userService';
 import { getUserPosts, Post } from '../lib/postService';
-import { getUserTokens, initializeUserTokens, claimDailyTokens, canClaimTokens, TokenData } from '../lib/tokenService';
+import { getUserTokens, initializeUserTokens, claimDailyTokens, canClaimTokens, migrateUserTokens, TokenData } from '../lib/tokenService';
 
 import EditProfile from './EditProfile';
 import Settings from './Settings';
@@ -36,6 +36,9 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
         const posts = await getUserPosts(auth.currentUser.uid);
         console.log('📄 Posts encontrados:', posts.length, posts);
         setUserPosts(posts);
+        
+        // Migrar tokens para usuarios antiguos
+        await migrateUserTokens(auth.currentUser.uid, data.followers || 0);
         
         // Cargar tokens del usuario (inicializar si no existen)
         const tokens = await initializeUserTokens(auth.currentUser.uid);

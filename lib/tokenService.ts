@@ -136,3 +136,38 @@ export const grantFollowerBonus = async (userId: string, newFollowersCount: numb
   
   return null;
 };
+
+// Migración para usuarios antiguos
+export const migrateUserTokens = async (userId: string, currentFollowers: number = 0): Promise<void> => {
+  try {
+    const tokenDoc = await getDoc(doc(db, 'tokens', userId));
+    
+    if (!tokenDoc.exists()) {
+      const initialData: TokenData = {
+        tokens: 0,
+        lastClaim: 0,
+        followersCount: currentFollowers
+      };
+      await setDoc(doc(db, 'tokens', userId), initialData);
+      console.log(`✅ Tokens migrados para usuario: ${userId}`);
+    }
+  } catch (error) {
+    console.error('Error en migración de tokens:', error);
+  }
+};
+
+// Inicializar tokens para nuevos usuarios
+export const initializeNewUserTokens = async (userId: string): Promise<void> => {
+  const initialData: TokenData = {
+    tokens: 0,
+    lastClaim: 0,
+    followersCount: 0
+  };
+  
+  try {
+    await setDoc(doc(db, 'tokens', userId), initialData);
+    console.log(`🎉 Tokens inicializados para nuevo usuario: ${userId}`);
+  } catch (error) {
+    console.error('Error inicializando tokens para nuevo usuario:', error);
+  }
+};

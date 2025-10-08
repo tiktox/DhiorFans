@@ -1,5 +1,6 @@
 import { auth, db } from './firebase';
 import { doc, getDoc, setDoc, getDocs, collection, query, where } from 'firebase/firestore';
+import { initializeNewUserTokens, migrateUserTokens } from './tokenService';
 
 export interface UserData {
   fullName: string;
@@ -128,7 +129,11 @@ export const getUserData = async (): Promise<UserData> => {
     // Guardar los datos por defecto
     console.log('🆕 Creando usuario nuevo con datos:', defaultData);
     await setDoc(userRef, defaultData);
-    console.log('✅ Usuario nuevo creado en Firebase');
+    
+    // Inicializar tokens para nuevo usuario
+    await initializeNewUserTokens(auth.currentUser.uid);
+    
+    console.log('✅ Usuario nuevo creado en Firebase con tokens inicializados');
     return defaultData;
   }
   
