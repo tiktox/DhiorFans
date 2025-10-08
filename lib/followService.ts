@@ -25,12 +25,14 @@ export const followUser = async (targetUserId: string): Promise<void> => {
       return;
     }
 
-    // Crear registro de seguimiento
-    await setDoc(followRef, {
-      followerId,
+    // Crear registro de seguimiento con estructura exacta
+    const followData = {
+      followerId: followerId,
       followingId: targetUserId,
       timestamp: Date.now()
-    });
+    };
+    
+    await setDoc(followRef, followData);
 
     // Incrementar contador de seguidos del usuario actual
     const followerRef = doc(db, 'users', followerId);
@@ -48,13 +50,13 @@ export const followUser = async (targetUserId: string): Promise<void> => {
     const updatedUserDoc = await getDoc(followingRef);
     const newFollowersCount = updatedUserDoc.data()?.followers || 0;
     
-    // Actualizar contador de seguidores en tokens y otorgar bonus si es el primer seguidor
-    await updateFollowersCount(targetUserId, newFollowersCount);
-    
-    // Otorgar bonus de tokens si es el primer seguidor
+    // Otorgar bonus de tokens si es el primer seguidor (antes de actualizar contador)
     const bonus = await grantFollowerBonus(targetUserId, newFollowersCount);
     if (bonus) {
-      console.log(`🎉 Usuario ${targetUserId} recibió ${bonus.tokensGranted} tokens por su primer seguidor!`);
+      console.log(`🎉 Usuario ${targetUserId} recibió ${bonus.tokensGranted} tokens por alcanzar su primer seguidor!`);
+    } else {
+      // Solo actualizar contador si no hubo bonus
+      await updateFollowersCount(targetUserId, newFollowersCount);
     }
 
     console.log(`✅ Usuario ${followerId} ahora sigue a ${targetUserId}`);
@@ -79,6 +81,12 @@ export const unfollowUser = async (targetUserId: string): Promise<void> => {
     if (!existingFollow.exists()) {
       console.log('Usuario no sigue a este usuario, saltando...');
       return;
+    }
+
+    // Verificar que el documento tiene la estructura correcta
+    const followData = existingFollow.data();
+    if (!followData || followData.followerId !== followerId) {
+      throw new Error('Datos de seguimiento inválidos');
     }
 
     // Eliminar registro de seguimiento

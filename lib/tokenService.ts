@@ -91,11 +91,26 @@ export const canClaimTokens = (lastClaim: number): boolean => {
 };
 
 export const updateFollowersCount = async (userId: string, followersCount: number): Promise<void> => {
-  const tokenData = await getUserTokens(userId);
-  await updateDoc(doc(db, 'tokens', userId), {
-    ...tokenData,
-    followersCount
-  });
+  try {
+    const tokenRef = doc(db, 'tokens', userId);
+    const tokenDoc = await getDoc(tokenRef);
+    
+    if (!tokenDoc.exists()) {
+      await setDoc(tokenRef, {
+        tokens: 0,
+        lastClaim: 0,
+        followersCount
+      });
+    } else {
+      const tokenData = tokenDoc.data() as TokenData;
+      await setDoc(tokenRef, {
+        ...tokenData,
+        followersCount
+      });
+    }
+  } catch (error) {
+    console.error('Error actualizando contador de seguidores:', error);
+  }
 };
 
 export const spendTokens = async (userId: string, amount: number): Promise<{ success: boolean; remainingTokens: number }> => {
@@ -114,36 +129,53 @@ export const spendTokens = async (userId: string, amount: number): Promise<{ suc
 };
 
 export const grantFollowerBonus = async (userId: string, newFollowersCount: number): Promise<{ tokensGranted: number; totalTokens: number } | null> => {
-  const tokenData = await getUserTokens(userId);
-  
-  // Si ya tenía 1+ seguidores, no dar bonus
-  if (tokenData.followersCount >= 1) {
-    // Solo actualizar el contador de seguidores
-    await updateDoc(doc(db, 'tokens', userId), {
+  try {
+    const tokenRef = doc(db, 'tokens', userId);
+    const tokenDoc = await getDoc(tokenRef);
+    
+    let tokenData: TokenData;
+    if (!tokenDoc.exists()) {
+      tokenData = { tokens: 0, lastClaim: 0, followersCount: 0 };
+      await setDoc(tokenRef, tokenData);
+    } else {
+      tokenData = tokenDoc.data() as TokenData;
+    }
+    
+    // Si ya tenía 1+ seguidores, solo actualizar contador
+    if (tokenData.followersCount >= 1) {
+      await setDoc(tokenRef, {
+        ...tokenData,
+        followersCount: newFollowersCount
+      });
+      return null;
+    }
+    
+    // Si ahora tiene 1+ seguidores, dar bonus de 50 tokens
+    if (newFollowersCount >= 1) {
+      const bonusTokens = 50;
+      const newTotal = tokenData.tokens + bonusTokens;
+      
+      await setDoc(tokenRef, {
+        tokens: newTotal,
+        lastClaim: tokenData.lastClaim,
+        followersCount: newFollowersCount
+      });
+      
+      console.log(`🎉 Usuario ${userId} recibió ${bonusTokens} tokens por su primer seguidor!`);
+      return { tokensGranted: bonusTokens, totalTokens: newTotal };
+    }
+    
+    // Solo actualizar contador
+    await setDoc(tokenRef, {
+      ...tokenData,
       followersCount: newFollowersCount
     });
+    
+    return null;
+  } catch (error) {
+    console.error('Error otorgando bonus de seguidor:', error);
     return null;
   }
-  
-  // Si ahora tiene 1+ seguidores, dar bonus de 60 tokens
-  if (newFollowersCount >= 1) {
-    const bonusTokens = 60;
-    const newTotal = tokenData.tokens + bonusTokens;
-    
-    await updateDoc(doc(db, 'tokens', userId), {
-      tokens: newTotal,
-      followersCount: newFollowersCount
-    });
-    
-    return { tokensGranted: bonusTokens, totalTokens: newTotal };
-  }
-  
-  // Solo actualizar contador si no hay bonus
-  await updateDoc(doc(db, 'tokens', userId), {
-    followersCount: newFollowersCount
-  });
-  
-  return null;
 };
 
 // Migración para usuarios antiguos

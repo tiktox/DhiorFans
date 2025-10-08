@@ -76,6 +76,15 @@ export default function ExternalProfile({ userId, userData, onNavigateBack, onVi
         setToast({message: 'Ahora sigues a este usuario', type: 'success'});
       }
       
+      // Recargar tokens actualizados
+      try {
+        const updatedTokens = await getUserTokens(userId);
+        setTokenData(updatedTokens);
+        console.log('🔄 Tokens actualizados:', updatedTokens);
+      } catch (error) {
+        console.log('Error recargando tokens:', error);
+      }
+      
       // Recargar datos del perfil principal si está disponible
       if ((window as any).reloadProfileData) {
         (window as any).reloadProfileData();
