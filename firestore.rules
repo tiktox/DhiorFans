@@ -3,88 +3,66 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // ===== REGLAS DE TRANSICIÓN (MÁS PERMISIVAS) =====
+    // ===== REGLAS ULTRA PERMISIVAS PARA DESARROLLO =====
     
-    // Usuarios - Lectura pública, escritura para propietarios
+    // Usuarios - Acceso completo
     match /users/{userId} {
-      allow read: if true;
-      allow write: if request.auth != null && 
-        (request.auth.uid == userId || 
-         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers', 'following', 'posts']));
+      allow read, write: if true;
     }
     
-    // Posts - Lectura pública, escritura para autenticados
+    // Posts - Acceso completo
     match /posts/{postId} {
-      allow read: if true;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow update: if request.auth != null && 
-        (request.auth.uid == resource.data.userId ||
-         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'comments', 'commentsCount']));
-      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow read, write: if true;
     }
     
-    // Reels - Lectura pública, escritura para autenticados
+    // Reels - Acceso completo
     match /reels/{reelId} {
-      allow read: if true;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow update: if request.auth != null && 
-        (request.auth.uid == resource.data.userId ||
-         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'comments', 'commentsCount']));
-      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow read, write: if true;
     }
     
-    // Comentarios - Lectura pública, escritura para autenticados
+    // Comentarios - Acceso completo
     match /comments/{commentId} {
-      allow read: if true;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow update: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow read, write: if true;
     }
     
-    // Likes - Lectura pública, escritura para autenticados
+    // Likes - Acceso completo
     match /likes/{likeId} {
-      allow read: if true;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow read, write: if true;
     }
     
-    // Follows - Lectura pública, escritura para autenticados
+    // Follows - Acceso completo
     match /follows/{followId} {
-      allow read: if true;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.followerId;
-      allow delete: if request.auth != null && request.auth.uid == resource.data.followerId;
+      allow read, write: if true;
     }
     
-    // Tokens - Lectura pública, escritura para propietarios
+    // Tokens - Acceso completo
     match /tokens/{userId} {
-      allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if true;
     }
     
-    // Transacciones de tokens
+    // Transacciones de tokens - Acceso completo
     match /tokenTransactions/{transactionId} {
-      allow read: if request.auth != null && 
-        (request.auth.uid == resource.data.userId || 
-         ('recipientId' in resource.data && request.auth.uid == resource.data.recipientId));
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow read, write: if true;
     }
     
-    // Reportes
+    // Reportes - Acceso completo
     match /reports/{reportId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.reporterId;
+      allow read, write: if true;
     }
     
-    // Notificaciones
+    // Notificaciones - Acceso completo
     match /notifications/{notificationId} {
-      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null;
-      allow update: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow read, write: if true;
     }
     
-    // Configuraciones de usuario
+    // Configuraciones de usuario - Acceso completo
     match /userSettings/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if true;
+    }
+    
+    // Regla catch-all para cualquier otra colección
+    match /{document=**} {
+      allow read, write: if true;
     }
   }
 }
