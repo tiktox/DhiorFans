@@ -1445,46 +1445,128 @@ body {
 }
 
 .tokens-btn {
-  background: linear-gradient(45deg, #ffd700, #ffb347);
-  color: #333;
-  padding: 8px 15px;
-  border-radius: 15px;
-  font-weight: 600;
-  font-size: 12px;
+  background: linear-gradient(135deg, #ffd900dc 0%, #ff8c00b0 25%, #ffd900d8 50%, #ff8c00a6 75%, #ffd700 100%);
+  background-size: 200% 200%;
+  color: #000;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 13px;
   border: none;
-  cursor: default;
-  box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+  cursor: pointer;
+  box-shadow: 
+    0 0 20px rgba(251, 255, 0, 0.452),
+    0 0 30px rgba(255, 140, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
   display: flex;
   align-items: center;
-  gap: 4px;
-  min-width: 80px;
+  gap: 6px;
+  min-width: 90px;
   justify-content: center;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  animation: gradientShift 3s ease infinite;
 }
 
 .tokens-btn::before {
-  content: '💰';
-  font-size: 14px;
+  content: '⚡';
+  font-size: 15px;
+  filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.8));
+  z-index: 2;
+}
+
+.tokens-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.5s ease;
+}
+
+.tokens-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 0 25px rgba(255, 215, 0, 0.8),
+    0 0 40px rgba(255, 140, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+}
+
+.tokens-btn:hover::after {
+  left: 100%;
+}
+
+.tokens-btn:active {
+  transform: translateY(0);
+  box-shadow: 
+    0 0 15px rgba(255, 215, 0, 0.5),
+    0 0 25px rgba(255, 140, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 .tokens-display {
-  background: linear-gradient(45deg, #ffd700, #ffb347);
-  color: #333;
-  padding: 6px 12px;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 11px;
+  background: linear-gradient(135deg, #ffd700, #ff8c00);
+  color: #000;
+  padding: 8px 14px;
+  border-radius: 18px;
+  font-weight: 700;
+  font-size: 12px;
   border: none;
-  box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+  box-shadow: 
+    0 0 15px rgba(255, 215, 0, 0.5),
+    0 0 25px rgba(255, 140, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  min-width: 60px;
+  gap: 5px;
+  min-width: 70px;
   justify-content: center;
+  position: relative;
+  overflow: hidden;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .tokens-display::before {
-  content: '💰';
-  font-size: 12px;
+  content: '⚡';
+  font-size: 13px;
+  filter: drop-shadow(0 0 1px rgba(255, 215, 0, 0.6));
+}
+
+.tokens-display::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shine 2s infinite;
+}
+
+@keyframes shine {
+  0%, 100% {
+    left: -100%;
+  }
+  50% {
+    left: 100%;
+  }
 }
 
 .settings-btn {

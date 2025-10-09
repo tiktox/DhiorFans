@@ -50,10 +50,10 @@ export const followUser = async (targetUserId: string): Promise<void> => {
     const updatedUserDoc = await getDoc(followingRef);
     const newFollowersCount = updatedUserDoc.data()?.followers || 0;
     
-    // Otorgar bonus de tokens si es el primer seguidor (antes de actualizar contador)
+    // Verificar si alcanzó hito de 500 seguidores
     const bonus = await grantFollowerBonus(targetUserId, newFollowersCount);
     if (bonus) {
-      console.log(`🎉 Usuario ${targetUserId} recibió ${bonus.tokensGranted} tokens por alcanzar su primer seguidor!`);
+      console.log(`🎉 Usuario ${targetUserId} alcanzó hito de seguidores y recibió ${bonus.tokensGranted} tokens!`);
     } else {
       // Solo actualizar contador si no hubo bonus
       await updateFollowersCount(targetUserId, newFollowersCount);

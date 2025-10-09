@@ -8,10 +8,9 @@ export interface TokenData {
 }
 
 export const calculateDailyTokens = (followersCount: number): number => {
-  if (followersCount >= 1) {
-    return 60; // 60 tokens por tener al menos 1 seguidor
-  }
-  return 10; // Solo tokens base sin seguidores
+  const baseTokens = 10;
+  const bonusTokens = Math.floor(followersCount / 500) * 50;
+  return baseTokens + bonusTokens;
 };
 
 export const getUserTokens = async (userId: string): Promise<TokenData> => {
@@ -141,18 +140,12 @@ export const grantFollowerBonus = async (userId: string, newFollowersCount: numb
       tokenData = tokenDoc.data() as TokenData;
     }
     
-    // Si ya tenía 1+ seguidores, solo actualizar contador
-    if (tokenData.followersCount >= 1) {
-      await setDoc(tokenRef, {
-        ...tokenData,
-        followersCount: newFollowersCount
-      });
-      return null;
-    }
+    const oldMilestones = Math.floor(tokenData.followersCount / 500);
+    const newMilestones = Math.floor(newFollowersCount / 500);
     
-    // Si ahora tiene 1+ seguidores, dar bonus de 50 tokens
-    if (newFollowersCount >= 1) {
-      const bonusTokens = 50;
+    // Si alcanzó un nuevo hito de 500 seguidores
+    if (newMilestones > oldMilestones) {
+      const bonusTokens = (newMilestones - oldMilestones) * 50;
       const newTotal = tokenData.tokens + bonusTokens;
       
       await setDoc(tokenRef, {
@@ -161,7 +154,7 @@ export const grantFollowerBonus = async (userId: string, newFollowersCount: numb
         followersCount: newFollowersCount
       });
       
-      console.log(`🎉 Usuario ${userId} recibió ${bonusTokens} tokens por su primer seguidor!`);
+      console.log(`🎉 Usuario ${userId} alcanzó ${newFollowersCount} seguidores y recibió ${bonusTokens} tokens!`);
       return { tokensGranted: bonusTokens, totalTokens: newTotal };
     }
     
