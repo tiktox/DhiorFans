@@ -47,11 +47,11 @@ export default function Chat({ onNavigateHome }: ChatProps) {
   );
 
   // Si hay un usuario seleccionado, mostrar la conversación
-  if (selectedUser && userData) {
+  if (selectedUser && userData && auth.currentUser) {
     return (
       <ChatConversation 
         user={selectedUser}
-        currentUserId={userData.id}
+        currentUserId={auth.currentUser.uid}
         onNavigateBack={() => setSelectedUser(null)}
       />
     );
