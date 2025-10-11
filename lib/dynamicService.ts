@@ -28,7 +28,7 @@ export const createDynamic = async (
   if (keywords.length === 0) throw new Error('Las palabras clave son requeridas');
   if (!file) throw new Error('El archivo es requerido');
 
-  const mediaType = file.type.startsWith('video/') ? 'video' : 'image';
+  const mediaType: 'image' | 'video' = file.type.startsWith('video/') ? 'video' : 'image';
   const mediaUrl = await uploadFile(file, auth.currentUser.uid);
 
   // Crear como post normal pero con metadatos de dinámica
