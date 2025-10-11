@@ -36,7 +36,7 @@ export default function CommentsModal({ postId, isOpen, postData, onClose, onPro
     if (isOpen && flatComments.length === 0) {
       loadComments(postId, 10, true);
     }
-  }, [isOpen, postId, loadComments, flatComments.length]);
+  }, [isOpen, postId, flatComments.length]);
 
   // Asegurarnos de que el código solo se ejecute en el cliente
   useEffect(() => {

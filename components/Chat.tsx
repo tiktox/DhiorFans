@@ -90,7 +90,7 @@ export default function Chat({ onNavigateHome }: ChatProps) {
 
       {/* Chat Users */}
       <div className="following-users">
-        <div className="following-user">
+        <div key="current-user" className="following-user">
           {userData?.profilePicture ? (
             <img src={userData.profilePicture} alt="Mi perfil" />
           ) : (
