@@ -1,6 +1,6 @@
 import { db } from './firebase';
 import { collection, query, where, orderBy, limit, getDocs, doc, getDoc } from 'firebase/firestore';
-import { getUserDataById, UserData } from './userService';
+import { getUserDataById, UserData, UserWithId } from './userService';
 
 export interface Conversation {
   id: string;
@@ -23,7 +23,7 @@ export interface Message {
 }
 
 // Obtener usuarios que el usuario actual sigue
-export const getFollowingUsers = async (currentUserId: string): Promise<UserData[]> => {
+export const getFollowingUsers = async (currentUserId: string): Promise<UserWithId[]> => {
   try {
     const followingRef = collection(db, 'follows');
     const q = query(
@@ -32,13 +32,16 @@ export const getFollowingUsers = async (currentUserId: string): Promise<UserData
     );
     
     const querySnapshot = await getDocs(q);
-    const followingUsers: UserData[] = [];
+    const followingUsers: UserWithId[] = [];
     
     for (const docSnap of querySnapshot.docs) {
       const followData = docSnap.data();
       const userData = await getUserDataById(followData.followingId);
       if (userData) {
-        followingUsers.push(userData);
+        followingUsers.push({
+          ...userData,
+          id: followData.followingId
+        });
       }
     }
     
@@ -50,7 +53,7 @@ export const getFollowingUsers = async (currentUserId: string): Promise<UserData
 };
 
 // Obtener seguidores del usuario actual
-export const getFollowers = async (currentUserId: string): Promise<UserData[]> => {
+export const getFollowers = async (currentUserId: string): Promise<UserWithId[]> => {
   try {
     const followingRef = collection(db, 'follows');
     const q = query(
@@ -59,13 +62,16 @@ export const getFollowers = async (currentUserId: string): Promise<UserData[]> =
     );
     
     const querySnapshot = await getDocs(q);
-    const followers: UserData[] = [];
+    const followers: UserWithId[] = [];
     
     for (const docSnap of querySnapshot.docs) {
       const followData = docSnap.data();
       const userData = await getUserDataById(followData.followerId);
       if (userData) {
-        followers.push(userData);
+        followers.push({
+          ...userData,
+          id: followData.followerId
+        });
       }
     }
     
@@ -89,7 +95,7 @@ export const getConversations = async (currentUserId: string): Promise<Conversat
 };
 
 // Obtener usuarios disponibles para chat (seguidores + siguiendo)
-export const getChatUsers = async (currentUserId: string): Promise<UserData[]> => {
+export const getChatUsers = async (currentUserId: string): Promise<UserWithId[]> => {
   try {
     const [following, followers] = await Promise.all([
       getFollowingUsers(currentUserId),

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { UserData } from '../lib/userService';
+import { UserWithId } from '../lib/userService';
 
 interface Message {
   id: string;
@@ -10,7 +10,7 @@ interface Message {
 }
 
 interface ChatConversationProps {
-  user: UserData;
+  user: UserWithId;
   currentUserId: string;
   onNavigateBack: () => void;
 }

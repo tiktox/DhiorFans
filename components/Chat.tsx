@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { auth } from '../lib/firebase';
-import { getUserData, UserData } from '../lib/userService';
+import { getUserData, UserData, UserWithId } from '../lib/userService';
 import { getChatUsers, getConversations, Conversation } from '../lib/chatService';
 import ChatConversation from './ChatConversation';
 
@@ -11,10 +11,10 @@ interface ChatProps {
 export default function Chat({ onNavigateHome }: ChatProps) {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [chatUsers, setChatUsers] = useState<UserData[]>([]);
+  const [chatUsers, setChatUsers] = useState<UserWithId[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserWithId | null>(null);
 
   useEffect(() => {
     loadData();
