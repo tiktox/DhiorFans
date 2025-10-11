@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createDynamic } from '../lib/dynamicService';
 
 interface MediaFile {
@@ -22,7 +22,7 @@ export default function Editor({ mediaFile, onNavigateBack, userTokens = 90 }: E
   const [isPublishing, setIsPublishing] = useState(false);
   
   // Actualizar tokens seleccionados cuando cambien los tokens del usuario
-  useState(() => {
+  useEffect(() => {
     setSelectedTokens(userTokens);
   }, [userTokens]);
 
