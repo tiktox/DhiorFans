@@ -4,6 +4,8 @@ import { auth } from '../lib/firebase';
 import { getUsersDataByIds, UserData } from '../lib/userService';
 import { Comment } from '../lib/commentService';
 import { useComments } from '../hooks/useComments';
+import { checkDynamicComment, getUserCommentCount } from '../lib/dynamicCommentService';
+import { Post } from '../lib/postService';
 
 interface CommentWithReplies extends Comment {
   replies?: Comment[];
@@ -12,11 +14,12 @@ interface CommentWithReplies extends Comment {
 interface CommentsModalProps {
   postId: string;
   isOpen: boolean;
+  postData?: Post;
   onClose: () => void;
   onProfileClick?: (userId: string) => void;
 }
 
-export default function CommentsModal({ postId, isOpen, onClose, onProfileClick }: CommentsModalProps) {
+export default function CommentsModal({ postId, isOpen, postData, onClose, onProfileClick }: CommentsModalProps) {
   const { loadComments, addComment, getPostComments, toggleReplies } = useComments();
   const { comments: flatComments, hasMore, loading, expandedReplies } = getPostComments(postId);
   
@@ -30,13 +33,10 @@ export default function CommentsModal({ postId, isOpen, onClose, onProfileClick 
   const [modalRoot, setModalRoot] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
-    if (isOpen) {
-      const { comments } = getPostComments(postId);
-      if (comments.length === 0) {
-        loadComments(postId, 10, true);
-      }
+    if (isOpen && flatComments.length === 0) {
+      loadComments(postId, 10, true);
     }
-  }, [isOpen, postId, loadComments, getPostComments]);
+  }, [isOpen, postId, loadComments, flatComments.length]);
 
   // Asegurarnos de que el código solo se ejecute en el cliente
   useEffect(() => {
@@ -111,22 +111,48 @@ export default function CommentsModal({ postId, isOpen, onClose, onProfileClick 
       return;
     }
     
-    // Validaciones
-    if (trimmedComment.length > 500) {
-      setToast({message: 'El comentario no puede exceder 500 caracteres', type: 'error'});
-      return;
-    }
-    
     if (!auth.currentUser) {
       setToast({message: 'Debes iniciar sesión para comentar', type: 'error'});
+      return;
+    }
+
+    // Validaciones para dinámicas
+    if (postData?.isDynamic) {
+      // El creador no puede comentar
+      if (auth.currentUser.uid === postData.userId) {
+        setToast({message: 'No puedes comentar tu propia dinámica', type: 'error'});
+        return;
+      }
+
+      // Máximo 2 comentarios por usuario
+      const commentCount = await getUserCommentCount(postId, auth.currentUser.uid);
+      if (commentCount >= 2) {
+        setToast({message: 'Máximo 2 comentarios por dinámica', type: 'error'});
+        return;
+      }
+    }
+    
+    if (trimmedComment.length > 500) {
+      setToast({message: 'El comentario no puede exceder 500 caracteres', type: 'error'});
       return;
     }
 
     setIsSubmitting(true);
     try {
       await addComment(postId, trimmedComment);
+      
+      // Verificar si ganó tokens en dinámica
+      if (postData?.isDynamic && postData.isActive) {
+        const result = await checkDynamicComment(postId, trimmedComment, auth.currentUser.uid);
+        if (result.isWinner) {
+          setToast({message: `¡Felicidades! Ganaste ${result.tokensWon} tokens con "${result.keyword}"`, type: 'success'});
+        }
+      }
+      
       setNewComment('');
-      setToast({message: 'Comentario publicado', type: 'success'});
+      if (!postData?.isDynamic) {
+        setToast({message: 'Comentario publicado', type: 'success'});
+      }
     } catch (error) {
       console.error('Error agregando comentario:', error);
       setToast({message: 'Error al publicar comentario', type: 'error'});
@@ -208,11 +234,12 @@ export default function CommentsModal({ postId, isOpen, onClose, onProfileClick 
         <div className="comment-input">
           <input
             type="text"
-            placeholder="Agregar un comentario"
+            placeholder={postData?.isDynamic ? "Adivina una palabra clave..." : "Agregar un comentario"}
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleAddComment()}
             maxLength={500}
+            disabled={postData?.isDynamic && auth.currentUser?.uid === postData.userId}
           />
           <div className="char-counter">{newComment.length}/500</div>
           {newComment.trim() && (

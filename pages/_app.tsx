@@ -4,6 +4,9 @@ import '../styles/globals.css';
 import '../styles/reels.css';
 import '../styles/publish.css';
 import '../styles/comments.css';
+import '../styles/chat.css';
+import '../styles/chat-conversation.css';
+import '../styles/chat-responsive.css';
 import '../styles/z-index-hierarchy.css';
 import { CommentsProvider } from '../contexts/CommentsContext';
 

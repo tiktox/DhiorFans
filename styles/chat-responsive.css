@@ -1,0 +1,239 @@
+/* Chat Responsive Enhancements */
+
+/* Ultra Small Mobile (320px - 374px) */
+@media (max-width: 374px) {
+  .chat-conversation .user-name {
+    font-size: 14px;
+  }
+  
+  .chat-conversation .user-status {
+    font-size: 11px;
+  }
+  
+  .chat-conversation .message-content {
+    max-width: 90%;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  
+  .chat-conversation .message-input-container {
+    padding: 10px 12px;
+  }
+  
+  .chat-conversation .send-btn {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .chat-container .following-user {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .chat-container .conversation-name {
+    font-size: 14px;
+  }
+  
+  .chat-container .last-message {
+    font-size: 12px;
+    max-width: 150px;
+  }
+}
+
+/* Large Mobile (375px - 414px) */
+@media (min-width: 375px) and (max-width: 414px) {
+  .chat-conversation .message-content {
+    max-width: 82%;
+  }
+  
+  .chat-container .last-message {
+    max-width: 170px;
+  }
+}
+
+/* Small Tablet Portrait (768px - 834px) */
+@media (min-width: 768px) and (max-width: 834px) and (orientation: portrait) {
+  .chat-container {
+    width: 90%;
+    max-width: 400px;
+  }
+  
+  .chat-conversation {
+    width: 90%;
+    max-width: 400px;
+  }
+}
+
+/* Tablet Landscape (1024px - 1366px) */
+@media (min-width: 1024px) and (max-width: 1366px) and (orientation: landscape) {
+  .chat-container {
+    width: 350px;
+    height: 600px;
+  }
+  
+  .chat-conversation {
+    width: 350px;
+    height: 600px;
+  }
+}
+
+/* High DPI Displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .chat-conversation .back-btn-chat,
+  .chat-conversation .call-btn,
+  .chat-conversation .send-btn {
+    border: 0.5px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .chat-container .conversation-item {
+    border: 0.5px solid rgba(255, 255, 255, 0.05);
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .chat-conversation .message.received .message-content {
+    background: rgba(255, 255, 255, 0.95);
+    color: #222;
+  }
+  
+  .chat-conversation .input-wrapper {
+    background: rgba(255, 255, 255, 0.95);
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .chat-conversation .back-btn-chat,
+  .chat-conversation .call-btn,
+  .chat-conversation .send-btn,
+  .chat-container .conversation-item {
+    transition: none;
+  }
+  
+  .typing-dots span {
+    animation: none;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .chat-conversation {
+    border: 2px solid white;
+  }
+  
+  .chat-conversation .conversation-header {
+    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+  }
+  
+  .chat-conversation .message-input-container {
+    border-top: 2px solid rgba(255, 255, 255, 0.3);
+  }
+  
+  .chat-container .conversation-item {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+}
+
+/* Touch Device Optimizations */
+@media (pointer: coarse) {
+  .chat-conversation .back-btn-chat,
+  .chat-conversation .call-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  .chat-conversation .send-btn {
+    min-width: 48px;
+    min-height: 48px;
+  }
+  
+  .chat-container .following-user {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  .chat-container .conversation-item {
+    min-height: 60px;
+  }
+}
+
+/* Hover Device Optimizations */
+@media (hover: hover) {
+  .chat-conversation .back-btn-chat:hover,
+  .chat-conversation .call-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+  
+  .chat-conversation .send-btn:hover {
+    transform: scale(1.05);
+  }
+  
+  .chat-container .conversation-item:hover {
+    background: rgba(0, 0, 0, 0.35);
+    transform: translateX(8px);
+  }
+}
+/* Safe Area Support for Notched Devices */
+@supports (padding: max(0px)) {
+  .chat-conversation .conversation-header {
+    padding-top: max(12px, env(safe-area-inset-top));
+  }
+  
+  .chat-conversation .message-input-container {
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+  
+  .chat-container .chat-header {
+    padding-top: max(15px, env(safe-area-inset-top));
+  }
+}
+
+/* Landscape Mobile Optimizations */
+@media (max-height: 500px) and (orientation: landscape) {
+  .chat-conversation .conversation-header {
+    padding: 8px 16px;
+    min-height: 50px;
+  }
+  
+  .chat-conversation .messages-container {
+    padding: 12px 16px;
+  }
+  
+  .chat-conversation .message-input-container {
+    padding: 8px 16px;
+    min-height: 60px;
+  }
+  
+  .chat-container .chat-header {
+    padding: 10px 16px;
+  }
+  
+  .chat-container .following-users {
+    padding: 12px 16px;
+  }
+}
+
+/* Performance Optimizations */
+@media (max-width: 767px) {
+  .chat-conversation .messages-container {
+    will-change: scroll-position;
+  }
+  
+  .chat-container .conversations {
+    will-change: scroll-position;
+  }
+}
+
+/* Keyboard Navigation */
+.chat-conversation .back-btn-chat:focus,
+.chat-conversation .call-btn:focus,
+.chat-conversation .send-btn:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 2px;
+}
+
+.chat-container .conversation-item:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.3);
+  outline-offset: 2px;
+}

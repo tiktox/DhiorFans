@@ -44,6 +44,18 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
   const [currentTimeDisplay, setCurrentTimeDisplay] = useState('');
 
   const isOwner = auth.currentUser && auth.currentUser.uid === post.userId;
+  
+  // Debug para verificar el botón de eliminar
+  if (isActive) {
+    console.log('=== DELETE BUTTON DEBUG ===');
+    console.log('isActive:', isActive);
+    console.log('isOwner:', isOwner);
+    console.log('currentUserId:', auth.currentUser?.uid);
+    console.log('postUserId:', post.userId);
+    console.log('postId:', post.id);
+    console.log('Should show delete button:', isActive && isOwner);
+    console.log('===========================');
+  }
 
   useEffect(() => {
     const fetchAuthorData = async () => {
@@ -313,7 +325,10 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
       {isActive && (
         <div className="reel-overlay">
           {isOwner && (
-            <div className="delete-post-btn" onClick={() => setShowDeleteConfirm(true)}>
+            <div className="delete-post-btn" onClick={() => {
+              console.log('Delete button clicked');
+              setShowDeleteConfirm(true);
+            }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polyline points="3,6 5,6 21,6"/>
                 <path d="m19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"/>
@@ -333,7 +348,15 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
                 )}
               </div>
               <div className="user-details">
-                <div className="username">@{authorData?.username || '...'}</div>
+                <div className="username-row">
+                  <div className="username">@{authorData?.username || '...'}</div>
+                  {post.isDynamic && post.tokensReward && (
+                    <div className="dynamic-tokens-display">
+                      <span className="token-icon"></span>
+                      <span className="token-amount">{post.tokensReward}</span>
+                    </div>
+                  )}
+                </div>
                 {post.title && <div className="post-title">{post.title}</div>}
                 {post.description && <div className="description">{post.description}</div>}
               </div>
@@ -400,9 +423,9 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
       <CommentsModal 
         postId={post.id}
         isOpen={showComments}
+        postData={post}
         onClose={() => {
           setShowComments(false);
-          // Actualizar contador después de cerrar modal
           getPostCommentsCount(post.id).then(setCommentsCount);
         }}
         onProfileClick={onProfileClick}

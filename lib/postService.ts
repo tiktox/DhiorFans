@@ -14,6 +14,11 @@ export interface Post {
   comments: number;
   likesCount?: number;
   isLikedByUser?: boolean;
+  // Metadatos de dinámica
+  isDynamic?: boolean;
+  keywords?: string[];
+  tokensReward?: number;
+  isActive?: boolean;
 }
 
 const postsCollection = collection(db, 'posts');

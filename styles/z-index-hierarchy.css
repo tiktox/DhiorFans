@@ -26,8 +26,9 @@ NIVEL 4 - CONTROLS (60 a 90):
 - time-indicator: 90
 
 NIVEL 5 - NAVIGATION (100 a 110):
-- bottom-nav: 100
+- bottom-nav: 9999
 - like-animation (globals): 100
+- tokens-taskbar: 105
 - publish-modal-overlay: 110
 
 NIVEL 6 - MODALS (120 a 150):

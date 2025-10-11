@@ -4,6 +4,8 @@ import { getUserData, getUserDataById, UserData } from '../lib/userService';
 import Profile from './Profile';
 import Search from './Search';
 import Publish from './Publish';
+import CreatePost from './CreatePost';
+import Chat from './Chat';
 import ReelsFeed from './ReelsFeed';
 import ExternalProfile from './ExternalProfile';
 import '../lib/testData'; // Importar funciones de prueba
@@ -16,6 +18,7 @@ export default function Home() {
   const [externalUserId, setExternalUserId] = useState<string | null>(null);
   const [externalUserData, setExternalUserData] = useState<UserData | null>(null);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+
 
   useEffect(() => {
     const loadData = async () => {
@@ -40,6 +43,7 @@ export default function Home() {
       }}
       onNavigatePublish={() => setCurrentView('publish')}
       onNavigateSearch={() => setCurrentView('search')}
+      onNavigateChat={() => setCurrentView('chat')}
       onViewPost={(postId) => {
         setSelectedPostId(postId);
         setCurrentView('home');
@@ -69,6 +73,28 @@ export default function Home() {
       onPublish={() => {
         setSelectedPostId(null);
         setRefreshFeed(prev => prev + 1);
+      }}
+    />;
+  }
+
+  if (currentView === 'create-post') {
+    return <CreatePost 
+      onNavigateBack={() => {
+        setSelectedPostId(null);
+        setCurrentView('home');
+      }} 
+      onPublish={() => {
+        setSelectedPostId(null);
+        setRefreshFeed(prev => prev + 1);
+      }}
+    />;
+  }
+
+  if (currentView === 'chat') {
+    return <Chat 
+      onNavigateHome={() => {
+        setSelectedPostId(null);
+        setCurrentView('home');
       }}
     />;
   }
@@ -144,6 +170,18 @@ export default function Home() {
             <path d="m21 21-4.35-4.35"/>
           </svg>
         </div>
+        <div className="nav-icon add-icon" onClick={() => setCurrentView('create-post')}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="16"/>
+            <line x1="8" y1="12" x2="16" y2="12"/>
+          </svg>
+        </div>
+        <div className="nav-icon message-icon" onClick={() => setCurrentView('chat')}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        </div>
         <div className="profile-pic-nav" onClick={() => setCurrentView('profile')}>
           {userData?.profilePicture ? (
             <img src={userData.profilePicture} alt="Perfil" />
@@ -151,19 +189,9 @@ export default function Home() {
             <div className="default-nav-avatar">👤</div>
           )}
         </div>
-        <div className="nav-icon message-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-          </svg>
-        </div>
-        <div className="nav-icon add-icon" onClick={() => setCurrentView('publish')}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="10"/>
-            <line x1="12" y1="8" x2="12" y2="16"/>
-            <line x1="8" y1="12" x2="16" y2="12"/>
-          </svg>
-        </div>
       </div>
+
+
 
     </div>
   );

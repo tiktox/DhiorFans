@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { auth } from '../lib/firebase';
 import { getUserData, UserData } from '../lib/userService';
 import { getUserPosts, Post } from '../lib/postService';
@@ -6,21 +6,29 @@ import { getUserTokens, initializeUserTokens, claimDailyTokens, canClaimTokens, 
 
 import EditProfile from './EditProfile';
 import Settings from './Settings';
+import CreateDynamic from './CreateDynamic';
+import Editor from './Editor';
 
 
 interface ProfileProps {
   onNavigateHome?: () => void;
   onNavigatePublish?: () => void;
   onNavigateSearch?: () => void;
+  onNavigateChat?: () => void;
   onViewPost?: (postId: string) => void;
 }
 
-export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateSearch, onViewPost }: ProfileProps = {}) {
+export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateSearch, onNavigateChat, onViewPost }: ProfileProps = {}) {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [currentView, setCurrentView] = useState('profile');
+  const [showCreateDynamic, setShowCreateDynamic] = useState(false);
+  const [showEditor, setShowEditor] = useState(false);
+  const [selectedMediaFile, setSelectedMediaFile] = useState<any>(null);
   const [userPosts, setUserPosts] = useState<Post[]>([]);
   const [tokenData, setTokenData] = useState<TokenData | null>(null);
+  const [showTokensTaskbar, setShowTokensTaskbar] = useState(false);
+  const taskbarRef = useRef<HTMLDivElement>(null);
 
   // Función para recargar datos del usuario
   const reloadUserData = async () => {
@@ -84,6 +92,23 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
     };
   }, []);
 
+  // Cerrar barra de tareas al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (taskbarRef.current && !taskbarRef.current.contains(event.target as Node)) {
+        setShowTokensTaskbar(false);
+      }
+    };
+
+    if (showTokensTaskbar) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showTokensTaskbar]);
+
   const autoClaimTokens = async () => {
     if (!auth.currentUser || !userData || !tokenData) return;
     
@@ -106,6 +131,32 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
 
   if (currentView === 'settings') {
     return <Settings onNavigateBack={() => setCurrentView('profile')} />;
+  }
+
+  if (showEditor && selectedMediaFile) {
+    return (
+      <Editor 
+        mediaFile={selectedMediaFile}
+        userTokens={tokenData?.tokens || 0}
+        onNavigateBack={() => {
+          setShowEditor(false);
+          setSelectedMediaFile(null);
+        }}
+      />
+    );
+  }
+
+  if (showCreateDynamic) {
+    return (
+      <CreateDynamic 
+        onNavigateBack={() => setShowCreateDynamic(false)}
+        onNavigateToEditor={(file) => {
+          setSelectedMediaFile(file);
+          setShowCreateDynamic(false);
+          setShowEditor(true);
+        }}
+      />
+    );
   }
 
   if (showEditProfile) {
@@ -194,10 +245,28 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
             <rect x="3" y="14" width="7" height="7"/>
           </svg>
         </button>
-        <div className="action-btn tokens-btn">
+        <div className="action-btn tokens-btn" onClick={() => setShowTokensTaskbar(!showTokensTaskbar)}>
           🪙 {tokenData?.tokens || 0}
         </div>
       </div>
+
+      {/* Tokens Taskbar */}
+      {showTokensTaskbar && (
+        <div className="tokens-taskbar" ref={taskbarRef}>
+          <button className="taskbar-option" onClick={() => {
+            setShowCreateDynamic(true);
+            setShowTokensTaskbar(false);
+          }}>
+            Crear dinámica
+          </button>
+          <button className="taskbar-option" onClick={() => {
+            console.log('Tienda clicked');
+            setShowTokensTaskbar(false);
+          }}>
+            Tienda
+          </button>
+        </div>
+      )}
 
       {/* Posts Grid */}
       <div className="posts-grid">
@@ -241,22 +310,10 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
             <polyline points="9,22 9,12 15,12 15,22"/>
           </svg>
         </div>
-        <div className="nav-icon search-icon" onClick={onNavigateSearch}>
+        <div className="nav-icon nav-search-btn" onClick={onNavigateSearch}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="11" cy="11" r="8"/>
             <path d="m21 21-4.35-4.35"/>
-          </svg>
-        </div>
-        <div className="profile-pic-nav">
-          {userData.profilePicture ? (
-            <img src={userData.profilePicture} alt="Perfil" />
-          ) : (
-            <div className="default-nav-avatar">👤</div>
-          )}
-        </div>
-        <div className="nav-icon message-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
           </svg>
         </div>
         <div className="nav-icon add-icon" onClick={onNavigatePublish}>
@@ -265,6 +322,18 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
             <line x1="12" y1="8" x2="12" y2="16"/>
             <line x1="8" y1="12" x2="16" y2="12"/>
           </svg>
+        </div>
+        <div className="nav-icon message-icon" onClick={onNavigateChat}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        </div>
+        <div className="profile-pic-nav">
+          {userData.profilePicture ? (
+            <img src={userData.profilePicture} alt="Perfil" />
+          ) : (
+            <div className="default-nav-avatar">👤</div>
+          )}
         </div>
       </div>
 

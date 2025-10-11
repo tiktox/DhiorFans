@@ -151,49 +151,121 @@
 }
 
 /* Bottom Navigation */
-/* Bottom Navigation */
 .bottom-nav {
-  position: absolute;
+  position: fixed;
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
   width: calc(100% - 40px);
-  max-width: 300px;
+  max-width: 320px;
   background: rgba(17, 17, 17, 0.95);
   backdrop-filter: blur(10px);
-  border-radius: 20px;
-  padding: 10px 20px;
+  border-radius: 25px;
+  padding: 12px 24px;
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
   align-items: center;
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   z-index: 9999;
 }
 
 .nav-icon {
-  padding: 10px;
+  width: 44px;
+  height: 44px;
   cursor: pointer;
   color: #999;
-  transition: color 0.3s;
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 50%;
+  font-size: 20px;
 }
 
 .nav-icon:hover {
   color: white;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.nav-icon:not(.nav-search-icon):hover {
+  transform: translateY(-2px);
 }
 
 .add-icon:hover {
   color: #2196f3;
+  background: rgba(33, 150, 243, 0.1);
+}
+
+/* Estilos específicos para iconos de navegación */
+.nav-home-icon:hover {
+  color: #2196f3;
+}
+
+.nav-search-icon:hover {
+  color: #4caf50;
+  background: rgba(76, 175, 80, 0.1);
+  transform: none !important;
+}
+
+.nav-add-icon:hover {
+  color: #ff9800;
+  background: rgba(255, 152, 0, 0.1);
+}
+
+.nav-chat-icon:hover {
+  color: #e91e63;
+}
+
+/* Animación suave para la barra de navegación */
+@keyframes navSlideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.bottom-nav {
+  animation: navSlideUp 0.3s ease-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .bottom-nav {
+    width: calc(100% - 20px);
+    padding: 10px 16px;
+    gap: 12px;
+  }
+  
+  .nav-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+  
+  .profile-pic-nav {
+    width: 32px;
+    height: 32px;
+  }
 }
 
 .profile-pic-nav {
-  width: 30px;
-  height: 30px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   overflow: hidden;
   cursor: pointer;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.profile-pic-nav:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: translateY(-2px);
 }
 
 .profile-pic-nav img {
@@ -203,16 +275,22 @@
 }
 
 .default-nav-avatar {
-  width: 30px;
-  height: 30px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: #333;
-  border: 2px solid #555;
+  border: 2px solid rgba(255, 255, 255, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 16px;
   color: #999;
+  transition: all 0.3s ease;
+}
+
+.default-nav-avatar:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: translateY(-2px);
 }
 
 /* Profile Styles */
