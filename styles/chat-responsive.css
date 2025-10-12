@@ -1,7 +1,7 @@
 /* Chat Responsive Enhancements */
 
 /* Ultra Small Mobile (320px - 374px) */
-@media (max-width: 374px) {
+@media (max-width: 100vw) {
   .chat-conversation .user-name {
     font-size: 14px;
   }
@@ -41,13 +41,13 @@
 }
 
 /* Large Mobile (375px - 414px) */
-@media (min-width: 375px) and (max-width: 414px) {
+@media (min-width: 100vw) and (max-width: 100vw) {
   .chat-conversation .message-content {
     max-width: 82%;
   }
   
   .chat-container .last-message {
-    max-width: 170px;
+    max-width: 100vw;
   }
 }
 

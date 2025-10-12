@@ -2233,7 +2233,7 @@ body {
 /* Tokens Taskbar - Fixed Implementation */
 .tokens-taskbar {
   position: absolute;
-  bottom: 120px;
+  bottom: 218px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -3014,28 +3014,30 @@ body {
 
 /* Dynamic tokens display - simple style */
 .dynamic-tokens-display {
-  top:-385px;
-  right: -28px;
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
   background: linear-gradient(135deg, var(--primary-gold), var(--secondary-orange));
   background-size: 200% 200%;
   color: var(--text-color);
-  padding: 2px 2px;
+  padding: 6px 12px;
   border-radius: 20px;
   font-weight: 700;
-  font-size: 5px;
+  font-size: 12px;
   border: none;
   display: inline-flex;
   align-items: center;
-  gap: 0px;
+  gap: 4px;
   min-width: 60px;
   justify-content: center;
-  position: relative;
   overflow: hidden;
   animation: subtleGradient 6s ease-in-out infinite;
+  z-index: 50;
 }
 
 .dynamic-tokens-display .token-icon {
-  font-size: 5px;
+  font-size: 12px;
 }
 
 .dynamic-tokens-display .token-amount {
