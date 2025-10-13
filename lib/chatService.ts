@@ -106,32 +106,67 @@ export const listenToMessages = (
   callback: (messages: Message[]) => void
 ) => {
   const messagesRef = collection(db, 'messages');
-  const q = query(
+  
+  // Crear dos queries separadas y combinar los resultados
+  const q1 = query(
     messagesRef,
-    where('senderId', 'in', [currentUserId, otherUserId]),
-    where('receiverId', 'in', [currentUserId, otherUserId]),
+    where('senderId', '==', currentUserId),
+    where('receiverId', '==', otherUserId),
+    orderBy('timestamp', 'asc')
+  );
+  
+  const q2 = query(
+    messagesRef,
+    where('senderId', '==', otherUserId),
+    where('receiverId', '==', currentUserId),
     orderBy('timestamp', 'asc')
   );
 
-  return onSnapshot(q, (querySnapshot) => {
-    const messages: Message[] = [];
+  const messages = new Map<string, Message>();
+  let unsubscribe1: (() => void) | null = null;
+  let unsubscribe2: (() => void) | null = null;
+  
+  const updateMessages = () => {
+    const sortedMessages = Array.from(messages.values())
+      .sort((a, b) => a.timestamp - b.timestamp);
+    callback(sortedMessages);
+  };
+
+  unsubscribe1 = onSnapshot(q1, (querySnapshot) => {
     querySnapshot.forEach((doc) => {
       const data = doc.data();
-      // Solo incluir mensajes entre estos dos usuarios específicos
-      if ((data.senderId === currentUserId && data.receiverId === otherUserId) ||
-          (data.senderId === otherUserId && data.receiverId === currentUserId)) {
-        messages.push({
-          id: doc.id,
-          senderId: data.senderId,
-          receiverId: data.receiverId,
-          content: data.content,
-          timestamp: data.timestamp.toMillis(),
-          isRead: data.isRead
-        });
-      }
+      messages.set(doc.id, {
+        id: doc.id,
+        senderId: data.senderId,
+        receiverId: data.receiverId,
+        content: data.content,
+        timestamp: data.timestamp.toMillis(),
+        isRead: data.isRead
+      });
     });
-    callback(messages);
+    updateMessages();
   });
+  
+  unsubscribe2 = onSnapshot(q2, (querySnapshot) => {
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      messages.set(doc.id, {
+        id: doc.id,
+        senderId: data.senderId,
+        receiverId: data.receiverId,
+        content: data.content,
+        timestamp: data.timestamp.toMillis(),
+        isRead: data.isRead
+      });
+    });
+    updateMessages();
+  });
+
+  // Retornar función para desuscribirse de ambos listeners
+  return () => {
+    if (unsubscribe1) unsubscribe1();
+    if (unsubscribe2) unsubscribe2();
+  };
 };
 
 // Marcar mensajes como leídos
