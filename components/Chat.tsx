@@ -139,6 +139,7 @@ export default function Chat({ onNavigateHome }: ChatProps) {
                 const user: UserWithId = {
                   id: conversation.userId,
                   username: conversation.userName.toLowerCase().replace(' ', ''),
+                  email: '',
                   fullName: conversation.userName,
                   profilePicture: conversation.userAvatar,
                   bio: '',
