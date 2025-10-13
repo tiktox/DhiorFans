@@ -158,15 +158,31 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
     const now = Date.now();
     const timeDiff = now - lastTapRef.current;
     
-    if (timeDiff < 300) {
+    if (timeDiff < 250 && timeDiff > 50) {
       // Doble clic - dar like
       handleLike();
+      lastTapRef.current = 0; // Reset para evitar triple clic
     } else {
       // Clic simple - pausar/reanudar
-      togglePlayPause();
+      if (timeDiff > 250) {
+        togglePlayPause();
+      }
+      lastTapRef.current = now;
     }
+  };
+  
+  const handleImageClick = () => {
+    const now = Date.now();
+    const timeDiff = now - lastTapRef.current;
     
-    lastTapRef.current = now;
+    if (timeDiff < 250 && timeDiff > 50) {
+      // Doble clic - dar like
+      handleLike();
+      lastTapRef.current = 0; // Reset para evitar triple clic
+    } else {
+      // Primer clic - solo actualizar timestamp
+      lastTapRef.current = now;
+    }
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -295,7 +311,7 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
       {isImage && (
         <div 
           className="image-click-overlay"
-          onClick={handleLike}
+          onClick={handleImageClick}
         />
       )}
       
@@ -350,7 +366,7 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
               <div className="user-details">
                 <div className="username-row">
                   <div className="username">@{authorData?.username || '...'}</div>
-                  {post.isDynamic && post.tokensReward && (
+                  {post.isDynamic && post.tokensReward && post.isActive && (
                     <div className="dynamic-tokens-display">
                       <span className="token-icon"></span>
                       <span className="token-amount">{post.tokensReward}</span>

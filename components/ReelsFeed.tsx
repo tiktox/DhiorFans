@@ -13,13 +13,24 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
   const [currentIndex, setCurrentIndex] = useState(0);
   const [allContent, setAllContent] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isScrolling, setIsScrolling] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Recargar cuando el componente se monta o cambia initialPostId
   useEffect(() => {
     loadContent();
   }, [initialPostId]);
+  
+  // Cleanup del timeout
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const loadContent = async () => {
     const allPosts = await getAllPosts();
@@ -49,26 +60,59 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
 
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
-    if (e.deltaY > 0 && currentIndex < allContent.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-    } else if (e.deltaY < 0 && currentIndex > 0) {
-      setCurrentIndex(prev => prev - 1);
+    
+    if (isScrolling) return;
+    
+    if (Math.abs(e.deltaY) > 10) {
+      setIsScrolling(true);
+      
+      if (e.deltaY > 0 && currentIndex < allContent.length - 1) {
+        setCurrentIndex(prev => prev + 1);
+      } else if (e.deltaY < 0 && currentIndex > 0) {
+        setCurrentIndex(prev => prev - 1);
+      }
+      
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+      
+      scrollTimeoutRef.current = setTimeout(() => {
+        setIsScrolling(false);
+      }, 300);
     }
   };
 
-  const handleTouchStart = useRef({ y: 0 });
-  const handleTouchMove = (e: React.TouchEvent) => {
-    const touch = e.touches[0];
+  const handleTouchStart = useRef({ y: 0, moved: false });
+  
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (isScrolling || !handleTouchStart.current.moved) return;
+    
+    const touch = e.changedTouches[0];
     const deltaY = handleTouchStart.current.y - touch.clientY;
     
-    if (Math.abs(deltaY) > 50) {
+    if (Math.abs(deltaY) > 80) {
+      setIsScrolling(true);
+      
       if (deltaY > 0 && currentIndex < allContent.length - 1) {
         setCurrentIndex(prev => prev + 1);
       } else if (deltaY < 0 && currentIndex > 0) {
         setCurrentIndex(prev => prev - 1);
       }
-      handleTouchStart.current.y = touch.clientY;
+      
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+      
+      scrollTimeoutRef.current = setTimeout(() => {
+        setIsScrolling(false);
+      }, 400);
     }
+    
+    handleTouchStart.current.moved = false;
+  };
+  
+  const handleTouchMove = (e: React.TouchEvent) => {
+    handleTouchStart.current.moved = true;
   };
 
   // Eliminar el scroll acumulativo problemático
@@ -87,8 +131,12 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
     <div 
       className="reels-background" 
       onWheel={handleWheel}
-      onTouchStart={(e) => handleTouchStart.current.y = e.touches[0].clientY}
+      onTouchStart={(e) => {
+        handleTouchStart.current.y = e.touches[0].clientY;
+        handleTouchStart.current.moved = false;
+      }}
       onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       {allContent.map((content, index) => (
         <div

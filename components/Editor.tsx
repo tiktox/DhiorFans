@@ -111,7 +111,9 @@ export default function Editor({ mediaFile, onNavigateBack, userTokens = 90 }: E
                     </button>
                     
                     <div className="token-display">
-                      <span className="token-amount">{selectedTokens}</span>
+                      <span className="token-amount" style={{ color: selectedTokens > userTokens ? '#ff4444' : 'white' }}>
+                        {selectedTokens}
+                      </span>
                       <span className="token-max">/ {userTokens}</span>
                     </div>
                     
@@ -123,6 +125,12 @@ export default function Editor({ mediaFile, onNavigateBack, userTokens = 90 }: E
                       +
                     </button>
                   </div>
+                  
+                  {selectedTokens > userTokens && (
+                    <div style={{ color: '#ff4444', fontSize: '12px', textAlign: 'center', marginTop: '5px' }}>
+                      ⚠️ No tienes suficientes tokens
+                    </div>
+                  )}
                   
                   <input
                     type="range"
@@ -147,18 +155,18 @@ export default function Editor({ mediaFile, onNavigateBack, userTokens = 90 }: E
                           selectedTokens, 
                           mediaFile.file
                         );
-                        alert('Dinámica publicada exitosamente');
+                        alert(`✅ Dinámica publicada exitosamente!\n💰 ${selectedTokens} tokens descontados\n🎯 Palabras clave: ${keywords.join(', ')}`);
                         onNavigateBack();
                       } catch (error: any) {
                         console.error('Error al publicar dinámica:', error);
-                        alert(error.message || 'Error al publicar la dinámica');
+                        alert(`❌ ${error.message || 'Error al publicar la dinámica'}`);
                       } finally {
                         setIsPublishing(false);
                       }
                     }}
-                    disabled={isPublishing}
+                    disabled={isPublishing || selectedTokens > userTokens}
                   >
-                    {isPublishing ? 'Publicando...' : 'Publicar dinámica'}
+                    {isPublishing ? 'Descontando tokens...' : `Publicar (${selectedTokens} 💰)`}
                   </button>
                 </div>
               ) : (

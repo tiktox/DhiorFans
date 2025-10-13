@@ -6,6 +6,7 @@ import { Comment } from '../lib/commentService';
 import { useComments } from '../hooks/useComments';
 import { checkDynamicComment, getUserCommentCount } from '../lib/dynamicCommentService';
 import { Post } from '../lib/postService';
+import WinnerModal from './WinnerModal';
 
 interface CommentWithReplies extends Comment {
   replies?: Comment[];
@@ -23,7 +24,6 @@ export default function CommentsModal({ postId, isOpen, postData, onClose, onPro
   const { loadComments, addComment, getPostComments, toggleReplies } = useComments();
   const { comments: flatComments, hasMore, loading, expandedReplies } = getPostComments(postId);
   
-  const [comments, setComments] = useState<CommentWithReplies[]>([]);
   const [newComment, setNewComment] = useState('');
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
@@ -31,12 +31,13 @@ export default function CommentsModal({ postId, isOpen, postData, onClose, onPro
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toast, setToast] = useState<{message: string; type: 'error' | 'success'} | null>(null);
   const [modalRoot, setModalRoot] = useState<HTMLElement | null>(null);
+  const [winnerData, setWinnerData] = useState<{tokensWon: number; keyword: string} | null>(null);
 
   useEffect(() => {
     if (isOpen && flatComments.length === 0) {
       loadComments(postId, 10, true);
     }
-  }, [isOpen, postId, flatComments.length]);
+  }, [isOpen, postId]);
 
   // Asegurarnos de que el código solo se ejecute en el cliente
   useEffect(() => {
@@ -52,10 +53,9 @@ export default function CommentsModal({ postId, isOpen, postData, onClose, onPro
   }, [toast]);
 
   // Organizar comentarios planos en estructura anidada
-  useEffect(() => {
+  const comments = useMemo(() => {
     if (!flatComments || flatComments.length === 0) {
-      setComments([]);
-      return;
+      return [];
     }
 
     const commentsMap = new Map<string, CommentWithReplies>();
@@ -78,7 +78,7 @@ export default function CommentsModal({ postId, isOpen, postData, onClose, onPro
       }
     });
     
-    setComments(rootComments);
+    return rootComments;
   }, [flatComments]);
 
   // Cargar datos de usuarios cuando cambien los comentarios
@@ -145,7 +145,12 @@ export default function CommentsModal({ postId, isOpen, postData, onClose, onPro
       if (postData?.isDynamic && postData.isActive) {
         const result = await checkDynamicComment(postId, trimmedComment, auth.currentUser.uid);
         if (result.isWinner) {
-          setToast({message: `¡Felicidades! Ganaste ${result.tokensWon} tokens con "${result.keyword}"`, type: 'success'});
+          // Efectos de celebración
+          if ('vibrate' in navigator) {
+            navigator.vibrate([200, 100, 200, 100, 200]);
+          }
+          
+          setWinnerData({ tokensWon: result.tokensWon, keyword: result.keyword });
         }
       }
       
@@ -375,6 +380,17 @@ export default function CommentsModal({ postId, isOpen, postData, onClose, onPro
             {toast.message}
           </div>
         )}
+        
+        {/* Modal de ganador */}
+        <WinnerModal 
+          isOpen={!!winnerData}
+          tokensWon={winnerData?.tokensWon || 0}
+          keyword={winnerData?.keyword || ''}
+          onClose={() => {
+            setWinnerData(null);
+            onClose(); // Cerrar también el modal de comentarios
+          }}
+        />
       </div>
     </div>
   );

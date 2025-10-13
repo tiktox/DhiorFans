@@ -11,6 +11,11 @@ export const checkDynamicComment = async (postId: string, comment: string, userI
     return { isWinner: false, tokensWon: 0 };
   }
 
+  // Prevenir que el creador comente su propia dinámica
+  if (postData.userId === userId) {
+    return { isWinner: false, tokensWon: 0, error: 'No puedes participar en tu propia dinámica' };
+  }
+
   // Verificar si el comentario contiene alguna palabra clave
   const commentLower = comment.toLowerCase().trim();
   const matchedKeyword = postData.keywords.find((keyword: string) => 
@@ -22,17 +27,27 @@ export const checkDynamicComment = async (postId: string, comment: string, userI
     const tokensWon = postData.tokensReward || 0;
     
     // Actualizar tokens del usuario ganador
-    const userRef = doc(db, 'users', userId);
+    const userRef = doc(db, 'tokens', userId);
     await updateDoc(userRef, {
       tokens: increment(tokensWon)
     });
 
     // Desactivar la dinámica
     await updateDoc(doc(db, 'posts', postId), {
-      isActive: false
+      isActive: false,
+      winnerId: userId,
+      winnerKeyword: matchedKeyword,
+      winnerTimestamp: Date.now()
     });
 
-    return { isWinner: true, tokensWon, keyword: matchedKeyword };
+    console.log(`🎉 Usuario ${userId} ganó ${tokensWon} tokens con la palabra "${matchedKeyword}"`);
+    
+    return { 
+      isWinner: true, 
+      tokensWon, 
+      keyword: matchedKeyword,
+      postTitle: postData.title || postData.description
+    };
   }
 
   return { isWinner: false, tokensWon: 0 };

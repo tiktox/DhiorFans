@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { auth } from '../lib/firebase';
 import { getUserData, UserData, UserWithId } from '../lib/userService';
 import { getChatUsers, getConversations, Conversation } from '../lib/chatService';
@@ -15,14 +15,13 @@ export default function Chat({ onNavigateHome }: ChatProps) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<UserWithId | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [pullDistance, setPullDistance] = useState(0);
+  const touchStartY = useRef(0);
+  const conversationsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadData();
-    
-    // Recargar conversaciones cada 30 segundos para mantener actualizado
-    const interval = setInterval(loadData, 30000);
-    
-    return () => clearInterval(interval);
   }, []);
   
   // Recargar cuando el componente vuelve a ser visible
@@ -71,7 +70,34 @@ export default function Chat({ onNavigateHome }: ChatProps) {
       setConversations([]);
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (conversationsRef.current?.scrollTop === 0) {
+      touchStartY.current = e.touches[0].clientY;
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (conversationsRef.current?.scrollTop === 0 && !isRefreshing) {
+      const currentY = e.touches[0].clientY;
+      const distance = currentY - touchStartY.current;
+      
+      if (distance > 0) {
+        e.preventDefault();
+        setPullDistance(Math.min(distance, 80));
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (pullDistance > 60 && !isRefreshing) {
+      setIsRefreshing(true);
+      loadData();
+    }
+    setPullDistance(0);
   };
 
   const filteredUsers = chatUsers.filter(user => 
@@ -145,8 +171,31 @@ export default function Chat({ onNavigateHome }: ChatProps) {
         ))}
       </div>
 
+      {/* Pull to Refresh Indicator */}
+      {(pullDistance > 0 || isRefreshing) && (
+        <div 
+          className="pull-refresh-indicator"
+          style={{
+            transform: `translateY(${pullDistance}px)`,
+            opacity: pullDistance / 60
+          }}
+        >
+          <div className={`refresh-icon ${isRefreshing ? 'spinning' : ''}`}>
+            ↻
+          </div>
+          <span>{isRefreshing ? 'Actualizando...' : 'Desliza para actualizar'}</span>
+        </div>
+      )}
+
       {/* Conversations */}
-      <div className="conversations">
+      <div 
+        className="conversations"
+        ref={conversationsRef}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        style={{ transform: `translateY(${pullDistance}px)` }}
+      >
         {loading ? (
           <div className="chat-loading">
             <p>Cargando chats...</p>

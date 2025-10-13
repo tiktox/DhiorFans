@@ -115,7 +115,7 @@ export const updateFollowersCount = async (userId: string, followersCount: numbe
 export const spendTokens = async (userId: string, amount: number): Promise<{ success: boolean; remainingTokens: number }> => {
   const tokenData = await getUserTokens(userId);
   
-  if (tokenData.tokens < amount) {
+  if (amount > 0 && tokenData.tokens < amount) {
     return { success: false, remainingTokens: tokenData.tokens };
   }
   
@@ -125,6 +125,17 @@ export const spendTokens = async (userId: string, amount: number): Promise<{ suc
   });
   
   return { success: true, remainingTokens: newTotal };
+};
+
+export const addTokens = async (userId: string, amount: number): Promise<{ success: boolean; totalTokens: number }> => {
+  const tokenData = await getUserTokens(userId);
+  const newTotal = tokenData.tokens + amount;
+  
+  await updateDoc(doc(db, 'tokens', userId), {
+    tokens: newTotal
+  });
+  
+  return { success: true, totalTokens: newTotal };
 };
 
 export const grantFollowerBonus = async (userId: string, newFollowersCount: number): Promise<{ tokensGranted: number; totalTokens: number } | null> => {
