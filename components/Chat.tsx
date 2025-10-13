@@ -143,7 +143,7 @@ export default function Chat({ onNavigateHome }: ChatProps) {
                   profilePicture: conversation.userAvatar,
                   bio: '',
                   link: '',
-                  gender: '',
+                  gender: undefined,
                   followers: 0,
                   following: 0,
                   posts: 0
