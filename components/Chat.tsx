@@ -18,6 +18,18 @@ export default function Chat({ onNavigateHome }: ChatProps) {
 
   useEffect(() => {
     loadData();
+    
+    // Recargar conversaciones cada 30 segundos para mantener actualizado
+    const interval = setInterval(loadData, 30000);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  // Recargar cuando el componente vuelve a ser visible
+  useEffect(() => {
+    const handleFocus = () => loadData();
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
   const loadData = async () => {
@@ -120,7 +132,25 @@ export default function Chat({ onNavigateHome }: ChatProps) {
           </div>
         ) : conversations.length > 0 ? (
           conversations.map((conversation) => (
-            <div key={conversation.id} className="conversation-item">
+            <div 
+              key={conversation.id} 
+              className="conversation-item"
+              onClick={() => {
+                const user: UserWithId = {
+                  id: conversation.userId,
+                  username: conversation.userName.toLowerCase().replace(' ', ''),
+                  fullName: conversation.userName,
+                  profilePicture: conversation.userAvatar,
+                  bio: '',
+                  link: '',
+                  gender: '',
+                  followers: 0,
+                  following: 0,
+                  posts: 0
+                };
+                setSelectedUser(user);
+              }}
+            >
               <div className="conversation-avatar">
                 {conversation.userAvatar ? (
                   <img src={conversation.userAvatar} alt={conversation.userName} />

@@ -1,5 +1,5 @@
 import { db } from './firebase';
-import { collection, query, where, orderBy, limit, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, getDocs, doc, getDoc, addDoc, onSnapshot, Timestamp, updateDoc } from 'firebase/firestore';
 import { getUserDataById, UserData, UserWithId } from './userService';
 
 export interface Conversation {
@@ -82,12 +82,150 @@ export const getFollowers = async (currentUserId: string): Promise<UserWithId[]>
   }
 };
 
+// Enviar mensaje
+export const sendMessage = async (senderId: string, receiverId: string, content: string): Promise<void> => {
+  try {
+    const messagesRef = collection(db, 'messages');
+    await addDoc(messagesRef, {
+      senderId,
+      receiverId,
+      content: content.trim(),
+      timestamp: Timestamp.now(),
+      isRead: false
+    });
+  } catch (error) {
+    console.error('Error sending message:', error);
+    throw error;
+  }
+};
+
+// Escuchar mensajes en tiempo real
+export const listenToMessages = (
+  currentUserId: string, 
+  otherUserId: string, 
+  callback: (messages: Message[]) => void
+) => {
+  const messagesRef = collection(db, 'messages');
+  const q = query(
+    messagesRef,
+    where('senderId', 'in', [currentUserId, otherUserId]),
+    where('receiverId', 'in', [currentUserId, otherUserId]),
+    orderBy('timestamp', 'asc')
+  );
+
+  return onSnapshot(q, (querySnapshot) => {
+    const messages: Message[] = [];
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      // Solo incluir mensajes entre estos dos usuarios específicos
+      if ((data.senderId === currentUserId && data.receiverId === otherUserId) ||
+          (data.senderId === otherUserId && data.receiverId === currentUserId)) {
+        messages.push({
+          id: doc.id,
+          senderId: data.senderId,
+          receiverId: data.receiverId,
+          content: data.content,
+          timestamp: data.timestamp.toMillis(),
+          isRead: data.isRead
+        });
+      }
+    });
+    callback(messages);
+  });
+};
+
+// Marcar mensajes como leídos
+export const markMessagesAsRead = async (currentUserId: string, otherUserId: string): Promise<void> => {
+  try {
+    const messagesRef = collection(db, 'messages');
+    const q = query(
+      messagesRef,
+      where('senderId', '==', otherUserId),
+      where('receiverId', '==', currentUserId),
+      where('isRead', '==', false)
+    );
+    
+    const querySnapshot = await getDocs(q);
+    const updatePromises = querySnapshot.docs.map(docSnap => 
+      updateDoc(doc(db, 'messages', docSnap.id), { isRead: true })
+    );
+    
+    await Promise.all(updatePromises);
+  } catch (error) {
+    console.error('Error marking messages as read:', error);
+  }
+};
+
 // Obtener conversaciones del usuario actual
 export const getConversations = async (currentUserId: string): Promise<Conversation[]> => {
   try {
-    // Por ahora retornamos array vacío ya que no hay mensajes reales
-    // En el futuro se implementará la lógica de mensajes
-    return [];
+    const messagesRef = collection(db, 'messages');
+    const q = query(
+      messagesRef,
+      where('senderId', '==', currentUserId),
+      orderBy('timestamp', 'desc')
+    );
+    
+    const q2 = query(
+      messagesRef,
+      where('receiverId', '==', currentUserId),
+      orderBy('timestamp', 'desc')
+    );
+    
+    const [sentSnapshot, receivedSnapshot] = await Promise.all([
+      getDocs(q),
+      getDocs(q2)
+    ]);
+    
+    const conversationMap = new Map<string, Conversation>();
+    
+    // Procesar mensajes enviados
+    for (const docSnap of sentSnapshot.docs) {
+      const data = docSnap.data();
+      const otherUserId = data.receiverId;
+      
+      if (!conversationMap.has(otherUserId)) {
+        const userData = await getUserDataById(otherUserId);
+        if (userData) {
+          conversationMap.set(otherUserId, {
+            id: otherUserId,
+            userId: otherUserId,
+            userName: userData.fullName,
+            userAvatar: userData.profilePicture,
+            lastMessage: data.content,
+            timestamp: data.timestamp.toMillis(),
+            unreadCount: 0,
+            isRead: true
+          });
+        }
+      }
+    }
+    
+    // Procesar mensajes recibidos
+    for (const docSnap of receivedSnapshot.docs) {
+      const data = docSnap.data();
+      const otherUserId = data.senderId;
+      
+      if (!conversationMap.has(otherUserId) || 
+          conversationMap.get(otherUserId)!.timestamp < data.timestamp.toMillis()) {
+        const userData = await getUserDataById(otherUserId);
+        if (userData) {
+          conversationMap.set(otherUserId, {
+            id: otherUserId,
+            userId: otherUserId,
+            userName: userData.fullName,
+            userAvatar: userData.profilePicture,
+            lastMessage: data.content,
+            timestamp: data.timestamp.toMillis(),
+            unreadCount: data.isRead ? 0 : 1,
+            isRead: data.isRead
+          });
+        }
+      }
+    }
+    
+    return Array.from(conversationMap.values())
+      .sort((a, b) => b.timestamp - a.timestamp);
   } catch (error) {
     console.error('Error getting conversations:', error);
     return [];

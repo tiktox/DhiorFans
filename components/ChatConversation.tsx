@@ -1,13 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { UserWithId } from '../lib/userService';
-
-interface Message {
-  id: string;
-  senderId: string;
-  content: string;
-  timestamp: number;
-  isRead: boolean;
-}
+import { sendMessage, listenToMessages, markMessagesAsRead, Message } from '../lib/chatService';
 
 interface ChatConversationProps {
   user: UserWithId;
@@ -21,8 +14,29 @@ export default function ChatConversation({ user, currentUserId, onNavigateBack }
   const [isTyping, setIsTyping] = useState(false);
   const [otherUserTyping, setOtherUserTyping] = useState(false);
   const [lastSeen, setLastSeen] = useState<number>(Date.now());
+  const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const unsubscribeRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    // Configurar listener para mensajes en tiempo real
+    const unsubscribe = listenToMessages(currentUserId, user.id, (newMessages) => {
+      setMessages(newMessages);
+      setLoading(false);
+    });
+    
+    unsubscribeRef.current = unsubscribe;
+    
+    // Marcar mensajes como leídos
+    markMessagesAsRead(currentUserId, user.id);
+    
+    return () => {
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
+      }
+    };
+  }, [currentUserId, user.id]);
 
   useEffect(() => {
     scrollToBottom();
@@ -32,28 +46,15 @@ export default function ChatConversation({ user, currentUserId, onNavigateBack }
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const sendMessage = () => {
+  const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
 
-    const message: Message = {
-      id: Date.now().toString(),
-      senderId: currentUserId,
-      content: newMessage.trim(),
-      timestamp: Date.now(),
-      isRead: false
-    };
-
-    setMessages(prev => [...prev, message]);
-    setNewMessage('');
-    
-    // Simular respuesta del otro usuario después de 2-4 segundos
-    setTimeout(() => {
-      setOtherUserTyping(true);
-      setTimeout(() => {
-        setOtherUserTyping(false);
-        setLastSeen(Date.now());
-      }, 2000);
-    }, Math.random() * 2000 + 1000);
+    try {
+      await sendMessage(currentUserId, user.id, newMessage.trim());
+      setNewMessage('');
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,7 +123,11 @@ export default function ChatConversation({ user, currentUserId, onNavigateBack }
 
       {/* Messages */}
       <div className="messages-container">
-        {messages.length === 0 ? (
+        {loading ? (
+          <div className="messages-loading">
+            <p>Cargando mensajes...</p>
+          </div>
+        ) : messages.length === 0 ? (
           <div className="no-messages">
             <p>Inicia una conversación con {user.fullName}</p>
           </div>
@@ -175,7 +180,7 @@ export default function ChatConversation({ user, currentUserId, onNavigateBack }
             type="text"
             value={newMessage}
             onChange={handleInputChange}
-            onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
             placeholder="Escribe un mensaje..."
             className="message-input"
           />
@@ -189,7 +194,7 @@ export default function ChatConversation({ user, currentUserId, onNavigateBack }
 
         <button 
           className={`send-btn ${newMessage.trim() ? 'active' : ''}`}
-          onClick={sendMessage}
+          onClick={handleSendMessage}
         >
           {newMessage.trim() ? (
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

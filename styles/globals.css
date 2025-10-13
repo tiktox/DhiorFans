@@ -3489,6 +3489,20 @@ body {
   font-size: 14px;
 }
 
+/* Messages Loading */
+.messages-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: #666;
+}
+
+.messages-loading p {
+  margin: 0;
+  font-size: 14px;
+}
+
 /* No Conversations */
 .no-conversations {
   text-align: center;
