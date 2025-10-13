@@ -37,17 +37,38 @@ export default function Chat({ onNavigateHome }: ChatProps) {
     
     try {
       setLoading(true);
-      const [userDataResult, chatUsersResult, conversationsResult] = await Promise.all([
-        getUserData(),
+      
+      // Cargar datos de usuario primero
+      const userDataResult = await getUserData();
+      setUserData(userDataResult);
+      
+      // Luego cargar datos de chat con manejo de errores individual
+      const [chatUsersResult, conversationsResult] = await Promise.allSettled([
         getChatUsers(auth.currentUser.uid),
         getConversations(auth.currentUser.uid)
       ]);
       
-      setUserData(userDataResult);
-      setChatUsers(chatUsersResult);
-      setConversations(conversationsResult);
+      // Manejar resultados de chat users
+      if (chatUsersResult.status === 'fulfilled') {
+        setChatUsers(chatUsersResult.value);
+      } else {
+        console.error('Error loading chat users:', chatUsersResult.reason);
+        setChatUsers([]);
+      }
+      
+      // Manejar resultados de conversaciones
+      if (conversationsResult.status === 'fulfilled') {
+        setConversations(conversationsResult.value);
+      } else {
+        console.error('Error loading conversations:', conversationsResult.reason);
+        setConversations([]);
+      }
+      
     } catch (error) {
       console.error('Error loading chat data:', error);
+      // Asegurar que los estados se reseteen en caso de error
+      setChatUsers([]);
+      setConversations([]);
     } finally {
       setLoading(false);
     }

@@ -191,70 +191,81 @@ export const markMessagesAsRead = async (currentUserId: string, otherUserId: str
   }
 };
 
-// Obtener conversaciones del usuario actual
+// Obtener conversaciones del usuario actual (optimizado)
 export const getConversations = async (currentUserId: string): Promise<Conversation[]> => {
   try {
+    // Usar una sola consulta más eficiente
     const messagesRef = collection(db, 'messages');
-    const q = query(
-      messagesRef,
-      where('senderId', '==', currentUserId),
-      orderBy('timestamp', 'desc')
-    );
-    
-    const q2 = query(
-      messagesRef,
-      where('receiverId', '==', currentUserId),
-      orderBy('timestamp', 'desc')
-    );
-    
-    const [sentSnapshot, receivedSnapshot] = await Promise.all([
-      getDocs(q),
-      getDocs(q2)
-    ]);
-    
     const conversationMap = new Map<string, Conversation>();
     
-    // Procesar mensajes enviados
-    for (const docSnap of sentSnapshot.docs) {
-      const data = docSnap.data();
-      const otherUserId = data.receiverId;
-      
-      if (!conversationMap.has(otherUserId)) {
-        const userData = await getUserDataById(otherUserId);
-        if (userData) {
-          conversationMap.set(otherUserId, {
-            id: otherUserId,
-            userId: otherUserId,
-            userName: userData.fullName,
-            userAvatar: userData.profilePicture,
-            lastMessage: data.content,
-            timestamp: data.timestamp.toMillis(),
-            unreadCount: 0,
-            isRead: true
-          });
-        }
-      }
-    }
+    // Obtener mensajes donde el usuario es receptor
+    const receivedQuery = query(
+      messagesRef,
+      where('receiverId', '==', currentUserId),
+      orderBy('timestamp', 'desc'),
+      limit(50)
+    );
+    
+    const receivedSnapshot = await getDocs(receivedQuery);
     
     // Procesar mensajes recibidos
     for (const docSnap of receivedSnapshot.docs) {
       const data = docSnap.data();
       const otherUserId = data.senderId;
       
+      if (!conversationMap.has(otherUserId)) {
+        try {
+          const userData = await getUserDataById(otherUserId);
+          if (userData) {
+            conversationMap.set(otherUserId, {
+              id: otherUserId,
+              userId: otherUserId,
+              userName: userData.fullName,
+              userAvatar: userData.profilePicture,
+              lastMessage: data.content,
+              timestamp: data.timestamp.toMillis(),
+              unreadCount: data.isRead ? 0 : 1,
+              isRead: data.isRead
+            });
+          }
+        } catch (userError) {
+          console.warn(`Error loading user data for ${otherUserId}:`, userError);
+        }
+      }
+    }
+    
+    // Obtener mensajes enviados para completar conversaciones
+    const sentQuery = query(
+      messagesRef,
+      where('senderId', '==', currentUserId),
+      orderBy('timestamp', 'desc'),
+      limit(50)
+    );
+    
+    const sentSnapshot = await getDocs(sentQuery);
+    
+    for (const docSnap of sentSnapshot.docs) {
+      const data = docSnap.data();
+      const otherUserId = data.receiverId;
+      
       if (!conversationMap.has(otherUserId) || 
           conversationMap.get(otherUserId)!.timestamp < data.timestamp.toMillis()) {
-        const userData = await getUserDataById(otherUserId);
-        if (userData) {
-          conversationMap.set(otherUserId, {
-            id: otherUserId,
-            userId: otherUserId,
-            userName: userData.fullName,
-            userAvatar: userData.profilePicture,
-            lastMessage: data.content,
-            timestamp: data.timestamp.toMillis(),
-            unreadCount: data.isRead ? 0 : 1,
-            isRead: data.isRead
-          });
+        try {
+          const userData = await getUserDataById(otherUserId);
+          if (userData) {
+            conversationMap.set(otherUserId, {
+              id: otherUserId,
+              userId: otherUserId,
+              userName: userData.fullName,
+              userAvatar: userData.profilePicture,
+              lastMessage: data.content,
+              timestamp: data.timestamp.toMillis(),
+              unreadCount: 0,
+              isRead: true
+            });
+          }
+        } catch (userError) {
+          console.warn(`Error loading user data for ${otherUserId}:`, userError);
         }
       }
     }
@@ -263,6 +274,7 @@ export const getConversations = async (currentUserId: string): Promise<Conversat
       .sort((a, b) => b.timestamp - a.timestamp);
   } catch (error) {
     console.error('Error getting conversations:', error);
+    // Retornar array vacío en lugar de fallar
     return [];
   }
 };

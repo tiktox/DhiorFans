@@ -2497,6 +2497,26 @@ body {
 
 .select-media-btn {
   background: #2196f3;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 20px;
+  width: 100%;
+  transition: background 0.3s;
+}
+
+.select-media-btn:hover {
+  background: #1976d2;
+}
+
+.select-media-btn:disabled {
+  background: #666;
+  cursor: not-allowed;
+}3;
   border: none;
   color: white;
   padding: 12px 24px;
