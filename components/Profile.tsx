@@ -10,7 +10,6 @@ import CreateDynamic from './CreateDynamic';
 import Editor from './Editor';
 import Store from './Store';
 
-
 interface ProfileProps {
   onNavigateHome?: () => void;
   onNavigatePublish?: () => void;
@@ -178,6 +177,7 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
       }}
     />;
   }
+  
   return (
     <div className="profile-container">
       {/* Header with username and settings */}
@@ -193,7 +193,7 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
         {userData.profilePicture ? (
           <img src={userData.profilePicture} alt="Perfil" />
         ) : (
-          <div className="default-avatar">👤</div>
+          <div className="default-avatar-profile">👤</div>
         )}
       </div>
 
@@ -291,8 +291,6 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
         )}
       </div>
 
-
-
       {/* Bottom Navigation */}
       <div className="bottom-nav">
         <div className="nav-icon home-icon" onClick={onNavigateHome}>
@@ -327,8 +325,6 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
           )}
         </div>
       </div>
-
-
     </div>
   );
 }

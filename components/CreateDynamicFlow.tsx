@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { getUserData } from '../lib/userService';
+import { auth } from '../lib/firebase';
+import { getUserTokens } from '../lib/tokenService';
 import CreateDynamic from './CreateDynamic';
 import Editor from './Editor';
 
@@ -24,8 +25,10 @@ export default function CreateDynamicFlow({ onNavigateBack, onPublish, onSwitchT
   useEffect(() => {
     const loadUserTokens = async () => {
       try {
-        const userData = await getUserData();
-        setUserTokens(userData.tokens || 90);
+        if (auth.currentUser) {
+          const tokenData = await getUserTokens(auth.currentUser.uid);
+          setUserTokens(tokenData?.tokens || 90);
+        }
       } catch (error) {
         console.error('Error loading user tokens:', error);
       }

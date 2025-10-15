@@ -10,6 +10,7 @@ export interface UserData {
   link?: string;
   gender?: 'Hombre' | 'Mujer';
   profilePicture?: string;
+  avatar?: string;
   lastUsernameChange?: number;
   followers: number;
   following: number;
