@@ -4,6 +4,7 @@ import { deletePost, Post } from '../lib/postService';
 import { toggleLike } from '../lib/likeService';
 import { auth } from '../lib/firebase';
 import { getPostCommentsCount } from '../lib/commentCountService';
+import { useDynamicStatus } from '../hooks/useDynamicStatus';
 import CommentsModal from './CommentsModal';
 
 // Reemplaza el componente BorderProgressBar actual
@@ -23,8 +24,9 @@ interface ReelPlayerProps {
   isActive: boolean;
   onProfileClick?: (userId: string) => void;
   onPostDeleted?: () => void;
+  onDynamicCompleted?: () => void;
 }
-export default function ReelPlayer({ post, isActive, onProfileClick, onPostDeleted }: ReelPlayerProps) {
+export default function ReelPlayer({ post, isActive, onProfileClick, onPostDeleted, onDynamicCompleted }: ReelPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -35,13 +37,11 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
   const [showLikeAnimation, setShowLikeAnimation] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [commentsCount, setCommentsCount] = useState(0);
+  const isDynamicActive = useDynamicStatus(post.id, post.isDynamic ? post.isActive : undefined);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const lastTapRef = useRef<number>(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStartX, setDragStartX] = useState(0);
-  const [dragStartTime, setDragStartTime] = useState(0);
-  const [showTimeIndicator, setShowTimeIndicator] = useState(false);
-  const [currentTimeDisplay, setCurrentTimeDisplay] = useState('');
+
 
   const isOwner = auth.currentUser && auth.currentUser.uid === post.userId;
   
@@ -82,7 +82,17 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
         setIsPlaying(false);
       }
     }
-  }, [isActive]);
+    
+    // Manejar audio
+    if (post.audioUrl && audioRef.current) {
+      if (isActive) {
+        audioRef.current.play();
+      } else {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    }
+  }, [isActive, post.audioUrl]);
 
   const togglePlayPause = () => {
     if (videoRef.current) {
@@ -153,15 +163,13 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
   };
 
   const handleVideoClick = () => {
-    if (isDragging) return;
-    
     const now = Date.now();
     const timeDiff = now - lastTapRef.current;
     
     if (timeDiff < 250 && timeDiff > 50) {
       // Doble clic - dar like
       handleLike();
-      lastTapRef.current = 0; // Reset para evitar triple clic
+      lastTapRef.current = 0;
     } else {
       // Clic simple - pausar/reanudar
       if (timeDiff > 250) {
@@ -185,89 +193,11 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
     }
   };
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (!videoRef.current || isImage) return;
-    
-    setIsDragging(false);
-    setDragStartX(e.touches[0].clientX);
-    setDragStartTime(videoRef.current.currentTime);
-  };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!videoRef.current || isImage || !isFinite(videoRef.current.duration)) return;
-    
-    const currentX = e.touches[0].clientX;
-    const deltaX = currentX - dragStartX;
-    
-    if (Math.abs(deltaX) > 10) {
-      setIsDragging(true);
-      setShowTimeIndicator(true);
-      
-      // Calcular nuevo tiempo basado en el deslizamiento
-      const sensitivity = videoRef.current.duration / window.innerWidth;
-      const newTime = Math.max(0, Math.min(videoRef.current.duration, dragStartTime + (deltaX * sensitivity)));
-      
-      videoRef.current.currentTime = newTime;
-      
-      // Actualizar indicador de tiempo
-      const minutes = Math.floor(newTime / 60);
-      const seconds = Math.floor(newTime % 60);
-      const totalMinutes = Math.floor(videoRef.current.duration / 60);
-      const totalSeconds = Math.floor(videoRef.current.duration % 60);
-      setCurrentTimeDisplay(`${minutes}:${seconds.toString().padStart(2, '0')} / ${totalMinutes}:${totalSeconds.toString().padStart(2, '0')}`);
-    }
-  };
-
-  const handleTouchEnd = () => {
-    setTimeout(() => {
-      setIsDragging(false);
-      setShowTimeIndicator(false);
-    }, 100);
-  };
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!videoRef.current || isImage) return;
-    
-    setIsDragging(false);
-    setDragStartX(e.clientX);
-    setDragStartTime(videoRef.current.currentTime);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!videoRef.current || isImage || !isFinite(videoRef.current.duration) || e.buttons !== 1) return;
-    
-    const currentX = e.clientX;
-    const deltaX = currentX - dragStartX;
-    
-    if (Math.abs(deltaX) > 10) {
-      setIsDragging(true);
-      setShowTimeIndicator(true);
-      
-      // Calcular nuevo tiempo basado en el deslizamiento
-      const sensitivity = videoRef.current.duration / window.innerWidth;
-      const newTime = Math.max(0, Math.min(videoRef.current.duration, dragStartTime + (deltaX * sensitivity)));
-      
-      videoRef.current.currentTime = newTime;
-      
-      // Actualizar indicador de tiempo
-      const minutes = Math.floor(newTime / 60);
-      const seconds = Math.floor(newTime % 60);
-      const totalMinutes = Math.floor(videoRef.current.duration / 60);
-      const totalSeconds = Math.floor(videoRef.current.duration % 60);
-      setCurrentTimeDisplay(`${minutes}:${seconds.toString().padStart(2, '0')} / ${totalMinutes}:${totalSeconds.toString().padStart(2, '0')}`);
-    }
-  };
-
-  const handleMouseUp = () => {
-    setTimeout(() => {
-      setIsDragging(false);
-      setShowTimeIndicator(false);
-    }, 100);
-  };
 
   return (
     <div 
-      className={`reel-container ${isImage ? 'image-content' : 'video-content'} ${isDragging ? 'dragging' : ''}`}
+      className={`reel-container ${isImage ? 'image-content' : 'video-content'}`}
       data-content-type={isImage ? 'image' : 'video'}
       data-media-id={post.id}
     >
@@ -289,22 +219,57 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
           />
-          <div className="progress-bar" onClick={handleSeek}>
+          <div 
+            className="progress-bar" 
+            onClick={handleSeek}
+            onTouchStart={handleSeek}
+            onTouchMove={handleSeek}
+          >
             <div className="progress-bar-inner" style={{ width: `${progress}%` }} />
+            <div className="progress-thumb" style={{ left: `${progress}%` }} />
           </div>
         </>
+      )}
+      
+      {/* Audio del post */}
+      {post.audioUrl && (
+        <audio
+          ref={audioRef}
+          src={post.audioUrl}
+          loop
+        />
+      )}
+      
+      {/* Texto con estilos personalizados */}
+      {post.textStyles && post.description && (
+        <div 
+          className="custom-text-overlay"
+          style={{
+            position: 'absolute',
+            left: `${Math.max(0, Math.min(100, post.textStyles.position.x))}%`,
+            top: `${Math.max(0, Math.min(100, post.textStyles.position.y))}%`,
+            fontSize: `${Math.max(12, Math.min(48, post.textStyles.size))}px`,
+            color: post.textStyles.color,
+            fontFamily: post.textStyles.fontFamily,
+            fontWeight: post.textStyles.style === 'bold' ? 'bold' : 'normal',
+            fontStyle: post.textStyles.style === 'italic' ? 'italic' : 'normal',
+            textDecoration: post.textStyles.style === 'underline' ? 'underline' : 'none',
+            textShadow: post.textStyles.style === 'shadow' ? '2px 2px 4px rgba(0,0,0,0.8)' : 'none',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 10,
+            pointerEvents: 'none',
+            maxWidth: '80%',
+            wordWrap: 'break-word'
+          }}
+        >
+          {post.description.replace(/<[^>]*>/g, '')}
+        </div>
       )}
       
       {!isImage && (
         <div 
           className="video-click-overlay"
           onClick={handleVideoClick}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
         />
       )}
       
@@ -322,12 +287,7 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
         </div>
       )}
       
-      {/* Indicador de tiempo durante deslizamiento */}
-      {showTimeIndicator && (
-        <div className="time-indicator">
-          {currentTimeDisplay}
-        </div>
-      )}
+
       
       {/* Indicador de pausa */}
       {!isImage && !isPlaying && (
@@ -366,7 +326,7 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
               <div className="user-details">
                 <div className="username-row">
                   <div className="username">@{authorData?.username || '...'}</div>
-                  {post.isDynamic && post.tokensReward && post.isActive && (
+                  {post.isDynamic && post.tokensReward && isDynamicActive && (
                     <div className="dynamic-tokens-display">
                       <span className="token-icon"></span>
                       <span className="token-amount">{post.tokensReward}</span>
@@ -374,7 +334,7 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
                   )}
                 </div>
                 {post.title && <div className="post-title">{post.title}</div>}
-                {post.description && <div className="description">{post.description}</div>}
+                {post.description && !post.textStyles && <div className="description">{post.description}</div>}
               </div>
             </div>
           </div>
@@ -445,6 +405,7 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
           getPostCommentsCount(post.id).then(setCommentsCount);
         }}
         onProfileClick={onProfileClick}
+        onDynamicCompleted={post.isDynamic ? onDynamicCompleted : undefined}
       />
     </div>
   );

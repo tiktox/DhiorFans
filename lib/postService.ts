@@ -9,6 +9,14 @@ export interface Post {
   description: string;
   mediaUrl: string;
   mediaType: 'image' | 'video';
+  audioUrl?: string;
+  textStyles?: {
+    position: { x: number; y: number };
+    size: number;
+    color: string;
+    fontFamily: string;
+    style: string;
+  };
   timestamp: number;
   likes: number;
   comments: number;

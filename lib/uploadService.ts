@@ -7,24 +7,29 @@ export const uploadFile = async (file: File, userId: string): Promise<string> =>
   
   const isVideo = file.type.startsWith('video/');
   const isImage = file.type.startsWith('image/');
+  const isAudio = file.type.startsWith('audio/');
   
-  if (!isVideo && !isImage) {
-    throw new Error('Solo se permiten imágenes y videos');
+  if (!isVideo && !isImage && !isAudio) {
+    throw new Error('Solo se permiten imágenes, videos y audios');
   }
   
   // Validar tamaño según tipo
-  const maxSize = isVideo ? 100 * 1024 * 1024 : 10 * 1024 * 1024; // 100MB videos, 10MB imágenes
+  let maxSize = 10 * 1024 * 1024; // 10MB por defecto
+  if (isVideo) maxSize = 100 * 1024 * 1024; // 100MB videos
+  if (isAudio) maxSize = 20 * 1024 * 1024; // 20MB audios
+  
   if (file.size > maxSize) {
-    throw new Error(`Archivo demasiado grande (máximo ${isVideo ? '100MB' : '10MB'})`);
+    const sizeText = isVideo ? '100MB' : isAudio ? '20MB' : '10MB';
+    throw new Error(`Archivo demasiado grande (máximo ${sizeText})`);
   }
   
   const timestamp = Date.now();
   const fileName = `${timestamp}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
   
   // Usar rutas según las reglas de Firebase
-  const path = isVideo 
-    ? `posts/videos/${userId}/${fileName}`
-    : `posts/images/${userId}/${fileName}`;
+  let path = `posts/images/${userId}/${fileName}`;
+  if (isVideo) path = `posts/videos/${userId}/${fileName}`;
+  if (isAudio) path = `posts/audios/${userId}/${fileName}`;
   
   const storageRef = ref(storage, path);
   

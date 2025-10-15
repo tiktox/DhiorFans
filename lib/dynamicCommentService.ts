@@ -1,7 +1,7 @@
 import { auth, db } from './firebase';
 import { doc, getDoc, updateDoc, increment, collection, query, where, getDocs } from 'firebase/firestore';
 
-export const checkDynamicComment = async (postId: string, comment: string, userId: string) => {
+export const checkDynamicComment = async (postId: string, comment: string, userId: string, onStateChange?: (postId: string, isActive: boolean) => void) => {
   // Obtener datos del post
   const postDoc = await getDoc(doc(db, 'posts', postId));
   if (!postDoc.exists()) return { isWinner: false, tokensWon: 0 };
@@ -39,6 +39,9 @@ export const checkDynamicComment = async (postId: string, comment: string, userI
       winnerKeyword: matchedKeyword,
       winnerTimestamp: Date.now()
     });
+
+    // Notificar cambio de estado inmediatamente
+    onStateChange?.(postId, false);
 
     console.log(`🎉 Usuario ${userId} ganó ${tokensWon} tokens con la palabra "${matchedKeyword}"`);
     

@@ -8,6 +8,7 @@ import EditProfile from './EditProfile';
 import Settings from './Settings';
 import CreateDynamic from './CreateDynamic';
 import Editor from './Editor';
+import Store from './Store';
 
 
 interface ProfileProps {
@@ -28,6 +29,7 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
   const [userPosts, setUserPosts] = useState<Post[]>([]);
   const [tokenData, setTokenData] = useState<TokenData | null>(null);
   const [showTokensTaskbar, setShowTokensTaskbar] = useState(false);
+  const [showStore, setShowStore] = useState(false);
   const taskbarRef = useRef<HTMLDivElement>(null);
 
   // Función para recargar datos del usuario
@@ -159,6 +161,13 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
     );
   }
 
+  if (showStore) {
+    return <Store 
+      onNavigateBack={() => setShowStore(false)}
+      userTokens={tokenData?.tokens || 0}
+    />;
+  }
+
   if (showEditProfile) {
     return <EditProfile 
       userData={userData} 
@@ -245,28 +254,10 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
             <rect x="3" y="14" width="7" height="7"/>
           </svg>
         </button>
-        <div className="action-btn tokens-btn" onClick={() => setShowTokensTaskbar(!showTokensTaskbar)}>
+        <div className="action-btn tokens-btn" onClick={() => setShowStore(true)}>
           🪙 {tokenData?.tokens || 0}
         </div>
       </div>
-
-      {/* Tokens Taskbar */}
-      {showTokensTaskbar && (
-        <div className="tokens-taskbar" ref={taskbarRef}>
-          <button className="taskbar-option" onClick={() => {
-            setShowCreateDynamic(true);
-            setShowTokensTaskbar(false);
-          }}>
-            Crear dinámica
-          </button>
-          <button className="taskbar-option" onClick={() => {
-            console.log('Tienda clicked');
-            setShowTokensTaskbar(false);
-          }}>
-            Tienda
-          </button>
-        </div>
-      )}
 
       {/* Posts Grid */}
       <div className="posts-grid">

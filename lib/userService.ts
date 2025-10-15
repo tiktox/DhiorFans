@@ -14,6 +14,8 @@ export interface UserData {
   followers: number;
   following: number;
   posts: number;
+  cameraPermission?: 'granted' | 'denied' | 'prompt';
+  microphonePermission?: 'granted' | 'denied' | 'prompt';
 }
 
 // Removed usersCollection constant to use direct references

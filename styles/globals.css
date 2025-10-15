@@ -788,26 +788,28 @@ body {
 
 /* Publish Modal Styles */
 .publish-modal-overlay {
-  position: fixed;
+  border-radius: 20px;
+  height: 620px;
+  position: relative;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.9);
+  background: rgb(0, 0, 0);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 110;
+  z-index: 11111111;
 }
 
 .publish-modal {
-  background: #1a1a1a;
+  position: relative;
+  background: #000000;
   border-radius: 15px;
   width: 90%;
-  max-width: 400px;
+  max-width: 350px;
   max-height: 90vh;
   overflow-y: auto;
-  border: 1px solid #333;
   animation: modalSlideIn 0.3s ease-out;
 }
 
@@ -846,7 +848,7 @@ body {
 }
 
 .media-icon {
-  color: #666;
+  color: #667;
   margin-bottom: 20px;
   display: flex;
   justify-content: center;
@@ -1986,7 +1988,7 @@ body {
   
   .post-modal-content {
     max-width: 400px;
-    max-height: 600px;
+    max-height: 620px;
   }
 }
 
@@ -2230,57 +2232,6 @@ body {
   color: #999;
 }
 
-/* Tokens Taskbar - Fixed Implementation */
-.tokens-taskbar {
-  position: absolute;
-  bottom: 218px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: var(--space-md);
-  background: rgba(17, 17, 17, 0.95);
-  backdrop-filter: blur(10px);
-  padding: var(--space-sm) var(--space-lg);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--color-border-primary);
-  z-index: 105;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  animation: taskbarSlideUp 0.25s ease-out;
-  min-width: 200px;
-  justify-content: center;
-}
-
-.taskbar-option {
-  background: var(--color-bg-quaternary);
-  border: 1px solid var(--color-border-secondary);
-  color: var(--color-text-primary);
-  padding: var(--space-sm) var(--space-lg);
-  border-radius: var(--radius-lg);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-  outline: none;
-}
-
-.taskbar-option:hover {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
-  color: var(--color-text-white);
-  transform: translateY(-1px);
-}
-
-.taskbar-option:focus {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
-
-.taskbar-option:active {
-  transform: translateY(0);
-  background: var(--color-accent-hover);
-}
-
 /* Fallback for browsers without backdrop-filter */
 @supports not (backdrop-filter: blur(10px)) {
   .tokens-taskbar {
@@ -2440,15 +2391,6 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.no-media {
-  grid-column: 1 / -1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 200px;
-  cursor: pointer;
 }
 
 .add-media-btn {
@@ -3015,7 +2957,7 @@ body {
 /* Dynamic tokens display - simple style */
 .dynamic-tokens-display {
   position: absolute;
-  top: -370px;
+  top: -395px;
   left: 50%;
   transform: translateX(-50%);
   background: linear-gradient(135deg, var(--primary-gold), var(--secondary-orange));
@@ -3735,3 +3677,72 @@ body {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6), 0 0 12px rgba(0, 0, 0, 0.3);
   }
 }
+/* Prevenir selección de texto en toda la aplicación */
+* {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Permitir selección solo en inputs y áreas de texto */
+input, textarea, [contenteditable="true"] {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+/* Prevenir selección específicamente en overlays de clic */
+.video-click-overlay,
+.image-click-overlay,
+.reel-container,
+.reels-background {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+/* Progress Bar Styles */
+.progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  z-index: 10;
+}
+
+.progress-bar:hover {
+  height: 6px;
+}
+
+.progress-bar-inner {
+  height: 100%;
+  background: #ff3040;
+  transition: width 0.1s ease;
+}
+
+.progress-thumb {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  background: #ff3040;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.progress-bar:hover .progress-thumb {
+  opacity: 1;
+}
+@import url('./publish-modal.css');
+@import url('./camera-interface.css');
+@import url('./publish-interface.css');
+@import url('./store.css');

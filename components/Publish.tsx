@@ -1,26 +1,71 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { auth } from '../lib/firebase';
-import { getUserData } from '../lib/userService';
+import { getUserData, saveUserData } from '../lib/userService';
 import { createPost } from '../lib/postService';
 import { uploadFile } from '../lib/uploadService';
+import ContentTypeSelector from './ContentTypeSelector';
 
 interface PublishProps {
   onNavigateHome: () => void;
   onPublish?: () => void;
+  onNavigateToCreatePost?: () => void;
+  onNavigateToCreateDynamic?: () => void;
+  onNavigateToEditor?: (mediaFile: MediaFile) => void;
 }
 
-export default function Publish({ onNavigateHome, onPublish }: PublishProps) {
+interface MediaFile {
+  url: string;
+  file: File;
+  type: 'image' | 'video';
+}
+
+export default function Publish({ onNavigateHome, onPublish, onNavigateToCreatePost, onNavigateToCreateDynamic, onNavigateToEditor }: PublishProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [mediaFilter, setMediaFilter] = useState<'todo' | 'imagenes' | 'videos'>('todo');
   const [isUploading, setIsUploading] = useState(false);
+  const [showCameraInterface, setShowCameraInterface] = useState(true);
+  const [cameraPermission, setCameraPermission] = useState<'denied' | 'granted' | 'prompt'>('prompt');
+
+  // Verificar permisos al cargar
+  useEffect(() => {
+    checkExistingPermissions();
+  }, []);
+
+  const checkExistingPermissions = async () => {
+    try {
+      const userData = await getUserData();
+      if (userData.cameraPermission) {
+        setCameraPermission(userData.cameraPermission);
+      }
+    } catch (error) {
+      console.error('Error verificando permisos:', error);
+    }
+  };
+  const [mediaFilter, setMediaFilter] = useState<'todo' | 'imagenes' | 'videos'>('todo');
+  const contentTypes = [
+    { id: 'dinamica', label: 'Crear Dinámica' },
+    { id: 'publicacion', label: 'Publicación' },
+    { id: 'escribir', label: 'Escribe Algo!!' },
+    { id: 'live', label: 'Live' }
+  ];
+  const [activeIndex, setActiveIndex] = useState(1);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      setSelectedFile(file);
+      const mediaFile = {
+        url: URL.createObjectURL(file),
+        file,
+        type: file.type.startsWith('video/') ? 'video' as const : 'image' as const
+      };
+      // Detener cámara si está activa
+      stopCamera();
+      // Enviar archivo directamente al editor
+      onNavigateToEditor?.(mediaFile);
     }
   };
 
@@ -66,129 +111,202 @@ export default function Publish({ onNavigateHome, onPublish }: PublishProps) {
   const isVideo = selectedFile?.type.startsWith('video/');
   const isImage = selectedFile?.type.startsWith('image/');
 
-  return (
-    <div className="publish-container">
-      <div className="publish-header">
-        <button className="back-btn" onClick={onNavigateHome}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="m15 18-6-6 6-6"/>
-          </svg>
+  const handleCameraPermission = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      setCameraPermission('granted');
+      await saveUserData({ 
+        cameraPermission: 'granted',
+        microphonePermission: 'granted'
+      });
+      setCameraStream(stream);
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (error) {
+      setCameraPermission('denied');
+      await saveUserData({ 
+        cameraPermission: 'denied',
+        microphonePermission: 'denied'
+      });
+    }
+  };
+
+  const stopCamera = () => {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      setCameraStream(null);
+    }
+  };
+
+  const handleContentTypeChange = (index: number) => {
+    setActiveIndex(index);
+    
+    const selectedType = contentTypes[index];
+    
+    // Navegar según el tipo seleccionado
+    if (selectedType.id === 'dinamica') {
+      onNavigateToCreateDynamic?.();
+      return;
+    }
+    
+    if (selectedType.id === 'escribir') {
+      onNavigateToCreatePost?.();
+      return;
+    }
+    
+    if (selectedType.id === 'live') {
+      console.log('Navegando a Live');
+      return;
+    }
+    
+    // Solo para "Publicación" activar cámara
+    if (selectedType.id === 'publicacion') {
+      if (cameraPermission === 'granted') {
+        handleCameraPermission();
+      } else if (cameraPermission === 'prompt') {
+        handleCameraPermission();
+      }
+    } else {
+      stopCamera();
+    }
+  };
+
+
+
+  const capturePhoto = () => {
+    if (videoRef.current && cameraStream) {
+      const canvas = document.createElement('canvas');
+      const video = videoRef.current;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(video, 0, 0);
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const timestamp = new Date().getTime();
+            const file = new File([blob], `photo_${timestamp}.jpg`, { type: 'image/jpeg' });
+            const mediaFile = {
+              url: URL.createObjectURL(file),
+              file,
+              type: 'image' as const
+            };
+            // Detener cámara antes de navegar
+            stopCamera();
+            // Enviar foto directamente al editor
+            onNavigateToEditor?.(mediaFile);
+          }
+        }, 'image/jpeg', 0.9);
+      }
+    }
+  };
+
+  const openGallery = () => {
+    fileInputRef.current?.click();
+  };
+
+  useEffect(() => {
+    if (contentTypes[activeIndex].id === 'publicacion' && cameraPermission === 'granted') {
+      handleCameraPermission();
+    }
+    return () => {
+      stopCamera();
+    };
+  }, [activeIndex, cameraPermission]);
+
+  // Limpiar cámara al desmontar componente
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, []);
+
+  const openSettings = () => {
+    // En un entorno real, esto abriría la configuración del navegador
+    alert('Por favor, permite el acceso a la cámara y micrófono en la configuración de tu navegador');
+  };
+
+  // Eliminar editor viejo - solo mostrar interfaz de cámara
+  if (showCameraInterface) {
+    return (
+      <div className="camera-interface">
+        <button className="camera-close-btn" onClick={() => { stopCamera(); onNavigateHome(); }}>
+          ×
         </button>
-        <h2>Publicar</h2>
-        <div></div>
-      </div>
-
-      <div className="publish-content">
-        {!selectedFile ? (
-          <div className="file-selector">
-            <div className="media-icon">
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                <circle cx="8.5" cy="8.5" r="1.5"/>
-                <polyline points="21,15 16,10 5,21"/>
-              </svg>
+        
+        {cameraPermission === 'prompt' && (
+          <div className="camera-permissions">
+            <div className="permissions-message">
+              Dhiorfans necesita acceder a la cámara y el micrófono
             </div>
-            <h3>Selecciona tu contenido</h3>
-            <p>Elige una imagen o video para compartir</p>
-            
-            <div className="media-filters">
-              <button 
-                className={`filter-btn ${mediaFilter === 'todo' ? 'active' : ''}`}
-                onClick={() => setMediaFilter('todo')}
-              >
-                Todo
-              </button>
-              <button 
-                className={`filter-btn ${mediaFilter === 'imagenes' ? 'active' : ''}`}
-                onClick={() => setMediaFilter('imagenes')}
-              >
-                Imágenes
-              </button>
-              <button 
-                className={`filter-btn ${mediaFilter === 'videos' ? 'active' : ''}`}
-                onClick={() => setMediaFilter('videos')}
-              >
-                Videos
-              </button>
-            </div>
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              className="file-input"
-              accept={
-                mediaFilter === 'imagenes' ? 'image/*' :
-                mediaFilter === 'videos' ? 'video/*' :
-                'image/*,video/*'
-              }
-              onChange={handleFileSelect}
-            />
-            <button 
-              className="select-media-btn"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7,10 12,15 17,10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
+            <button className="permissions-config-btn" onClick={handleCameraPermission}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/>
               </svg>
-              Seleccionar archivo
+              Ir a configuración
             </button>
           </div>
-        ) : (
-          <div className="publish-form">
-            <div className="media-preview">
-              {isVideo ? (
-                <video controls>
-                  <source src={URL.createObjectURL(selectedFile)} type={selectedFile.type} />
-                </video>
-              ) : isImage ? (
-                <img src={URL.createObjectURL(selectedFile)} alt="Preview" />
-              ) : null}
-            </div>
-
-            <div className="form-section">
-              <div className="input-group">
-                <label>Título</label>
-                <input
-                  type="text"
-                  className="title-input"
-                  placeholder="Escribe un título llamativo..."
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  maxLength={100}
-                />
-              </div>
-
-              <div className="input-group">
-                <label>Descripción</label>
-                <textarea
-                  className="description-input"
-                  placeholder="Describe tu contenido..."
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  maxLength={500}
-                />
-              </div>
-            </div>
-          </div>
         )}
-      </div>
+        
+        {cameraPermission === 'granted' && contentTypes[activeIndex].id === 'publicacion' && (
+          <video 
+            ref={videoRef}
+            autoPlay 
+            playsInline 
+            muted
+            className="camera-preview"
+          />
+        )}
 
-      {selectedFile && (
-        <div className="publish-actions">
-          <button className="cancel-btn" onClick={() => setSelectedFile(null)}>
-            Cancelar
-          </button>
-          <button 
-            className="publish-btn"
-            onClick={handlePublish}
-            disabled={!title.trim() || isUploading}
-          >
-            {isUploading ? 'Publicando...' : 'Publicar'}
-          </button>
+        <div className="camera-bottom-bar">
+          <ContentTypeSelector
+            contentTypes={contentTypes}
+            activeIndex={activeIndex}
+            onSelectionChange={handleContentTypeChange}
+          />
+          
+
+          
+          <div className="capture-section">
+            <div className="user-gallery">
+              <button className="gallery-item" onClick={openGallery}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21,15 16,10 5,21"/>
+                </svg>
+              </button>
+            </div>
+            
+            <div className="capture-button">
+              {contentTypes[activeIndex].id === 'publicacion' && cameraPermission === 'granted' ? (
+                <button className="capture-btn" onClick={capturePhoto}>
+                  <div className="capture-inner"></div>
+                </button>
+              ) : (
+                <div className="capture-btn disabled">
+                  <div className="capture-inner"></div>
+                </div>
+              )}
+            </div>
+            
+            <div className="capture-right-space"></div>
+          </div>
         </div>
-      )}
-    </div>
-  );
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="file-input"
+          accept="image/*,video/*"
+          onChange={handleFileSelect}
+        />
+      </div>
+    );
+  }
+
+  // Editor viejo eliminado - ahora solo redirige al nuevo editor
+  return null;
 }

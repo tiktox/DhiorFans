@@ -1,9 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import { auth } from '../lib/firebase';
 import { getUsersDataByIds, UserData } from '../lib/userService';
 import { Comment } from '../lib/commentService';
 import { useComments } from '../hooks/useComments';
+import { useDynamicStatus } from '../hooks/useDynamicStatus';
 import { checkDynamicComment, getUserCommentCount } from '../lib/dynamicCommentService';
 import { Post } from '../lib/postService';
 import WinnerModal from './WinnerModal';
@@ -18,9 +19,10 @@ interface CommentsModalProps {
   postData?: Post;
   onClose: () => void;
   onProfileClick?: (userId: string) => void;
+  onDynamicCompleted?: () => void;
 }
 
-export default function CommentsModal({ postId, isOpen, postData, onClose, onProfileClick }: CommentsModalProps) {
+export default function CommentsModal({ postId, isOpen, postData, onClose, onProfileClick, onDynamicCompleted }: CommentsModalProps) {
   const { loadComments, addComment, getPostComments, toggleReplies } = useComments();
   const { comments: flatComments, hasMore, loading, expandedReplies } = getPostComments(postId);
   
@@ -32,6 +34,7 @@ export default function CommentsModal({ postId, isOpen, postData, onClose, onPro
   const [toast, setToast] = useState<{message: string; type: 'error' | 'success'} | null>(null);
   const [modalRoot, setModalRoot] = useState<HTMLElement | null>(null);
   const [winnerData, setWinnerData] = useState<{tokensWon: number; keyword: string} | null>(null);
+  const isDynamicActive = useDynamicStatus(postId, postData?.isDynamic ? postData.isActive : undefined);
 
   useEffect(() => {
     if (isOpen && flatComments.length === 0) {
@@ -104,7 +107,7 @@ export default function CommentsModal({ postId, isOpen, postData, onClose, onPro
     loadUsersData();
   }, [flatComments]);
 
-  const handleAddComment = async () => {
+  const handleAddComment = useCallback(async () => {
     const trimmedComment = newComment.trim();
     
     if (!trimmedComment || isSubmitting) {
@@ -118,6 +121,12 @@ export default function CommentsModal({ postId, isOpen, postData, onClose, onPro
 
     // Validaciones para dinámicas
     if (postData?.isDynamic) {
+      // Verificar si la dinámica sigue activa
+      if (!isDynamicActive) {
+        setToast({message: 'Esta dinámica ya finalizó', type: 'error'});
+        return;
+      }
+
       // El creador no puede comentar
       if (auth.currentUser.uid === postData.userId) {
         setToast({message: 'No puedes comentar tu propia dinámica', type: 'error'});
@@ -142,8 +151,10 @@ export default function CommentsModal({ postId, isOpen, postData, onClose, onPro
       await addComment(postId, trimmedComment);
       
       // Verificar si ganó tokens en dinámica
-      if (postData?.isDynamic && postData.isActive) {
-        const result = await checkDynamicComment(postId, trimmedComment, auth.currentUser.uid);
+      if (postData?.isDynamic && isDynamicActive) {
+        const result = await checkDynamicComment(postId, trimmedComment, auth.currentUser.uid, () => {
+          onDynamicCompleted?.();
+        });
         if (result.isWinner) {
           // Efectos de celebración
           if ('vibrate' in navigator) {
@@ -164,7 +175,7 @@ export default function CommentsModal({ postId, isOpen, postData, onClose, onPro
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [newComment, isSubmitting, postData, isDynamicActive, postId, onDynamicCompleted, addComment, setToast, setWinnerData, setNewComment, setIsSubmitting]);
 
   const handleAddReply = async (commentId: string) => {
     const trimmedReply = replyText.trim();
@@ -239,12 +250,12 @@ export default function CommentsModal({ postId, isOpen, postData, onClose, onPro
         <div className="comment-input">
           <input
             type="text"
-            placeholder={postData?.isDynamic ? "Adivina una palabra clave..." : "Agregar un comentario"}
+            placeholder={postData?.isDynamic && isDynamicActive ? "Adivina una palabra clave..." : postData?.isDynamic ? "Dinámica finalizada" : "Agregar un comentario"}
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleAddComment()}
             maxLength={500}
-            disabled={postData?.isDynamic && auth.currentUser?.uid === postData.userId}
+            disabled={(postData?.isDynamic && auth.currentUser?.uid === postData.userId) || (postData?.isDynamic && !isDynamicActive)}
           />
           <div className="char-counter">{newComment.length}/500</div>
           {newComment.trim() && (

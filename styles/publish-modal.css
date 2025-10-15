@@ -1,0 +1,210 @@
+/* Publish Modal Styles */
+.publish-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.publish-modal {
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  color: white;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Botón cerrar */
+.close-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  z-index: 10;
+  transition: background 0.3s;
+  font-size: 24px;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Selector de tipos de contenido */
+.content-types {
+  position: absolute;
+  bottom: 100px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  padding: 0 20px;
+  z-index: 5;
+}
+
+.type-btn {
+  background: none;
+  border: none;
+  color: #ccc;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.3s;
+  text-align: center;
+}
+
+.type-btn.active,
+.type-btn:hover {
+  color: white;
+}
+
+/* Botón tomar foto */
+.camera-section {
+  position: absolute;
+  bottom: 140px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+}
+
+.take-photo-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s;
+}
+
+.take-photo-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Sección de permisos */
+.permissions-section {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 5;
+  max-width: 90%;
+}
+
+.permissions-content h3 {
+  color: white;
+  font-size: 16px;
+  font-weight: 400;
+  margin-bottom: 20px;
+  max-width: 280px;
+  line-height: 1.4;
+}
+
+.permissions-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #ccc;
+  padding: 10px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 auto;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s;
+}
+
+.permissions-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+/* Galería del usuario */
+.user-gallery {
+  position: absolute;
+  bottom: 60px;
+  left: 20px;
+  display: flex;
+  gap: 8px;
+  z-index: 5;
+}
+
+.gallery-item {
+  width: 30px;
+  height: 30px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: #333;
+}
+
+.gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Botón central de captura */
+.capture-button {
+  position: absolute;
+  bottom: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+}
+
+.capture-btn {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: white;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+}
+
+.capture-btn:hover {
+  transform: scale(1.05);
+}
+
+.capture-inner {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #000;
+}
+
+/* Responsive */
+@media (min-width: 768px) {
+  .publish-modal {
+    width: 400px;
+    height: 600px;
+    border-radius: 20px;
+    overflow: hidden;
+  }
+  
+  .publish-modal-overlay {
+    background: rgba(0, 0, 0, 0.8);
+  }
+}

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 interface CreateDynamicProps {
   onNavigateBack: () => void;
   onNavigateToEditor?: (file: MediaFile) => void;
+  onSwitchToPost?: () => void;
 }
 
 interface MediaFile {
@@ -11,7 +12,7 @@ interface MediaFile {
   type: 'image' | 'video';
 }
 
-export default function CreateDynamic({ onNavigateBack, onNavigateToEditor }: CreateDynamicProps) {
+export default function CreateDynamic({ onNavigateBack, onNavigateToEditor, onSwitchToPost }: CreateDynamicProps) {
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
   const [selectedFile, setSelectedFile] = useState<MediaFile | null>(null);
 
@@ -72,22 +73,21 @@ export default function CreateDynamic({ onNavigateBack, onNavigateToEditor }: Cr
           ←
         </button>
         <h2>Crear dinámica</h2>
+        <button className="switch-mode-btn" onClick={onSwitchToPost}>
+          Post
+        </button>
       </div>
 
       <div className="create-dynamic-content">
         <div className="recientes-section">
           <div className="recientes-header">
-            <span>Recientes</span>
+            <span>Crear Dinámica</span>
             <span className="dropdown-arrow">▼</span>
           </div>
           
           <div className="gallery-grid">
             {mediaFiles.length === 0 ? (
               <div className="no-media" onClick={triggerFileSelect}>
-                <div className="add-media-btn">
-                  <span>+</span>
-                  <p>Agregar archivos</p>
-                </div>
               </div>
             ) : (
               mediaFiles.map((media, index) => (
@@ -112,8 +112,12 @@ export default function CreateDynamic({ onNavigateBack, onNavigateToEditor }: Cr
         </div>
 
         {selectedFile && (
-          <button className="select-media-btn" onClick={() => onNavigateToEditor?.(selectedFile)}>
-            Seleccionar
+          <button className="select-media-btn" onClick={() => {
+            if (onNavigateToEditor) {
+              onNavigateToEditor(selectedFile);
+            }
+          }}>
+            Continuar
           </button>
         )}
       </div>

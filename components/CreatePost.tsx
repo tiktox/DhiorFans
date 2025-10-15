@@ -7,6 +7,8 @@ import { uploadFile } from '../lib/uploadService';
 interface CreatePostProps {
   onNavigateBack: () => void;
   onPublish?: () => void;
+  isDynamic?: boolean;
+  onSwitchToDynamic?: () => void;
 }
 
 interface MediaFile {
@@ -15,38 +17,26 @@ interface MediaFile {
   type: 'image' | 'video';
 }
 
-export default function CreatePost({ onNavigateBack, onPublish }: CreatePostProps) {
+export default function CreatePost({ onNavigateBack, onPublish, isDynamic = false, onSwitchToDynamic }: CreatePostProps) {
   const [currentStep, setCurrentStep] = useState<'selector' | 'editor'>('selector');
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
   const [selectedFile, setSelectedFile] = useState<MediaFile | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [isPublishing, setIsPublishing] = useState(false);
+  const [keywords, setKeywords] = useState<string[]>([]);
+  const [currentKeyword, setCurrentKeyword] = useState('');
+  const [selectedTokens, setSelectedTokens] = useState(50);
+  const [userTokens, setUserTokens] = useState(90);
 
   useEffect(() => {
-    loadDeviceMedia();
-  }, []);
+    // Solo cargar medios si no hay archivos ya cargados
+    if (mediaFiles.length === 0) {
+      // Remover loadDeviceMedia automático para mejor rendimiento
+    }
+  }, [mediaFiles.length]);
 
-  const loadDeviceMedia = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.multiple = true;
-    input.accept = 'image/*,video/*';
-    input.style.display = 'none';
-    
-    input.onchange = (e) => {
-      const files = (e.target as HTMLInputElement).files;
-      if (files) {
-        const mediaArray: MediaFile[] = [];
-        Array.from(files).forEach(file => {
-          const url = URL.createObjectURL(file);
-          const type = file.type.startsWith('video/') ? 'video' : 'image';
-          mediaArray.push({ url, file, type });
-        });
-        setMediaFiles(mediaArray);
-      }
-    };
-  };
+
 
   const triggerFileSelect = () => {
     const input = document.createElement('input');
@@ -101,7 +91,8 @@ export default function CreatePost({ onNavigateBack, onPublish }: CreatePostProp
       onNavigateBack();
     } catch (error) {
       console.error('Error al publicar:', error);
-      alert(error instanceof Error ? error.message : 'Error al publicar. Inténtalo de nuevo.');
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido al publicar';
+      alert(`Error: ${errorMessage}. Inténtalo de nuevo.`);
     } finally {
       setIsPublishing(false);
     }
@@ -115,6 +106,9 @@ export default function CreatePost({ onNavigateBack, onPublish }: CreatePostProp
             ←
           </button>
           <h2>Crear publicación</h2>
+          <button className="switch-mode-btn" onClick={onSwitchToDynamic}>
+            Dinámica
+          </button>
         </div>
 
         <div className="create-dynamic-content">
@@ -195,22 +189,76 @@ export default function CreatePost({ onNavigateBack, onPublish }: CreatePostProp
         <div className="editor-footer">
           <div className="keywords-section">
             <div className="keyword-input-section">
-              <textarea
-                placeholder="Describe tu contenido..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="keyword-input"
-                style={{ minHeight: '80px', resize: 'vertical' }}
-                maxLength={500}
-              />
+              {isDynamic ? (
+                <>
+                  <div className="keywords-display">
+                    {keywords.map((keyword, index) => (
+                      <span key={index} className="keyword-tag">
+                        {keyword}
+                      </span>
+                    ))}
+                  </div>
+                  
+                  {keywords.length < 3 && (
+                    <div className="keyword-input-section">
+                      <input
+                        type="text"
+                        placeholder={`Palabra ${keywords.length + 1}`}
+                        value={currentKeyword}
+                        onChange={(e) => setCurrentKeyword(e.target.value)}
+                        className="keyword-input"
+                      />
+                      {currentKeyword.trim() && (
+                        <button 
+                          className="select-keyword-btn"
+                          onClick={() => {
+                            if (currentKeyword.trim() && keywords.length < 3) {
+                              setKeywords([...keywords, currentKeyword.trim()]);
+                              setCurrentKeyword('');
+                            }
+                          }}
+                        >
+                          Agregar palabra
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  
+                  {keywords.length === 3 && (
+                    <div className="token-selector">
+                      <div className="token-header">
+                        <span className="token-icon">🪙</span>
+                        <span>Tokens a donar: {selectedTokens}</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="1"
+                        max={userTokens}
+                        value={selectedTokens}
+                        onChange={(e) => setSelectedTokens(parseInt(e.target.value))}
+                        className="token-slider"
+                      />
+                    </div>
+                  )}
+                </>
+              ) : (
+                <textarea
+                  placeholder="Describe tu contenido..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="keyword-input"
+                  style={{ minHeight: '80px', resize: 'vertical' }}
+                  maxLength={500}
+                />
+              )}
             </div>
             
             <button 
               className="publish-btn" 
               onClick={handlePublish}
-              disabled={!title.trim() || isPublishing}
+              disabled={!title.trim() || isPublishing || (isDynamic && keywords.length < 3)}
             >
-              {isPublishing ? 'Publicando...' : 'Publicar'}
+              {isPublishing ? 'Publicando...' : (isDynamic ? `Publicar (${selectedTokens} 🪙)` : 'Publicar')}
             </button>
           </div>
         </div>

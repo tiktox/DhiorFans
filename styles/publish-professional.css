@@ -1,0 +1,194 @@
+
+
+.content-types::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px;
+  height: 60%;
+  background: linear-gradient(to bottom, transparent, rgba(33, 150, 243, 0.5), transparent);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Efectos hover mejorados para botones */
+.content-type-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.content-type-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.content-type-btn:hover::before {
+  left: 100%;
+}
+
+/* Mejoras para el botón de captura */
+.capture-btn {
+  position: relative;
+}
+
+.capture-btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.capture-btn:hover::after {
+  width: 120%;
+  height: 120%;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Efectos de partículas para el elemento activo */
+.content-type-btn.active {
+  
+  animation: glowPulse 3s infinite;
+}
+
+/* Mejoras para la galería */
+.gallery-item {
+  position: relative;
+  overflow: hidden;
+}
+
+.gallery-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.1), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.gallery-item:hover::before {
+  opacity: 1;
+}
+
+/* Indicadores de estado para permisos */
+.permissions-config-btn {
+  position: relative;
+}
+
+.permissions-config-btn::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 27px;
+  opacity: 0;
+  z-index: -1;
+  transition: opacity 0.3s ease;
+}
+
+.permissions-config-btn:hover::after {
+  opacity: 0.3;
+}
+
+/* Efectos de carga suaves */
+.camera-preview {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.camera-preview.loading {
+  filter: blur(2px);
+  opacity: 0.8;
+}
+
+/* Mejoras para dispositivos móviles */
+@media (max-width: 767px) {
+  .camera-interface {
+    border-radius: 0;
+  }
+  
+  .content-types {
+    padding: 0 80px;
+    gap: 40px;
+  }
+  
+  .content-type-btn {
+    font-size: 14px;
+    padding: 14px 20px;
+  }
+  
+  .capture-btn {
+    width: 25px;
+    height: 25px;
+  }
+  
+  .capture-inner {
+    width: 58px;
+    height: 58px;
+  }
+}
+
+/* Mejoras para tablets */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .camera-interface {
+    width: 380px;
+    height: 650px;
+  }
+  
+  .content-types {
+    gap: 45px;
+    padding: 0 90px;
+  }
+}
+
+/* Estados de focus mejorados para accesibilidad */
+.content-type-btn:focus,
+.capture-btn:focus,
+.gallery-item:focus,
+.permissions-config-btn:focus {
+  outline: 2px solid #000000;
+  outline-offset: 3px;
+}
+
+/* Transiciones suaves para todos los elementos interactivos */
+* {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Efectos de profundidad */
+.camera-bottom-bar {
+  box-shadow: 
+    0 -10px 30px rgba(0, 0, 0, 0),
+    inset 0 1px 0 rgba(0, 0, 0, 0);
+}
+
+/* Mejoras para el botón de cerrar */
+.camera-close-btn {
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0);
+}
+
+.camera-close-btn:active {
+  transform: scale(0.95);
+}
+
+/* Efectos de micro-interacciones */
+.gallery-item:active {
+  transform: scale(0.95);
+}
+

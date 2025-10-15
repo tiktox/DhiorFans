@@ -4,7 +4,10 @@ import { getUserData, getUserDataById, UserData } from '../lib/userService';
 import Profile from './Profile';
 import Search from './Search';
 import Publish from './Publish';
+
 import CreatePost from './CreatePost';
+import CreateDynamicFlow from './CreateDynamicFlow';
+import BasicEditor from './BasicEditor';
 import Chat from './Chat';
 import ReelsFeed from './ReelsFeed';
 import ExternalProfile from './ExternalProfile';
@@ -18,6 +21,8 @@ export default function Home() {
   const [externalUserId, setExternalUserId] = useState<string | null>(null);
   const [externalUserData, setExternalUserData] = useState<UserData | null>(null);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  const [editorMediaFile, setEditorMediaFile] = useState<{url: string; file: File; type: 'image' | 'video'} | null>(null);
+
 
 
   useEffect(() => {
@@ -74,6 +79,12 @@ export default function Home() {
         setSelectedPostId(null);
         setRefreshFeed(prev => prev + 1);
       }}
+      onNavigateToCreatePost={() => setCurrentView('create-post')}
+      onNavigateToCreateDynamic={() => setCurrentView('create-dynamic')}
+      onNavigateToEditor={(mediaFile) => {
+        setEditorMediaFile(mediaFile);
+        setCurrentView('editor');
+      }}
     />;
   }
 
@@ -87,6 +98,21 @@ export default function Home() {
         setSelectedPostId(null);
         setRefreshFeed(prev => prev + 1);
       }}
+      onSwitchToDynamic={() => setCurrentView('create-dynamic')}
+    />;
+  }
+
+  if (currentView === 'create-dynamic') {
+    return <CreateDynamicFlow 
+      onNavigateBack={() => {
+        setSelectedPostId(null);
+        setCurrentView('home');
+      }} 
+      onPublish={() => {
+        setSelectedPostId(null);
+        setRefreshFeed(prev => prev + 1);
+      }}
+      onSwitchToPost={() => setCurrentView('create-post')}
     />;
   }
 
@@ -94,6 +120,21 @@ export default function Home() {
     return <Chat 
       onNavigateHome={() => {
         setSelectedPostId(null);
+        setCurrentView('home');
+      }}
+    />;
+  }
+
+  if (currentView === 'editor' && editorMediaFile) {
+    return <BasicEditor 
+      mediaFile={editorMediaFile}
+      onNavigateBack={() => {
+        setEditorMediaFile(null);
+        setCurrentView('publish');
+      }}
+      onPublish={() => {
+        setEditorMediaFile(null);
+        setRefreshFeed(prev => prev + 1);
         setCurrentView('home');
       }}
     />;
@@ -170,7 +211,7 @@ export default function Home() {
             <path d="m21 21-4.35-4.35"/>
           </svg>
         </div>
-        <div className="nav-icon add-icon" onClick={() => setCurrentView('create-post')}>
+        <div className="nav-icon add-icon" onClick={() => setCurrentView('publish')}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="12" cy="12" r="10"/>
             <line x1="12" y1="8" x2="12" y2="16"/>
