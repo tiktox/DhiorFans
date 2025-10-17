@@ -305,7 +305,7 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish }: Ba
           </div>
           
           {description && (
-            <div className="">
+            <div className="text-controls">
               <div className="size-controls">
                 <button onClick={() => setTextSize(Math.max(12, textSize - 2))}>A-</button>
                 <button onClick={() => setTextSize(Math.min(24, textSize + 2))}>A+</button>
