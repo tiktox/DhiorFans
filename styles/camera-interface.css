@@ -64,7 +64,7 @@ body {
   
   .capture-inner {
     width: 49px;
-    height: 18px;
+    height: 49px;
   }
   
   .gallery-item {
@@ -110,7 +110,7 @@ body {
   
   .capture-inner {
     width: 64px;
-    height: 15px;
+    height: 64px;
   }
   
   .gallery-item {
@@ -154,7 +154,7 @@ body {
   
   .capture-inner {
     width: 59px;
-    height: 18px;
+    height: 59px;
   }
 }
 
@@ -453,7 +453,7 @@ body {
 
 .capture-inner {
   width: 54px;
-  height: 18px;
+  height: 54px;
   background: rgba(255, 255, 255, 0.95);
   border-radius: 50%;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
