@@ -249,7 +249,7 @@ body {
 
 @media (max-width: 767px) {
   .camera-bottom-bar {
-    bottom: 40px;
+    bottom: 10px;
   }
   
   .content-types {
@@ -261,7 +261,7 @@ body {
   }
   
   .capture-section {
-    padding: 0 40px;
+    padding: 0 10px;
   }
 }
 
