@@ -16,6 +16,7 @@ export interface Post {
     color: string;
     fontFamily: string;
     style: string;
+    rotation?: number;
   };
   timestamp: number;
   likes: number;
