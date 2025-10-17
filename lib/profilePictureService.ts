@@ -93,7 +93,9 @@ export async function restoreRealProfilePicture(): Promise<void> {
     
     // Forzar actualización de elementos con transición suave
     setTimeout(() => {
-      updateAllProfileElements(userData.lastRealProfilePicture, false);
+      if (userData.lastRealProfilePicture) {
+        updateAllProfileElements(userData.lastRealProfilePicture, false);
+      }
     }, 100);
 
     console.log('✅ Foto de perfil real restaurada con marco circular blanco:', userData.lastRealProfilePicture);
