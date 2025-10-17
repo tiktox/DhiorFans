@@ -270,6 +270,26 @@
   background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
 }
 
+@media (max-width: 767px) {
+  .bottom-section {
+    bottom: 20px;
+    padding: 15px;
+    gap: 10px;
+  }
+  
+  .title-input {
+    font-size: 16px;
+    padding: 15px 0;
+  }
+  
+  .publish-btn {
+    top: 0;
+    padding: 15px 20px;
+    font-size: 16px;
+    min-width: 100px;
+  }
+}
+
 .title-input {
   flex: 1;
   background: transparent;
