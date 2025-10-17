@@ -8,6 +8,18 @@
   overflow: hidden;
 }
 
+.bottom-section {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+}
+
 /* Tablet */
 @media (min-width: 768px) and (max-width: 1024px) {
   .basic-editor {
@@ -338,17 +350,7 @@
   }
 }
 
-.bottom-section {
-  position: absolute;
-  bottom: 20px;
-  left: 0;
-  right: 0;
-  padding: 20px;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
-}
+
 
 @media (max-width: 767px) {
   .bottom-section {
