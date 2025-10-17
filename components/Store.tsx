@@ -165,66 +165,52 @@ export default function Store({ onNavigateBack, userTokens, onTokensUpdate }: St
 
   const handleAddAvatar = async () => {
     console.log('🖼️ INICIO GUARDADO AVATAR');
-    console.log('🖼️ purchasedAvatar presente:', !!purchasedAvatar);
-    console.log('🔐 Usuario ID:', auth.currentUser?.uid);
     
     if (!purchasedAvatar || !auth.currentUser) {
-      console.error('❌ Datos faltantes:', { purchasedAvatar: !!purchasedAvatar, user: !!auth.currentUser });
+      console.error('❌ Datos faltantes');
       return;
     }
     
     try {
-      console.log('📦 Convirtiendo DataURL a blob...');
+      // Convertir y subir avatar
       const response = await fetch(purchasedAvatar);
       const blob = await response.blob();
-      console.log('📦 Blob creado:', blob.size, 'bytes', blob.type);
-      
       const file = new File([blob], `avatar_${Date.now()}.png`, { type: 'image/png' });
-      console.log('📁 File creado:', file.name, file.size, 'bytes');
-      
-      console.log('⬆️ Subiendo a Firebase Storage...');
       const avatarUrl = await uploadProfilePicture(file, auth.currentUser.uid);
-      console.log('✅ Avatar subido exitosamente:', avatarUrl);
       
-      console.log('📊 Obteniendo datos actuales del usuario...');
+      // Obtener datos actuales
       const userData = await getUserData();
-      console.log('📊 Datos del usuario:', userData);
       
-      // Guardar la foto de perfil original si no existe
-      if (!userData.originalProfilePicture && userData.profilePicture) {
-        await saveUserData({ originalProfilePicture: userData.profilePicture });
-        setOriginalProfilePicture(userData.profilePicture);
+      // CRUCIAL: Preservar foto actual como lastRealProfilePicture si no es avatar
+      if (!userData.isAvatar && userData.profilePicture && !userData.lastRealProfilePicture) {
+        console.log('💾 PRESERVANDO foto actual antes de avatar:', userData.profilePicture);
+        await saveUserData({ lastRealProfilePicture: userData.profilePicture });
       }
       
       // Agregar a avatares comprados
       const currentPurchased = userData.purchasedAvatars || [];
       const updatedPurchased = [...currentPurchased, avatarUrl];
-      
-      console.log('💾 Guardando avatar comprado...');
-      await saveUserData({ 
-        purchasedAvatars: updatedPurchased
-      });
+      await saveUserData({ purchasedAvatars: updatedPurchased });
       setPurchasedAvatars(updatedPurchased);
       
-      console.log('💾 Estableciendo avatar como perfil...');
+      // Establecer avatar como perfil usando el servicio
       const { setAvatarAsProfile } = await import('../lib/profilePictureService');
       await setAvatarAsProfile(avatarUrl);
-      setCurrentProfilePicture(avatarUrl);
       
-      console.log('✅ Avatar guardado y establecido como perfil');
+      // Actualizar estado local
+      const updatedUserData = await getUserData();
+      setCurrentProfilePicture(updatedUserData.profilePicture || '');
+      setUserData(updatedUserData);
       
       setShowAvatarActions(false);
       setPurchasedAvatar(null);
       
-      console.log('🎉 AVATAR AÑADIDO AL PERFIL EXITOSAMENTE');
-      alert('¡Avatar añadido a tu perfil! Ahora reemplaza tu foto de perfil con las dimensiones 140x250.');
+      console.log('🎉 AVATAR AÑADIDO EXITOSAMENTE');
+      alert('¡Avatar añadido a tu perfil!');
       
     } catch (error) {
-      console.error('❌ ERROR COMPLETO en handleAddAvatar:', error);
-      console.error('❌ Stack trace:', error.stack);
-      console.error('❌ Error name:', error.name);
-      console.error('❌ Error message:', error.message);
-      alert('Error al guardar el avatar: ' + error.message);
+      console.error('❌ ERROR en handleAddAvatar:', error);
+      alert('Error al guardar el avatar: ' + (error as Error).message);
     }
   };
 
@@ -254,7 +240,11 @@ export default function Store({ onNavigateBack, userTokens, onTokensUpdate }: St
       const { setAvatarAsProfile } = await import('../lib/profilePictureService');
       await setAvatarAsProfile(avatarUrl);
       
-      setCurrentProfilePicture(avatarUrl);
+      // Recargar datos locales
+      const userData = await getUserData();
+      setCurrentProfilePicture(userData.profilePicture || '');
+      setUserData(userData);
+      
       console.log('✅ Avatar establecido como foto de perfil');
     } catch (error) {
       console.error('❌ Error estableciendo avatar como perfil:', error);
@@ -265,17 +255,37 @@ export default function Store({ onNavigateBack, userTokens, onTokensUpdate }: St
     if (!auth.currentUser) return;
     
     try {
-      const { restoreRealProfilePicture } = await import('../lib/profilePictureService');
+      console.log('🔄 INICIANDO RESTAURACIÓN');
+      const userData = await getUserData();
+      console.log('📋 Datos actuales:', {
+        isAvatar: userData.isAvatar,
+        lastRealProfilePicture: userData.lastRealProfilePicture,
+        originalProfilePicture: userData.originalProfilePicture
+      });
+      
+      const { restoreRealProfilePicture, hasRealProfilePictureToRestore } = await import('../lib/profilePictureService');
+      
+      // Verificar si hay foto para restaurar
+      const canRestore = await hasRealProfilePictureToRestore();
+      if (!canRestore) {
+        console.log('❌ No se puede restaurar');
+        alert('No hay foto de perfil para restaurar');
+        return;
+      }
+      
       await restoreRealProfilePicture();
       
       // Recargar datos locales
-      const userData = await getUserData();
-      setCurrentProfilePicture(userData.profilePicture || '');
+      const updatedUserData = await getUserData();
+      setCurrentProfilePicture(updatedUserData.profilePicture || '');
+      setUserData(updatedUserData);
       
-      console.log('✅ Foto de perfil real restaurada');
+      console.log('✅ Foto de perfil real restaurada exitosamente');
+      alert('✅ Foto de perfil restaurada exitosamente');
+      
     } catch (error) {
       console.error('❌ Error restaurando foto original:', error);
-      alert('Error al restaurar la foto de perfil');
+      alert('Error al restaurar la foto de perfil: ' + (error as Error).message);
     }
   };
 
@@ -423,7 +433,7 @@ export default function Store({ onNavigateBack, userTokens, onTokensUpdate }: St
         {activeTab === 'avatares' && (
           <div className="avatares-section">
             {/* Botón para volver a foto original */}
-            {userData?.isAvatar && userData?.lastRealProfilePicture && (
+            {userData?.isAvatar && (userData?.lastRealProfilePicture || userData?.originalProfilePicture) && (
               <div className="store-item">
                 <div className="item-icon">
                   🔄

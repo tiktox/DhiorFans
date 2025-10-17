@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { auth } from '../lib/firebase';
 import { getUserData, getUserDataById, UserData } from '../lib/userService';
+import { useProfileSync } from '../hooks/useProfileSync';
 import Profile from './Profile';
 import Search from './Search';
 import Publish from './Publish';
@@ -23,6 +24,9 @@ export default function Home() {
   const [externalUserData, setExternalUserData] = useState<UserData | null>(null);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [editorMediaFile, setEditorMediaFile] = useState<{url: string; file: File; type: 'image' | 'video'} | null>(null);
+  
+  // Usar hook de sincronización de perfil
+  const profileSync = useProfileSync();
 
 
 
@@ -279,12 +283,12 @@ export default function Home() {
           </svg>
         </div>
         <div 
-          className={`profile-pic-nav ${userData?.isAvatar ? 'avatar-format' : ''}`}
-          data-is-avatar={userData?.isAvatar ? 'true' : 'false'}
+          className={`profile-pic-nav ${profileSync.isAvatar ? 'avatar-format' : ''}`}
+          data-is-avatar={profileSync.isAvatar ? 'true' : 'false'}
           onClick={() => setCurrentView('profile')}
         >
-          {userData?.profilePicture ? (
-            <img src={userData.profilePicture} alt="Perfil" />
+          {profileSync.profilePicture ? (
+            <img src={profileSync.profilePicture} alt="Perfil" />
           ) : (
             <div className="default-nav-avatar">👤</div>
           )}

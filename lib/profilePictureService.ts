@@ -17,15 +17,13 @@ export async function setProfilePicture(imageUrl: string): Promise<void> {
   try {
     await saveUserData({
       profilePicture: imageUrl,
-      lastRealProfilePicture: imageUrl, // Guardar como última foto real
+      lastRealProfilePicture: imageUrl, // Siempre guardar como última foto real
       avatar: imageUrl,
       isAvatar: false // Desactivar estado de avatar
     });
 
-    // Disparar evento de cambio
-    window.dispatchEvent(new CustomEvent('profileChanged', {
-      detail: { imageUrl, isAvatar: false }
-    }));
+    // Disparar evento de cambio global
+    dispatchGlobalProfileChange(imageUrl, false);
 
     console.log('✅ Foto de perfil establecida:', imageUrl);
   } catch (error) {
@@ -46,8 +44,9 @@ export async function setAvatarAsProfile(avatarUrl: string): Promise<void> {
   try {
     const userData = await getUserData();
     
-    // Si no hay lastRealProfilePicture y hay una foto actual que no es avatar, guardarla
+    // CRÍTICO: Preservar la última foto real antes de cambiar a avatar
     if (!userData.lastRealProfilePicture && userData.profilePicture && !userData.isAvatar) {
+      console.log('💾 Guardando foto real antes de avatar:', userData.profilePicture);
       await saveUserData({ lastRealProfilePicture: userData.profilePicture });
     }
 
@@ -57,12 +56,11 @@ export async function setAvatarAsProfile(avatarUrl: string): Promise<void> {
       isAvatar: true
     });
 
-    // Disparar evento de cambio
-    window.dispatchEvent(new CustomEvent('profileChanged', {
-      detail: { imageUrl: avatarUrl, isAvatar: true }
-    }));
+    // Disparar evento de cambio global
+    dispatchGlobalProfileChange(avatarUrl, true);
 
     console.log('✅ Avatar establecido como perfil:', avatarUrl);
+    console.log('📋 Foto real preservada:', userData.lastRealProfilePicture);
   } catch (error) {
     console.error('❌ Error estableciendo avatar:', error);
     throw error;
@@ -90,12 +88,15 @@ export async function restoreRealProfilePicture(): Promise<void> {
       isAvatar: false
     });
 
-    // Disparar evento de cambio
-    window.dispatchEvent(new CustomEvent('profileChanged', {
-      detail: { imageUrl: userData.lastRealProfilePicture, isAvatar: false }
-    }));
+    // Disparar evento de cambio global con transición
+    dispatchGlobalProfileChange(userData.lastRealProfilePicture, false);
+    
+    // Forzar actualización de elementos con transición suave
+    setTimeout(() => {
+      updateAllProfileElements(userData.lastRealProfilePicture, false);
+    }, 100);
 
-    console.log('✅ Foto de perfil real restaurada:', userData.lastRealProfilePicture);
+    console.log('✅ Foto de perfil real restaurada con marco circular blanco:', userData.lastRealProfilePicture);
   } catch (error) {
     console.error('❌ Error restaurando foto real:', error);
     throw error;
@@ -126,4 +127,104 @@ export async function hasRealProfilePictureToRestore(): Promise<boolean> {
     console.error('❌ Error verificando foto para restaurar:', error);
     return false;
   }
+}
+
+/**
+ * Dispara evento global de cambio de perfil para actualizar toda la UI
+ */
+function dispatchGlobalProfileChange(imageUrl: string, isAvatar: boolean): void {
+  // Evento principal
+  window.dispatchEvent(new CustomEvent('profileChanged', {
+    detail: { imageUrl, isAvatar }
+  }));
+  
+  // Eventos específicos para diferentes componentes
+  window.dispatchEvent(new CustomEvent('profilePictureUpdated', {
+    detail: { imageUrl, isAvatar }
+  }));
+  
+  window.dispatchEvent(new CustomEvent('avatarStatusChanged', {
+    detail: { imageUrl, isAvatar }
+  }));
+  
+  // Forzar actualización de elementos específicos
+  updateAllProfileElements(imageUrl, isAvatar);
+}
+
+/**
+ * Actualiza todos los elementos de perfil en la página
+ */
+function updateAllProfileElements(imageUrl: string, isAvatar: boolean): void {
+  // Actualizar imágenes de perfil en navegación
+  const navProfilePics = document.querySelectorAll('.profile-pic-nav');
+  navProfilePics.forEach(pic => {
+    const img = pic.querySelector('img');
+    if (img) {
+      img.src = imageUrl;
+    }
+    
+    // Aplicar formato según tipo de imagen
+    if (isAvatar) {
+      pic.setAttribute('data-is-avatar', 'true');
+      pic.classList.add('avatar-format');
+      pic.classList.remove('photo-format');
+    } else {
+      pic.removeAttribute('data-is-avatar');
+      pic.classList.remove('avatar-format');
+      pic.classList.add('photo-format');
+    }
+  });
+  
+  // Actualizar imagen principal del perfil
+  const mainProfilePics = document.querySelectorAll('.profile-pic-main, .profile-pic-large');
+  mainProfilePics.forEach(pic => {
+    const img = pic.querySelector('img');
+    if (img) {
+      img.src = imageUrl;
+    }
+    
+    if (isAvatar) {
+      pic.classList.add('avatar-format');
+      pic.classList.remove('photo-format');
+    } else {
+      pic.classList.remove('avatar-format');
+      pic.classList.add('photo-format');
+    }
+  });
+  
+  // Actualizar avatares en búsqueda y comentarios
+  const userAvatars = document.querySelectorAll('.user-avatar');
+  userAvatars.forEach(avatar => {
+    const img = avatar.querySelector('img');
+    if (img && img.src.includes(auth.currentUser?.uid || '')) {
+      img.src = imageUrl;
+      
+      if (isAvatar) {
+        avatar.setAttribute('data-is-avatar', 'true');
+        avatar.classList.add('avatar-format');
+        avatar.classList.remove('photo-format');
+      } else {
+        avatar.removeAttribute('data-is-avatar');
+        avatar.classList.remove('avatar-format');
+        avatar.classList.add('photo-format');
+      }
+    }
+  });
+  
+  // Actualizar elementos específicos del perfil
+  const profileElements = document.querySelectorAll('.profile-pic-centered, .avatar-display');
+  profileElements.forEach(element => {
+    const img = element.querySelector('img');
+    if (img) {
+      img.src = imageUrl;
+    }
+    
+    if (isAvatar) {
+      element.classList.remove('profile-pic-centered');
+      element.classList.add('avatar-display');
+    } else {
+      element.classList.remove('avatar-display');
+      element.classList.add('profile-pic-centered');
+    }
+  });
 }

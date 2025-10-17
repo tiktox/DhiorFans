@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 
 interface ContentType {
   id: string;
@@ -98,7 +98,7 @@ export default function ContentTypeSelector({
     if (!isDragging.current || !containerRef.current) return;
     e.preventDefault();
     const x = e.pageX - (containerRef.current.offsetLeft || 0);
-    const walk = (x - startX.current) * 2;
+    const walk = (x - startX.current) * 1.2; // Reducir sensibilidad de 2 a 1.2
     containerRef.current.scrollLeft = scrollLeft.current - walk;
     updateButtonColors();
   };
@@ -119,7 +119,7 @@ export default function ContentTypeSelector({
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!containerRef.current) return;
     const touchX = e.touches[0].clientX;
-    const walk = (startX.current - touchX) * 2;
+    const walk = (startX.current - touchX) * 0.8; // Reducir sensibilidad para touch
     containerRef.current.scrollLeft = scrollLeft.current + walk;
     updateButtonColors();
   };

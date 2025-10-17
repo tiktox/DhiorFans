@@ -4,6 +4,7 @@ import { getUserData, saveUserData } from '../lib/userService';
 import { createPost } from '../lib/postService';
 import { uploadFile } from '../lib/uploadService';
 import ContentTypeSelector from './ContentTypeSelector';
+import CountdownSelector from './CountdownSelector';
 
 interface PublishProps {
   onNavigateHome: () => void;
@@ -51,6 +52,8 @@ export default function Publish({ onNavigateHome, onPublish, onNavigateToCreateP
   ];
   const [activeIndex, setActiveIndex] = useState(1);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const [showCountdown, setShowCountdown] = useState(false);
+  const [pendingSelection, setPendingSelection] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -144,23 +147,14 @@ export default function Publish({ onNavigateHome, onPublish, onNavigateToCreateP
     
     const selectedType = contentTypes[index];
     
-    // Navegar según el tipo seleccionado
-    if (selectedType.id === 'dinamica') {
-      onNavigateToCreateDynamic?.();
+    // Para tipos con countdown, mostrar cuenta regresiva
+    if (['dinamica', 'escribir', 'live'].includes(selectedType.id)) {
+      setPendingSelection(selectedType.id);
+      setShowCountdown(true);
       return;
     }
     
-    if (selectedType.id === 'escribir') {
-      onNavigateToCreatePost?.();
-      return;
-    }
-    
-    if (selectedType.id === 'live') {
-      console.log('Navegando a Live');
-      return;
-    }
-    
-    // Solo para "Publicación" activar cámara
+    // Solo para "Publicación" activar cámara inmediatamente
     if (selectedType.id === 'publicacion') {
       if (cameraPermission === 'granted') {
         handleCameraPermission();
@@ -170,6 +164,27 @@ export default function Publish({ onNavigateHome, onPublish, onNavigateToCreateP
     } else {
       stopCamera();
     }
+  };
+
+  const handleCountdownComplete = () => {
+    setShowCountdown(false);
+    
+    if (pendingSelection === 'dinamica') {
+      onNavigateToCreateDynamic?.();
+    } else if (pendingSelection === 'escribir') {
+      onNavigateToCreatePost?.();
+    } else if (pendingSelection === 'live') {
+      console.log('Navegando a Live');
+    }
+    
+    setPendingSelection(null);
+  };
+
+  const handleCountdownCancel = () => {
+    setShowCountdown(false);
+    setPendingSelection(null);
+    // Volver a publicación por defecto
+    setActiveIndex(1);
   };
 
 
@@ -302,6 +317,13 @@ export default function Publish({ onNavigateHome, onPublish, onNavigateToCreateP
           className="file-input"
           accept="image/*,video/*"
           onChange={handleFileSelect}
+        />
+        
+        <CountdownSelector
+          isActive={showCountdown}
+          contentType={pendingSelection || ''}
+          onCountdownComplete={handleCountdownComplete}
+          onCancel={handleCountdownCancel}
         />
       </div>
     );

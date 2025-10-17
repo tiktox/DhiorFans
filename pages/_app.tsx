@@ -4,6 +4,8 @@ import '../styles/globals.css';
 import '../styles/reels.css';
 import '../styles/publish.css';
 import '../styles/camera-interface.css';
+import '../styles/countdown-selector.css';
+import '../styles/create-dynamic.css';
 import '../styles/publish-professional.css';
 import '../styles/basic-editor.css';
 import '../styles/comments.css';

@@ -280,6 +280,7 @@ body {
   border-radius: 4px;
   border: 1px solid #2196f3;
   background: transparent;
+  transition: all 0.3s ease;
 }
 
 .profile-pic-nav[data-is-avatar="true"] img {
@@ -291,10 +292,26 @@ body {
   box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
 }
 
+/* Navegación - foto normal con marco blanco */
+.profile-pic-nav:not([data-is-avatar="true"]) {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid white;
+  background: #333;
+  transition: all 0.3s ease;
+}
+
+.profile-pic-nav:not([data-is-avatar="true"]) img {
+  object-fit: cover;
+  border-radius: 50%;
+}
+
 /* Clase universal para formato de avatar */
 .avatar-format {
-  border: 2px solid #2196f3 !important;
+  border: 2px solid #2195f300 !important;
   background: transparent !important;
+  transition: all 0.3s ease !important;
 }
 
 .avatar-format img {
@@ -304,6 +321,24 @@ body {
 .avatar-format:hover {
   border-color: #1976d2 !important;
   box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3) !important;
+}
+
+/* Clase universal para formato de foto normal */
+.photo-format {
+  border: 2px solid white !important;
+  background: #333 !important;
+  border-radius: 50% !important;
+  transition: all 0.3s ease !important;
+}
+
+.photo-format img {
+  object-fit: cover !important;
+  border-radius: 50% !important;
+}
+
+.photo-format:hover {
+  border-color: rgba(255, 255, 255, 0.8) !important;
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.2) !important;
 }
 
 /* Avatar en resultados de búsqueda - formato rectangular automático */
@@ -318,6 +353,7 @@ body {
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
+  border: 2px solid white;
 }
 
 .user-avatar img {
@@ -330,7 +366,7 @@ body {
   width: 35px;
   height: 62px;
   border-radius: 6px;
-  border: 2px solid #2196f3;
+  border: 2px solid #2195f300;
   background: transparent;
 }
 
@@ -341,6 +377,64 @@ body {
 .user-avatar[data-is-avatar="true"]:hover {
   border-color: #1976d2;
   box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+}
+
+/* Búsqueda - foto normal con marco blanco */
+.user-avatar:not([data-is-avatar="true"]) {
+  border: 2px solid white;
+  background: #333;
+}
+
+.user-avatar:not([data-is-avatar="true"]) img {
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+/* Foto de perfil en EditProfile - siempre circular */
+.profile-pic-edit {
+  width: 80px;
+  height: 80px;
+  border-radius: 50% !important;
+  overflow: hidden;
+  background: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 15px;
+  border: 2px solid #444;
+}
+
+.profile-pic-edit img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 50% !important;
+}
+
+.profile-pic-edit .no-picture {
+  color: #999;
+  font-size: 12px;
+  text-align: center;
+}
+
+/* Asegurar que current-picture mantenga formato circular */
+.current-picture {
+  width: 80px;
+  height: 80px;
+  border-radius: 50% !important;
+  overflow: hidden;
+  background: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 15px;
+}
+
+.current-picture img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 50% !important;
 }
 
 /* Estilos universales para avatares rectangulares */
@@ -376,6 +470,63 @@ body {
   color: white;
   padding: 20px;
   padding-bottom: 100px;
+}
+
+/* Asegurar que las fotos de perfil principales mantengan formato correcto */
+.profile-pic-large:not(.avatar-format) {
+  border-radius: 50% !important;
+  border: 3px solid white !important;
+  transition: all 0.3s ease !important;
+}
+
+.profile-pic-large:not(.avatar-format) img {
+  object-fit: cover !important;
+}
+
+.profile-pic-main:not(.avatar-format) {
+  border-radius: 50% !important;
+  border: 2px solid white !important;
+  transition: all 0.3s ease !important;
+}
+
+.profile-pic-main:not(.avatar-format) img {
+  object-fit: cover !important;
+}
+
+/* Perfil centrado - foto normal */
+.profile-pic-centered {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 3px solid white;
+  overflow: hidden;
+  margin: 20px auto;
+  background: #333;
+  transition: all 0.3s ease;
+}
+
+.profile-pic-centered img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Avatar display - formato rectangular */
+.avatar-display {
+  width: 84px;
+  height: 150px;
+  border-radius: 8px;
+  border: 2px solid #2195f300;
+  overflow: hidden;
+  margin: 20px auto;
+  background: transparent;
+  transition: all 0.3s ease;
+}
+
+.avatar-display img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .profile-header {
@@ -1446,7 +1597,7 @@ body {
 .settings-btn-header:hover,
 .settings-btn-header:focus {
   background: rgba(255, 255, 255, 0.1);
-  outline: 2px solid #2196f3;
+  outline: 2px solid #2195f300;
   outline-offset: 2px;
 }
 
@@ -1613,7 +1764,7 @@ body {
   width: 32px;
   height: 56px;
   border-radius: 8px;
-  border: 2px solid #2196f3;
+  border: 2px solid #2195f300;
   background: transparent;
 }
 
@@ -2594,7 +2745,7 @@ body {
 }
 
 .gallery-item.selected {
-  border: 2px solid #2196f3;
+  border: 2px solid #2195f300;
   transform: scale(0.95);
 }
 
@@ -2910,7 +3061,7 @@ body {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: 2px solid #2196f3;
+  border: 2px solid #2195f300;
   background: white;
   color: #2196f3;
   font-size: 20px;

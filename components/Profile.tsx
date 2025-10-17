@@ -203,7 +203,7 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
       </div>
 
       {/* Centered Profile Picture or Avatar */}
-      <div className={userData.avatar && userData.avatar !== userData.originalProfilePicture && userData.profilePicture === userData.avatar ? "avatar-display" : "profile-pic-centered"}>
+      <div className={userData.isAvatar ? "avatar-display" : "profile-pic-centered"}>
         {userData.profilePicture ? (
           <img src={userData.profilePicture} alt="Perfil" />
         ) : (
@@ -341,7 +341,7 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
           </svg>
         </div>
-        <div className={`profile-pic-nav ${userData.isAvatar ? 'avatar-format' : ''}`} data-is-avatar={userData.isAvatar ? 'true' : 'false'}>
+        <div className={`profile-pic-nav ${userData.isAvatar ? 'avatar-format' : 'photo-format'}`} data-is-avatar={userData.isAvatar ? 'true' : 'false'}>
           {userData.profilePicture ? (
             <img src={userData.profilePicture} alt="Perfil" />
           ) : (

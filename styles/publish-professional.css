@@ -1,17 +1,5 @@
 
 
-.content-types::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 2px;
-  height: 60%;
-  background: linear-gradient(to bottom, transparent, rgba(33, 150, 243, 0.5), transparent);
-  z-index: 1;
-  pointer-events: none;
-}
 
 /* Efectos hover mejorados para botones */
 .content-type-btn {

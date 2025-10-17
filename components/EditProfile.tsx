@@ -82,12 +82,17 @@ export default function EditProfile({ userData, onNavigateBack, onSave }: EditPr
     const file = e.target.files?.[0];
     if (file && auth.currentUser) {
       try {
+        console.log('📷 Subiendo nueva foto de perfil desde EditProfile');
         const downloadURL = await uploadProfilePicture(file, auth.currentUser.uid);
-        setFormData({ ...formData, profilePicture: downloadURL });
         
-        // Usar el servicio de fotos de perfil para manejar correctamente
+        // CRUCIAL: Usar el servicio para cambios globales
         const { setProfilePicture } = await import('../lib/profilePictureService');
         await setProfilePicture(downloadURL);
+        
+        // Actualizar estado local
+        setFormData({ ...formData, profilePicture: downloadURL });
+        
+        console.log('✅ Foto de perfil actualizada globalmente desde EditProfile');
         
       } catch (error) {
         console.error('Error uploading profile picture:', error);
@@ -118,7 +123,7 @@ export default function EditProfile({ userData, onNavigateBack, onSave }: EditPr
         <div className="form-group">
           <label>Foto de perfil</label>
           <div className="profile-picture-upload">
-            <div className="current-picture">
+            <div className="current-picture profile-pic-edit">
               {formData.profilePicture ? (
                 <img src={formData.profilePicture} alt="Perfil" />
               ) : (
