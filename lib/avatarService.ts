@@ -178,7 +178,7 @@ export async function hasActiveAvatar(): Promise<boolean> {
 export async function getCurrentAvatarUrl(): Promise<string | null> {
   try {
     const userData = await getUserData();
-    return userData.isAvatar ? userData.profilePicture : null;
+    return userData.isAvatar ? userData.profilePicture || null : null;
   } catch (error) {
     console.error('Error obteniendo URL del avatar:', error);
     return null;
