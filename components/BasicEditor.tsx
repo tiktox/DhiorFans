@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { auth } from '../lib/firebase';
 import { getUserData, saveUserData } from '../lib/userService';
 import { createPost } from '../lib/postService';
