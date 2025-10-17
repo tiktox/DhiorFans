@@ -154,7 +154,7 @@ body {
   
   .capture-inner {
     width: 59px;
-    height: 39px;
+    height: 59px;
   }
 }
 
@@ -249,7 +249,7 @@ body {
 
 @media (max-width: 767px) {
   .camera-bottom-bar {
-    height: 5px;
+    height: 1px;
     bottom: 80px;
   }
   
