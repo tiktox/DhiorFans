@@ -18,7 +18,7 @@
   }
   
   .bottom-section {
-    position: absolute;
+    position: relative;
     bottom: 80px;
     left: 0;
     right: 0;
@@ -45,7 +45,7 @@
   
   .publish-btn {
     position: relative;
-    top: -50px;
+    top: -300px;
     background: rgba(255, 255, 255, 0.3);
     border: none;
     color: #fff;
