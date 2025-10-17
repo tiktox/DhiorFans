@@ -92,12 +92,12 @@ body {
   }
   
   .content-types {
+    top:-100px;
     padding: 0 140px;
     gap: 50px;
   }
   
   .content-type-btn {
-    top:-100px;
     font-size: 15px;
     padding: 16px 24px;
   }
