@@ -63,8 +63,8 @@ body {
   }
   
   .capture-inner {
-    width: 49px;
-    height: 49px;
+    width: 60px;
+    height: 60px;
   }
   
   .gallery-item {
@@ -109,8 +109,8 @@ body {
   }
   
   .capture-inner {
-    width: 64px;
-    height: 64px;
+    width: 60px;
+    height: 60px;
   }
   
   .gallery-item {
@@ -153,8 +153,8 @@ body {
   }
   
   .capture-inner {
-    width: 59px;
-    height: 59px;
+    width: 60px;
+    height: 60px;
   }
 }
 
@@ -452,8 +452,8 @@ body {
 }
 
 .capture-inner {
-  width: 54px;
-  height: 54px;
+  width: 60px;
+  height: 60px;
   background: rgba(255, 255, 255, 0.95);
   border-radius: 50%;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
