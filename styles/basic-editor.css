@@ -18,24 +18,55 @@
   }
   
   .bottom-section {
+    position: absolute;
     bottom: 80px;
+    left: 0;
+    right: 0;
     padding: 25px;
+    display: flex;
+    align-items: center;
     gap: 20px;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0));
   }
   
   .title-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #fff;
     font-size: 18px;
     padding: 18px 0;
+    outline: none;
+  }
+  
+  .title-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
   }
   
   .publish-btn {
+    position: relative;
+    top: -7.5px;
+    background: rgba(255, 255, 255, 0.3);
+    border: none;
+    color: #fff;
     padding: 18px 30px;
+    border-radius: 20px;
     font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    opacity: 0.5;
     min-width: 120px;
   }
   
+  .publish-btn.active {
+    background: #fff;
+    color: #000;
+    opacity: 1;
+  }
+  
   .text-controls {
-    bottom: 120px;
+    bottom: 160px;
     padding: 20px;
   }
   
