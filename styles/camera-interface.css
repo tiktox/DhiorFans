@@ -97,13 +97,14 @@ body {
   }
   
   .content-type-btn {
+    top:-10px;
     font-size: 15px;
     padding: 16px 24px;
   }
   
   .capture-btn {
     width: 80px;
-    height: 80px;
+    height: 15px;
   }
   
   .capture-inner {
