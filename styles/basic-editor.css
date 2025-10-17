@@ -224,38 +224,53 @@
 
 .draggable-text {
   position: absolute;
-  transform: translate(-50%, -50%);
   cursor: move;
   user-select: none;
   min-width: 100px;
-  max-width: 80%;
+  max-width: calc(100% - 40px);
+  left: 20px;
+  right: 20px;
   z-index: 50;
 }
 
 .draggable-text.editing {
   cursor: text;
+  position: fixed;
 }
 
 .text-input-field {
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 12px;
   color: inherit;
   font-size: inherit;
   font-weight: inherit;
   font-style: inherit;
   text-decoration: inherit;
-  padding: 8px 12px;
+  padding: 12px 16px;
   outline: none;
-  min-width: 150px;
+  width: 100%;
+  min-height: 40px;
+  resize: none;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.4;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .text-display {
-  display: inline-block;
-  padding: 8px 12px;
-  border-radius: 8px;
-  backdrop-filter: blur(10px);
+  display: block;
+  padding: 12px 16px;
+  border-radius: 12px;
+  backdrop-filter: blur(15px);
+  background: rgba(0, 0, 0, 0.4);
   word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  line-height: 1.4;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .text-display:empty::before {
