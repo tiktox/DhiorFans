@@ -453,7 +453,7 @@ body {
 
 .capture-inner {
   width: 54px;
-  height: 54px;
+  height: 18px;
   background: rgba(255, 255, 255, 0.95);
   border-radius: 50%;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -470,7 +470,7 @@ body {
 }
 
 .capture-btn.disabled .capture-inner {
-  background: #666;
+  background: #676;
 }
 
 .capture-btn.disabled:hover {
