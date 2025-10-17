@@ -5,6 +5,8 @@ interface DynamicPostProps {
   userId: string;
   username: string;
   profilePicture?: string;
+  avatar?: string;
+  originalProfilePicture?: string;
   title: string;
   description: string;
   mediaUrl: string;
@@ -18,6 +20,8 @@ export default function DynamicPost({
   userId,
   username,
   profilePicture,
+  avatar,
+  originalProfilePicture,
   title,
   description,
   mediaUrl,
@@ -52,11 +56,13 @@ export default function DynamicPost({
         {/* User info and tokens */}
         <div className="dynamic-user-info">
           <div className="user-profile">
-            {profilePicture ? (
-              <img src={profilePicture} alt={username} className="user-avatar-dynamic" />
-            ) : (
-              <div className="default-avatar-dynamic">👤</div>
-            )}
+            <div className={avatar && avatar !== originalProfilePicture && profilePicture === avatar ? "user-avatar-dynamic avatar-small" : "user-avatar-dynamic"}>
+              {profilePicture ? (
+                <img src={profilePicture} alt={username} />
+              ) : (
+                <div className="default-avatar-dynamic">👤</div>
+              )}
+            </div>
             <span className="username-dynamic">@{username}</span>
           </div>
           

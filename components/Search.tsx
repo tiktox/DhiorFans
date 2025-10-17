@@ -147,7 +147,7 @@ export default function Search({ onNavigateHome, onViewPost, onViewProfile }: Se
             ) : (
               userResults.map(user => (
                 <div key={user.id} className="user-result" onClick={() => onViewProfile?.(user.id)}>
-                  <div className="user-avatar">
+                  <div className={`user-avatar ${user.isAvatar ? 'avatar-format' : ''}`} data-is-avatar={user.isAvatar ? 'true' : 'false'}>
                     {user.profilePicture ? (
                       <img src={user.profilePicture} alt={user.fullName} />
                     ) : (

@@ -3,12 +3,14 @@ import { auth } from '../lib/firebase';
 import { getUserData, UserData } from '../lib/userService';
 import { getUserPosts, Post } from '../lib/postService';
 import { getUserTokens, initializeUserTokens, claimDailyTokens, canClaimTokens, migrateUserTokens, TokenData } from '../lib/tokenService';
+import { formatLargeNumber } from '../lib/numberFormatter';
 
 import EditProfile from './EditProfile';
 import Settings from './Settings';
 import CreateDynamic from './CreateDynamic';
 import Editor from './Editor';
 import Store from './Store';
+import AdminTokenButton from './AdminTokenButton';
 
 interface ProfileProps {
   onNavigateHome?: () => void;
@@ -88,8 +90,17 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
   // Exponer función de recarga para uso externo
   useEffect(() => {
     (window as any).reloadProfileData = reloadUserData;
+    
+    // Escuchar cambios de avatar
+    const handleAvatarChange = () => {
+      reloadUserData();
+    };
+    
+    window.addEventListener('avatarChanged', handleAvatarChange);
+    
     return () => {
       delete (window as any).reloadProfileData;
+      window.removeEventListener('avatarChanged', handleAvatarChange);
     };
   }, []);
 
@@ -164,6 +175,9 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
     return <Store 
       onNavigateBack={() => setShowStore(false)}
       userTokens={tokenData?.tokens || 0}
+      onTokensUpdate={(newTokens) => {
+        setTokenData(prev => prev ? { ...prev, tokens: newTokens } : null);
+      }}
     />;
   }
 
@@ -188,8 +202,8 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
         </button>
       </div>
 
-      {/* Centered Profile Picture */}
-      <div className="profile-pic-centered">
+      {/* Centered Profile Picture or Avatar */}
+      <div className={userData.avatar && userData.avatar !== userData.originalProfilePicture && userData.profilePicture === userData.avatar ? "avatar-display" : "profile-pic-centered"}>
         {userData.profilePicture ? (
           <img src={userData.profilePicture} alt="Perfil" />
         ) : (
@@ -255,9 +269,19 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
           </svg>
         </button>
         <div className="action-btn tokens-btn" onClick={() => setShowStore(true)}>
-          🪙 {tokenData?.tokens || 0}
+          🪙 {formatLargeNumber(tokenData?.tokens || 0)}
         </div>
       </div>
+
+      {/* Admin Token Button */}
+      {auth.currentUser && (
+        <AdminTokenButton 
+          userId={auth.currentUser.uid}
+          onTokensAdded={(newTotal) => {
+            setTokenData(prev => prev ? { ...prev, tokens: newTotal } : null);
+          }}
+        />
+      )}
 
       {/* Posts Grid */}
       <div className="posts-grid">
@@ -317,7 +341,7 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
           </svg>
         </div>
-        <div className="profile-pic-nav">
+        <div className={`profile-pic-nav ${userData.isAvatar ? 'avatar-format' : ''}`} data-is-avatar={userData.isAvatar ? 'true' : 'false'}>
           {userData.profilePicture ? (
             <img src={userData.profilePicture} alt="Perfil" />
           ) : (

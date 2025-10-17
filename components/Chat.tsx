@@ -149,7 +149,7 @@ export default function Chat({ onNavigateHome }: ChatProps) {
 
       {/* Chat Users */}
       <div className="following-users">
-        <div key="current-user" className="following-user">
+        <div key="current-user" className={`following-user ${userData?.avatar && userData?.avatar !== userData?.originalProfilePicture && userData?.profilePicture === userData?.avatar ? 'avatar-small-chat' : ''}`}>
           {userData?.profilePicture ? (
             <img src={userData.profilePicture} alt="Mi perfil" />
           ) : (
@@ -159,7 +159,7 @@ export default function Chat({ onNavigateHome }: ChatProps) {
         {filteredUsers.map((user) => (
           <div 
             key={user.id} 
-            className="following-user"
+            className={`following-user ${user.avatar && user.avatar !== user.originalProfilePicture && user.profilePicture === user.avatar ? 'avatar-small-chat' : ''}`}
             onClick={() => setSelectedUser(user)}
           >
             {user.profilePicture ? (

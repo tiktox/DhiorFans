@@ -51,7 +51,6 @@ export default function EditProfile({ userData, onNavigateBack, onSave }: EditPr
         username: formData.username,
         bio: formData.bio,
         link: formData.link,
-        profilePicture: formData.profilePicture,
         lastUsernameChange: formData.username !== userData.username ? Date.now() : userData.lastUsernameChange
       };
 
@@ -85,6 +84,11 @@ export default function EditProfile({ userData, onNavigateBack, onSave }: EditPr
       try {
         const downloadURL = await uploadProfilePicture(file, auth.currentUser.uid);
         setFormData({ ...formData, profilePicture: downloadURL });
+        
+        // Usar el servicio de fotos de perfil para manejar correctamente
+        const { setProfilePicture } = await import('../lib/profilePictureService');
+        await setProfilePicture(downloadURL);
+        
       } catch (error) {
         console.error('Error uploading profile picture:', error);
         alert(error instanceof Error ? error.message : 'Error al subir la imagen');

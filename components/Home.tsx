@@ -17,6 +17,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState('para-ti');
   const [currentView, setCurrentView] = useState('home');
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
   const [refreshFeed, setRefreshFeed] = useState(0);
   const [externalUserId, setExternalUserId] = useState<string | null>(null);
   const [externalUserData, setExternalUserData] = useState<UserData | null>(null);
@@ -38,6 +39,60 @@ export default function Home() {
     };
     loadData();
   }, [refreshFeed]);
+
+  // Cargar datos del usuario al montar el componente
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (auth.currentUser) {
+        try {
+          const data = await getUserData();
+          console.log('🔍 Datos del usuario cargados en Home:', data);
+          console.log('🎭 isAvatar:', data?.isAvatar);
+          setUserData(data);
+          setIsLoadingUser(false);
+        } catch (error) {
+          console.error('Error loading initial user data:', error);
+          setIsLoadingUser(false);
+        }
+      }
+    };
+    loadUserData();
+    
+    // Escuchar cambios de avatar y perfil
+    const handleAvatarChange = () => {
+      loadUserData();
+    };
+    
+    const handleProfileChange = () => {
+      loadUserData();
+    };
+    
+    window.addEventListener('avatarChanged', handleAvatarChange);
+    window.addEventListener('profileChanged', handleProfileChange);
+    
+    return () => {
+      window.removeEventListener('avatarChanged', handleAvatarChange);
+      window.removeEventListener('profileChanged', handleProfileChange);
+    };
+  }, []);
+
+  // Función global para recargar datos del usuario
+  useEffect(() => {
+    (window as any).reloadUserData = async () => {
+      if (auth.currentUser) {
+        try {
+          const data = await getUserData();
+          setUserData(data);
+        } catch (error) {
+          console.error('Error reloading user data:', error);
+        }
+      }
+    };
+    
+    return () => {
+      delete (window as any).reloadUserData;
+    };
+  }, []);
 
   if (currentView === 'profile') {
     return <Profile 
@@ -223,7 +278,11 @@ export default function Home() {
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
           </svg>
         </div>
-        <div className="profile-pic-nav" onClick={() => setCurrentView('profile')}>
+        <div 
+          className={`profile-pic-nav ${userData?.isAvatar ? 'avatar-format' : ''}`}
+          data-is-avatar={userData?.isAvatar ? 'true' : 'false'}
+          onClick={() => setCurrentView('profile')}
+        >
           {userData?.profilePicture ? (
             <img src={userData.profilePicture} alt="Perfil" />
           ) : (

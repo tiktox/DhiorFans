@@ -10,7 +10,12 @@ export interface UserData {
   link?: string;
   gender?: 'Hombre' | 'Mujer';
   profilePicture?: string;
+  originalProfilePicture?: string;
+  lastRealProfilePicture?: string; // Nueva: última foto real (no avatar)
   avatar?: string;
+  avatars?: string[];
+  purchasedAvatars?: string[];
+  isAvatar?: boolean;
   lastUsernameChange?: number;
   followers: number;
   following: number;

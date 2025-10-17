@@ -196,6 +196,7 @@
   background: #555;
   cursor: not-allowed;
   transform: none;
+  opacity: 0.6;
 }
 
 .coming-soon {
@@ -231,4 +232,327 @@
     width: 350px;
     height: 620px;
   }
+}
+
+/* Warning Modal */
+.warning-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1002;
+}
+
+.warning-modal {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 15px;
+  padding: 25px;
+  max-width: 280px;
+  text-align: center;
+}
+
+.warning-modal h3 {
+  color: #ff9800;
+  margin: 0 0 15px 0;
+  font-size: 18px;
+}
+
+.warning-modal p {
+  color: #ccc;
+  margin: 0 0 20px 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.warning-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.cancel-btn, .confirm-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 12px;
+}
+
+.cancel-btn {
+  background: #666;
+  color: white;
+}
+
+.cancel-btn:hover {
+  background: #777;
+}
+
+.confirm-btn {
+  background: #2196f3;
+  color: white;
+}
+
+.confirm-btn:hover {
+  background: #1976d2;
+}
+
+/* Token Animation */
+.token-animation-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.token-animation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  animation: tokenDeduct 2s ease-in-out;
+}
+
+.token-icon {
+  font-size: 48px;
+  animation: bounce 0.6s infinite alternate;
+}
+
+.token-text {
+  font-size: 24px;
+  font-weight: bold;
+  color: #ff4444;
+  animation: fadeInOut 2s ease-in-out;
+}
+
+@keyframes tokenDeduct {
+  0% { transform: scale(0.5); opacity: 0; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes bounce {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-10px); }
+}
+
+@keyframes fadeInOut {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+
+/* Avatar Actions Modal */
+.avatar-actions-modal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  z-index: 1001;
+}
+
+.avatar-preview {
+  width: 140px;
+  height: 250px;
+  border: 2px solid #2196f3;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #333;
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-actions {
+  display: flex;
+  gap: 15px;
+}
+
+.avatar-action-btn {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 14px;
+}
+
+.add-btn {
+  background: #4caf50;
+  color: white;
+}
+
+.add-btn:hover {
+  background: #45a049;
+  transform: translateY(-2px);
+}
+
+.profile-btn {
+  background: #2196f3;
+  color: white;
+}
+
+.profile-btn:hover {
+  background: #1976d2;
+  transform: translateY(-2px);
+}
+
+/* User Avatars Section */
+.user-avatars-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #333;
+}
+
+.user-avatars-section h4 {
+  color: white;
+  margin: 0 0 15px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.avatars-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  gap: 10px;
+}
+
+.avatar-item {
+  aspect-ratio: 140/250;
+  border: 2px solid #333;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.avatar-item:hover {
+  border-color: #2196f3;
+  transform: scale(1.05);
+}
+
+.avatar-thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Purchased Avatars Section */
+.purchased-avatars-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #333;
+}
+
+.purchased-avatars-section h4 {
+  color: white;
+  margin: 0 0 15px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.avatar-item-store {
+  position: relative;
+  aspect-ratio: 140/250;
+  border: 2px solid #333;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.avatar-item-store:hover {
+  border-color: #2196f3;
+}
+
+.avatar-actions-store {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.add-avatar-btn {
+  background: #4caf50;
+  border: none;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.add-avatar-btn:hover {
+  background: #45a049;
+  transform: translateY(-1px);
+}
+
+.in-use-text {
+  color: #ffd700;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.choose-avatar-btn {
+  background: #2196f3;
+  border: none;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.choose-avatar-btn:hover {
+  background: #1976d2;
+  transform: translateY(-1px);
+}
+
+.restore-btn {
+  background: #ff9800;
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.restore-btn:hover {
+  background: #f57c00;
+  transform: translateY(-1px);
 }

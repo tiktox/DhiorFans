@@ -282,7 +282,7 @@ export default function CommentsModal({ postId, isOpen, postData, onClose, onPro
             comments.map((comment) => (
             <div key={comment.id} className="comment-item">
               <div className="comment-main">
-                <div className="comment-avatar" onClick={() => onProfileClick?.(comment.userId)} style={{ cursor: 'pointer' }}>
+                <div className={`comment-avatar ${usersData[comment.userId]?.isAvatar ? 'avatar-format' : ''}`} data-is-avatar={usersData[comment.userId]?.isAvatar ? 'true' : 'false'} onClick={() => onProfileClick?.(comment.userId)} style={{ cursor: 'pointer' }}>
                   {usersData[comment.userId]?.profilePicture ? (
                     <img src={usersData[comment.userId].profilePicture} alt="Avatar" />
                   ) : (
@@ -356,7 +356,7 @@ export default function CommentsModal({ postId, isOpen, postData, onClose, onPro
                 <div className="replies-list">
                   {comment.replies.map((reply) => (
                     <div key={reply.id} className="reply-item">
-                      <div className="comment-avatar" onClick={() => onProfileClick?.(reply.userId)} style={{ cursor: 'pointer' }}>
+                      <div className={`comment-avatar ${usersData[reply.userId]?.isAvatar ? 'avatar-format' : ''}`} data-is-avatar={usersData[reply.userId]?.isAvatar ? 'true' : 'false'} onClick={() => onProfileClick?.(reply.userId)} style={{ cursor: 'pointer' }}>
                         {usersData[reply.userId]?.profilePicture ? (
                           <img src={usersData[reply.userId].profilePicture} alt="Avatar" />
                         ) : (

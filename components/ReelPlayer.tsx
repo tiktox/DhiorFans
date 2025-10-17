@@ -316,7 +316,7 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
           
           <div className="reel-info">
             <div className="user-info">
-              <div className="profile-pic" onClick={() => onProfileClick?.(post.userId)}>
+              <div className={`profile-pic ${authorData?.isAvatar ? 'avatar-format' : ''}`} data-is-avatar={authorData?.isAvatar ? 'true' : 'false'} onClick={() => onProfileClick?.(post.userId)}>
                 {authorData?.profilePicture ? (
                   <img src={authorData.profilePicture} alt={authorData.username} />
                 ) : (
