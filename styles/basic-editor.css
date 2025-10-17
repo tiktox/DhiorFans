@@ -33,7 +33,6 @@
   width: 40px;
   height: 40px;
   background: rgb(255, 255, 255);
-  border: 1px solid rgb(0, 225, 255);
   border-radius: 50%;
   color: #000000;
   font-size: 20px;
@@ -47,7 +46,8 @@
 }
 
 .back-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  color:#ffffff;
+  background:#000000;
   transform: scale(1.05);
 }
 
@@ -260,19 +260,19 @@
 
 .bottom-section {
   position: absolute;
-  bottom: 0;
+  bottom: 60px;
   left: 0;
   right: 0;
   padding: 20px;
   display: flex;
   align-items: center;
   gap: 15px;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0));
 }
 
 @media (max-width: 767px) {
   .bottom-section {
-    bottom: 30px;
+    bottom: 80px;
     padding: 15px 20px;
     gap: 12px;
     background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
@@ -295,7 +295,7 @@
 
 @media (max-width: 350px) {
   .bottom-section {
-    bottom: 40px;
+    bottom: 100px;
     padding: 12px 15px;
     flex-direction: column;
     gap: 15px;
