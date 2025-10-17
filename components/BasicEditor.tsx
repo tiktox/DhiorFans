@@ -33,6 +33,7 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish }: Ba
   const [colorIndex, setColorIndex] = useState(0);
   const [fontIndex, setFontIndex] = useState(0);
   const [showTextControls, setShowTextControls] = useState(false);
+  const [textRotation, setTextRotation] = useState(0);
   
   const colors = ['#ffffff', '#0066ff', '#000000', '#ff0000', '#ffff00', '#00ff00', '#ff00ff', '#00ffff'];
   const fonts = ['Arial', 'Georgia', 'Times New Roman', 'Courier New', 'Verdana', 'Comic Sans MS', 'Impact', 'Trebuchet MS'];
@@ -197,7 +198,7 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish }: Ba
         mediaUrl,
         mediaType: mediaFile.type,
         audioUrl: audioUrl || undefined,
-        textStyles: textStyles
+        textStyles: { ...textStyles, rotation: textRotation }
       });
 
       await saveUserData({ posts: userData.posts + 1 });
@@ -274,7 +275,8 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish }: Ba
               textDecoration: textStyle === 'underline' ? 'underline' : 'none',
               color: textColor,
               fontFamily: fontFamily,
-              textShadow: textStyle === 'shadow' ? '2px 2px 4px rgba(0,0,0,0.8)' : 'none'
+              textShadow: textStyle === 'shadow' ? '2px 2px 4px rgba(0,0,0,0.8)' : 'none',
+              transform: `translate(-50%, -50%) rotate(${textRotation}deg)`
             }}
             onWheel={handleTextWheel}
             onTouchMove={handleTextPinch}
@@ -354,6 +356,25 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish }: Ba
                   style={{ background: '#4444ff' }}
                   onClick={() => setTextColor('#4444ff')}
                 />
+              </div>
+              
+              <div className="rotation-controls">
+                <button 
+                  className={`rotate-btn ${textRotation === 0 ? 'active' : ''}`}
+                  onClick={() => setTextRotation(0)}
+                >0°</button>
+                <button 
+                  className={`rotate-btn ${textRotation === 45 ? 'active' : ''}`}
+                  onClick={() => setTextRotation(45)}
+                >45°</button>
+                <button 
+                  className={`rotate-btn ${textRotation === 90 ? 'active' : ''}`}
+                  onClick={() => setTextRotation(90)}
+                >90°</button>
+                <button 
+                  className={`rotate-btn ${textRotation === 180 ? 'active' : ''}`}
+                  onClick={() => setTextRotation(180)}
+                >180°</button>
               </div>
             </div>
           )}

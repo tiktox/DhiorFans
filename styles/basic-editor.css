@@ -235,12 +235,14 @@
 
 .draggable-text.editing {
   cursor: text;
-  position: fixed;
+  position: absolute;
+  max-width: calc(100vw - 40px);
+  max-height: calc(100vh - 40px);
 }
 
 .text-input-field {
-  background: rgba(0, 0, 0, 0.7);
-  border: 2px solid rgba(255, 255, 255, 0.4);
+  background: rgba(0, 0, 0, 0);
+  border: 2px solid rgba(255, 255, 255, 0);
   border-radius: 12px;
   color: inherit;
   font-size: inherit;
@@ -256,21 +258,22 @@
   word-wrap: break-word;
   overflow-wrap: break-word;
   line-height: 1.4;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0);
 }
 
 .text-display {
+  top:-50px;
   display: block;
   padding: 12px 16px;
   border-radius: 12px;
   backdrop-filter: blur(15px);
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0);
   word-wrap: break-word;
   overflow-wrap: break-word;
   white-space: pre-wrap;
   line-height: 1.4;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0);
+  border: 1px solid rgba(255, 255, 255, 0);
 }
 
 .text-display:empty::before {
@@ -283,7 +286,7 @@
   bottom: 80px;
   left: 20px;
   right: 20px;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0);
   border-radius: 15px;
   padding: 15px;
   display: flex;
@@ -294,10 +297,15 @@
 
 .size-controls,
 .style-controls,
-.color-controls {
+.color-controls,
+.rotation-controls {
   display: flex;
   gap: 8px;
   justify-content: center;
+}
+
+.rotation-controls {
+  margin-top: 5px;
 }
 
 .size-controls button,
@@ -529,4 +537,25 @@
 .font-btn:hover {
   background: rgba(255, 255, 255, 0.1);
   transform: scale(1.1);
+}
+
+.rotate-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  color: #fff;
+  padding: 8px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 60px;
+}
+
+.rotate-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.rotate-btn.active {
+  background: #fff;
+  color: #000;
 }
