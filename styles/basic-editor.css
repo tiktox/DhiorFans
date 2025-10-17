@@ -272,21 +272,45 @@
 
 @media (max-width: 767px) {
   .bottom-section {
-    bottom: 20px;
-    padding: 15px;
-    gap: 10px;
+    bottom: 30px;
+    padding: 15px 20px;
+    gap: 12px;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
   }
   
   .title-input {
     font-size: 16px;
     padding: 15px 0;
+    flex: 1;
   }
   
   .publish-btn {
     top: 0;
-    padding: 15px 20px;
+    padding: 15px 25px;
     font-size: 16px;
-    min-width: 100px;
+    min-width: 110px;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .bottom-section {
+    bottom: 40px;
+    padding: 12px 15px;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .title-input {
+    width: 100%;
+    text-align: center;
+    padding: 12px 0;
+  }
+  
+  .publish-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 18px;
   }
 }
 

@@ -70,6 +70,8 @@ export default function Publish({ onNavigateHome, onPublish, onNavigateToCreateP
       // Enviar archivo directamente al editor
       onNavigateToEditor?.(mediaFile);
     }
+    // Limpiar input para permitir seleccionar el mismo archivo
+    event.target.value = '';
   };
 
   const handlePublish = async () => {

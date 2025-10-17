@@ -23,6 +23,7 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish }: Ba
   const [isUploading, setIsUploading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [textPosition, setTextPosition] = useState({ x: 50, y: 50 });
   const [textSize, setTextSize] = useState(16);
@@ -154,9 +155,18 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish }: Ba
     }
   };
 
+  const cleanupAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setIsPlaying(false);
+    }
+  };
+
   const handlePublish = async () => {
     if (!title.trim() || !description.trim() || !auth.currentUser || isUploading) return;
 
+    cleanupAudio();
     setIsUploading(true);
     try {
       const userData = await getUserData();
@@ -200,12 +210,19 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish }: Ba
     }
   };
 
+  // Cleanup al desmontar componente
+  useEffect(() => {
+    return () => {
+      cleanupAudio();
+    };
+  }, []);
+
   const canPublish = title.trim() && description.trim();
 
   return (
     <div className="basic-editor">
       <div className="basic-editor-header">
-        <button className="back-btn" onClick={onNavigateBack}>
+        <button className="back-btn" onClick={() => { cleanupAudio(); onNavigateBack(); }}>
           ←
         </button>
         <div className="audio-section">
@@ -240,7 +257,7 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish }: Ba
       <div className="basic-editor-content">
         <div className="media-container">
           {mediaFile.type === 'video' ? (
-            <video src={mediaFile.url} className="editor-media" autoPlay muted loop />
+            <video src={mediaFile.url} className="editor-media" autoPlay loop controls />
           ) : (
             <img src={mediaFile.url} alt="Media" className="editor-media" />
           )}
