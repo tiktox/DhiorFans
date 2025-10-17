@@ -234,7 +234,7 @@
 }
 
 /* Responsive para móviles */
-@media (max-width: 767px) {
+@media (max-width: 620px) {
   .text-controls {
     bottom: 100px;
     left: 10px;
@@ -293,7 +293,7 @@
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 350px) {
   .bottom-section {
     bottom: 40px;
     padding: 12px 15px;
