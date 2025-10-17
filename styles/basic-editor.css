@@ -240,23 +240,7 @@
   max-height: calc(100vh - 40px);
 }
 
-.text-input-field {
-  background: transparent;
-  border: none;
-  color: inherit;
-  font-size: inherit;
-  font-weight: inherit;
-  font-style: inherit;
-  text-decoration: inherit;
-  padding: 0;
-  outline: none;
-  width: 100%;
-  resize: none;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  line-height: 1.4;
-}
+
 
 .text-display {
   display: block;
