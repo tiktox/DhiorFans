@@ -2493,8 +2493,8 @@ body {
 
 /* Delete Post Button */
 .delete-post-btn {
-  position: absolute;
-  top: -300px;
+  position: fixed;
+  top: -320px;
   right: 24px;
   background: rgb(255, 0, 25);
   border: none;
@@ -2526,12 +2526,18 @@ body {
 /* Desktop */
 @media (min-width: 1024px) {
   .delete-post-btn {
-    position:absolute;
-    right:24px;
-    top:-350px;
-    
+    top: -360px;
+    right: 32px;
   }
 }
+/* Mobile */
+@media (max-width: 480px) {
+  .delete-post-btn {
+    top: -280px;
+    right: 16px;
+  }
+}
+
 /* Tokens Taskbar */
 .tokens-taskbar {
   position: fixed;
@@ -2548,6 +2554,7 @@ body {
   animation: taskbarSlideUp 0.5s ease forwards;
   z-index: 140;
 }
+
 
 
 /* Delete Confirmation Modal */
