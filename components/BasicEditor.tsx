@@ -156,52 +156,55 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish }: Ba
     }
   };
 
-  const cleanupAudio = () => {
+  const cleanupAudio = useCallback(() => {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
+      URL.revokeObjectURL(audioRef.current.src);
+      audioRef.current = null;
       setIsPlaying(false);
     }
-  };
+  }, []);
 
-  const handlePublish = async () => {
-    if (!title.trim() || !description.trim() || !auth.currentUser || isUploading) return;
+  const handlePublish = useCallback(async () => {
+    if (!title.trim() || !auth.currentUser || isUploading) return;
 
     cleanupAudio();
     setIsUploading(true);
+    
     try {
-      const userData = await getUserData();
+      const [userData, mediaUrl, audioUrl] = await Promise.all([
+        getUserData(),
+        uploadFile(mediaFile.file, auth.currentUser.uid),
+        audioFile ? uploadFile(audioFile, auth.currentUser.uid) : Promise.resolve('')
+      ]);
+      
       if (!userData) {
         throw new Error('No se pudo obtener los datos del usuario');
       }
 
-      const mediaUrl = await uploadFile(mediaFile.file, auth.currentUser.uid);
-      let audioUrl = '';
-      
-      if (audioFile) {
-        audioUrl = await uploadFile(audioFile, auth.currentUser.uid);
-      }
-
-      // Crear objeto con estilos del texto
       const textStyles = {
         position: textPosition,
         size: textSize,
         color: textColor,
         fontFamily: fontFamily,
-        style: textStyle
+        style: textStyle,
+        rotation: textRotation
       };
 
-      await createPost({
-        userId: auth.currentUser.uid,
-        title: title.trim(),
-        description: description.trim(),
-        mediaUrl,
-        mediaType: mediaFile.type,
-        audioUrl: audioUrl || undefined,
-        textStyles: { ...textStyles, rotation: textRotation }
-      });
+      await Promise.all([
+        createPost({
+          userId: auth.currentUser.uid,
+          title: title.trim(),
+          description: description.trim(),
+          mediaUrl,
+          mediaType: mediaFile.type,
+          audioUrl: audioUrl || undefined,
+          textStyles
+        }),
+        saveUserData({ posts: userData.posts + 1 })
+      ]);
 
-      await saveUserData({ posts: userData.posts + 1 });
       onPublish();
     } catch (error) {
       console.error('Error al publicar:', error);
@@ -209,16 +212,16 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish }: Ba
     } finally {
       setIsUploading(false);
     }
-  };
+  }, [title, auth.currentUser, isUploading, mediaFile.file, audioFile, textPosition, textSize, textColor, fontFamily, textStyle, textRotation, description, mediaFile.type, onPublish]);
 
   // Cleanup al desmontar componente
   useEffect(() => {
     return () => {
       cleanupAudio();
     };
-  }, []);
+  }, [cleanupAudio]);
 
-  const canPublish = title.trim() && description.trim();
+  const canPublish = title.trim() && !isUploading && auth.currentUser;
 
   return (
     <div className="basic-editor">
@@ -304,80 +307,8 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish }: Ba
             )}
           </div>
           
-          {description && (
-            <div className="text-controls">
-              <div className="size-controls">
-                <button onClick={() => setTextSize(Math.max(12, textSize - 2))}>A-</button>
-                <button onClick={() => setTextSize(Math.min(24, textSize + 2))}>A+</button>
-              </div>
-              
-              <div className="style-controls">
-                <button 
-                  className={textStyle === 'normal' ? 'active' : ''}
-                  onClick={() => setTextStyle('normal')}
-                >Aa</button>
-                <button 
-                  className={textStyle === 'bold' ? 'active' : ''}
-                  onClick={() => setTextStyle('bold')}
-                ><b>B</b></button>
-                <button 
-                  className={textStyle === 'italic' ? 'active' : ''}
-                  onClick={() => setTextStyle('italic')}
-                ><i>I</i></button>
-                <button 
-                  className={textStyle === 'shadow' ? 'active' : ''}
-                  onClick={() => setTextStyle('shadow')}
-                >S</button>
-              </div>
-              
-              <div className="color-controls">
-                <button 
-                  className="color-btn"
-                  style={{ background: '#ffffff' }}
-                  onClick={() => setTextColor('#ffffff')}
-                />
-                <button 
-                  className="color-btn"
-                  style={{ background: '#000000' }}
-                  onClick={() => setTextColor('#000000')}
-                />
-                <button 
-                  className="color-btn"
-                  style={{ background: '#ff4444' }}
-                  onClick={() => setTextColor('#ff4444')}
-                />
-                <button 
-                  className="color-btn"
-                  style={{ background: '#44ff44' }}
-                  onClick={() => setTextColor('#44ff44')}
-                />
-                <button 
-                  className="color-btn"
-                  style={{ background: '#4444ff' }}
-                  onClick={() => setTextColor('#4444ff')}
-                />
-              </div>
-              
-              <div className="rotation-controls">
-                <button 
-                  className={`rotate-btn ${textRotation === 0 ? 'active' : ''}`}
-                  onClick={() => setTextRotation(0)}
-                >0°</button>
-                <button 
-                  className={`rotate-btn ${textRotation === 45 ? 'active' : ''}`}
-                  onClick={() => setTextRotation(45)}
-                >45°</button>
-                <button 
-                  className={`rotate-btn ${textRotation === 90 ? 'active' : ''}`}
-                  onClick={() => setTextRotation(90)}
-                >90°</button>
-                <button 
-                  className={`rotate-btn ${textRotation === 180 ? 'active' : ''}`}
-                  onClick={() => setTextRotation(180)}
-                >180°</button>
-              </div>
-            </div>
-          )}
+          <div className="text-controls">
+          </div>
         </div>
 
         <div className="bottom-section">
@@ -393,7 +324,7 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish }: Ba
           <button 
             className={`publish-btn ${canPublish ? 'active' : ''}`}
             onClick={handlePublish}
-            disabled={!canPublish || isUploading}
+            disabled={!canPublish}
           >
             {isUploading ? 'Publicando...' : 'Publicar'}
           </button>

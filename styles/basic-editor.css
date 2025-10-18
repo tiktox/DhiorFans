@@ -17,7 +17,8 @@
   display: flex;
   align-items: center;
   gap: 15px;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0));
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.3));
+  z-index: 70;
 }
 
 /* Tablet */
@@ -240,7 +241,23 @@
   max-height: calc(100vh - 40px);
 }
 
-
+.text-input-field {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  font-style: inherit;
+  text-decoration: inherit;
+  padding: 0;
+  outline: none;
+  width: 100%;
+  resize: none;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.4;
+}
 
 .text-display {
   display: block;
@@ -257,21 +274,7 @@
   color: rgba(255, 255, 255, 0.7);
 }
 
-.text-controls {
-  position: absolute;
-  bottom: 80px;
-  left: 20px;
-  right: 20px;
-  background: rgba(0, 0, 0, 0);
-  border-radius: 15px;
-  padding: 15px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  z-index: 60;
-}
 
-.size-controls,
 .style-controls,
 .color-controls,
 .rotation-controls {
@@ -284,7 +287,6 @@
   margin-top: 5px;
 }
 
-.size-controls button,
 .style-controls button {
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.3);
@@ -296,7 +298,6 @@
   transition: all 0.3s ease;
 }
 
-.size-controls button:hover,
 .style-controls button:hover {
   background: rgba(255, 255, 255, 0.3);
 }
@@ -333,7 +334,6 @@
     padding: 30px;
   }
   
-  .size-controls button,
   .style-controls button {
     padding: 10px 14px;
     font-size: 14px;
@@ -353,10 +353,10 @@
 
 @media (max-width: 767px) {
   .bottom-section {
-    bottom: 250px;
+    bottom: 20px;
     padding: 15px 20px;
     gap: 12px;
-    background: linear-gradient(transparent, rgba(0, 0, 0, 0));
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.3));
   }
   
   .title-input {
@@ -366,7 +366,6 @@
   }
   
   .publish-btn {
-    top: 0;
     padding: 15px 25px;
     font-size: 16px;
     min-width: 110px;
@@ -376,7 +375,7 @@
 
 @media (max-width: 350px) {
   .bottom-section {
-    bottom: 100px;
+    bottom: 20px;
     padding: 12px 15px;
     flex-direction: column;
     gap: 15px;
@@ -392,6 +391,10 @@
     width: 100%;
     padding: 15px;
     font-size: 18px;
+  }
+  
+  .text-controls {
+    bottom: 140px;
   }
 }
 
@@ -410,8 +413,6 @@
 }
 
 .publish-btn {
-  position: relative;
-  top:-7.5px;
   background: rgba(255, 255, 255, 0.3);
   border: none;
   color: #fff;
