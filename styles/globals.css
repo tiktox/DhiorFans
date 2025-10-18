@@ -2517,7 +2517,7 @@ body {
 @media (min-width: 768px) {
   .delete-post-btn {
     position:absolute;
-    top:-200px;
+    top:-385px;
     right:24px;
   }
 }
@@ -2525,7 +2525,10 @@ body {
 /* Desktop */
 @media (min-width: 1024px) {
   .delete-post-btn {
-    top:0;
+    position:absolute;
+    right:24px;
+    top:-385px;
+
   }
 }
 
