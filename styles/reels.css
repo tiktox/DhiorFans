@@ -89,7 +89,7 @@
 
 .progress-bar {
   position: absolute;
-  bottom: 225px;
+  bottom: 205px;
   left: 90px;
   right: 90px;
   width: calc(100% - 180px);
