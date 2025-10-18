@@ -192,7 +192,7 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish }: Ba
         rotation: textRotation
       };
 
-      const postData = {
+      const postData: any = {
         userId: auth.currentUser.uid,
         title: title.trim(),
         description: description.trim(),
