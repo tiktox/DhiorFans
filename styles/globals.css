@@ -2517,7 +2517,7 @@ body {
 /* Tablet */
 @media (min-width: 768px) {
   .delete-post-btn {
-    top:-340px;
+    top:34px;
     right:24px;
   }
 }
@@ -2525,14 +2525,14 @@ body {
 /* Desktop */
 @media (min-width: 1024px) {
   .delete-post-btn {
-    top: -360px;
+    top: 20px;
     right: 32px;
   }
 }
 /* Mobile */
 @media (max-width: 480px) {
   .delete-post-btn {
-    top: -280px;
+    top: 20px;
     right: 16px;
   }
 }
