@@ -270,7 +270,7 @@
   
   /* TABLET - PROGRESS BAR */
   .progress-bar {
-    bottom: 90px;
+    bottom: 110px;
     left: 16px;
     right: 16px;
     width: calc(100% - 32px);

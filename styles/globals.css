@@ -4138,7 +4138,7 @@ input, textarea, [contenteditable="true"] {
 
 .progress-bar-inner {
   height: 100%;
-  background: #ff3040;
+  background: #ff0015;
   transition: width 0.1s ease;
 }
 
