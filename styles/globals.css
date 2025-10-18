@@ -2511,7 +2511,7 @@ body {
 }
 
 .delete-post-btn:hover {
-  background: rgba(220, 53, 69, 1);
+  background: rgb(255, 0, 25);
 }
 
 /* Tablet */
@@ -2519,7 +2519,7 @@ body {
   .delete-post-btn {
     position:absolute;
     right:24px;
-    top:-385px;
+    top:-350px;
   }
 }
 
@@ -2528,7 +2528,7 @@ body {
   .delete-post-btn {
     position:absolute;
     right:24px;
-    top:-385px;
+    top:-350px;
 
   }
 }
@@ -2564,7 +2564,7 @@ body {
 }
 
 .confirm-delete-btn {
-  background: #dc3545;
+  background: #ff0019;
   border: none;
   color: white;
   padding: 12px 24px;
