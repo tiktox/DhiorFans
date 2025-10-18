@@ -663,7 +663,7 @@
 /* DELETE BUTTON IN REELS */
 .reel-container .delete-post-btn {
   position: absolute;
-  top: 30px;
+  top: -220px;
   right: 20px;
   background: rgba(220, 53, 69, 0.9);
   border: none;
@@ -693,7 +693,7 @@
 /* TABLET DELETE BUTTON */
 @media (min-width: 768px) {
   .reel-container .delete-post-btn {
-    top: 25px;
+    top: -220px;
     right: 20px;
     width: 44px;
     height: 44px;
@@ -703,8 +703,7 @@
 /* DESKTOP DELETE BUTTON */
 @media (min-width: 1024px) {
   .reel-container .delete-post-btn {
-    top: -210px;
-    right: 14px;
+    right: 20px;
     width: 40px;
     height: 40px;
   }
@@ -714,7 +713,7 @@
 @media (max-width: 767px) {
   .reel-container .delete-post-btn {
     top: -220px;
-    right: 24px;
+    right: 20px;
     width: 50px;
     height: 50px;
   }

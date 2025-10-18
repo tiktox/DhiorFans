@@ -2494,7 +2494,7 @@ body {
 /* Delete Post Button */
 .delete-post-btn {
   position: absolute;
-  top: 20px;
+  top: -220px;
   right: 20px;
   background: rgba(255, 0, 25, 0.9);
   border: none;
@@ -2524,7 +2524,7 @@ body {
 /* Mobile específico */
 @media (max-width: 767px) {
   .delete-post-btn {
-    top: 30px;
+    top: -220px;
     right: 20px;
     width: 48px;
     height: 48px;
@@ -2535,7 +2535,7 @@ body {
 /* Tablet */
 @media (min-width: 768px) and (max-width: 1023px) {
   .delete-post-btn {
-    top: 25px;
+    top: -220px;
     right: 20px;
     width: 42px;
     height: 42px;
@@ -2545,7 +2545,7 @@ body {
 /* Desktop */
 @media (min-width: 1024px) {
   .delete-post-btn {
-    top: 20px;
+    top: -220px;
     right: 20px;
     width: 40px;
     height: 40px;
