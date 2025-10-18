@@ -2516,16 +2516,16 @@ body {
 /* Tablet */
 @media (min-width: 768px) {
   .delete-post-btn {
-    position: absolute;
-    top:-385px;
-    right: 24px;
+    position:absolute;
+    top:-200px;
+    right:24px;
   }
 }
 
 /* Desktop */
 @media (min-width: 1024px) {
   .delete-post-btn {
-    top: -385px;
+    top:0;
   }
 }
 
