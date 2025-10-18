@@ -2494,7 +2494,7 @@ body {
 /* Delete Post Button */
 .delete-post-btn {
   position: absolute;
-  top:-330px;
+  top: 16px;
   right: 24px;
   background: rgb(255, 0, 25);
   border: none;
@@ -2518,8 +2518,8 @@ body {
 @media (min-width: 768px) {
   .delete-post-btn {
     position:absolute;
+    top:-340px;
     right:24px;
-    top:-350px;
   }
 }
 
@@ -2529,7 +2529,7 @@ body {
     position:absolute;
     right:24px;
     top:-350px;
-
+    
   }
 }
 
@@ -2578,7 +2578,7 @@ body {
 }
 
 .confirm-delete-btn:hover {
-  background: #c82333;
+  background: #ff0019;
 }
 
 .cancel-delete-btn {
