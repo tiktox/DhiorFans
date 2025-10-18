@@ -2496,7 +2496,7 @@ body {
   position: absolute;
   top: 20px;
   right: 20px;
-  background: rgba(220, 53, 69, 0.8);
+  background: rgb(220, 53, 70);
   border: none;
   color: white;
   width: 40px;
@@ -2517,8 +2517,8 @@ body {
 /* Tablet */
 @media (min-width: 768px) {
   .delete-post-btn {
-    right: var(--space-xl);
-    top: -350px;
+    right: 24px;
+    top: -275px;
   }
 }
 
