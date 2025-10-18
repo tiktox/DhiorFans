@@ -2517,7 +2517,7 @@ body {
 /* Tablet */
 @media (min-width: 768px) {
   .delete-post-btn {
-    bottom:80px;
+    bottom:150px;
     right: 24px;
     top: 10px;
   }
