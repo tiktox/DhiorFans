@@ -703,8 +703,8 @@
 /* DESKTOP DELETE BUTTON */
 @media (min-width: 1024px) {
   .reel-container .delete-post-btn {
-    top: 20px;
-    right: 20px;
+    top: -210px;
+    right: 14px;
     width: 40px;
     height: 40px;
   }
@@ -713,7 +713,7 @@
 /* MOBILE DELETE BUTTON */
 @media (max-width: 767px) {
   .reel-container .delete-post-btn {
-    top: 40px;
+    top: -220px;
     right: 24px;
     width: 50px;
     height: 50px;
