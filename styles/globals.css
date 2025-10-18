@@ -2517,8 +2517,8 @@ body {
 @media (min-width: 768px) {
   .delete-post-btn {
     position:absolute;
-    top:-385px;
     right:24px;
+    top:-385px;
   }
 }
 
