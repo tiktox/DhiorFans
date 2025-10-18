@@ -192,16 +192,21 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish }: Ba
         rotation: textRotation
       };
 
+      const postData = {
+        userId: auth.currentUser.uid,
+        title: title.trim(),
+        description: description.trim(),
+        mediaUrl,
+        mediaType: mediaFile.type,
+        textStyles
+      };
+      
+      if (audioUrl) {
+        postData.audioUrl = audioUrl;
+      }
+
       await Promise.all([
-        createPost({
-          userId: auth.currentUser.uid,
-          title: title.trim(),
-          description: description.trim(),
-          mediaUrl,
-          mediaType: mediaFile.type,
-          audioUrl: audioUrl || undefined,
-          textStyles
-        }),
+        createPost(postData),
         saveUserData({ posts: userData.posts + 1 })
       ]);
 
