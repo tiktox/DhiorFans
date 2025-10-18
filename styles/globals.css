@@ -2491,87 +2491,68 @@ body {
   cursor: pointer;
 }
 
-/* Delete Post Button - Universal */
+/* Delete Post Button */
 .delete-post-btn {
   position: absolute;
-  top: 30px;
-  right: 20px;
-  background: rgba(220, 53, 69, 0.95);
+  top: -220px;
+  right: 28px;
+  background: rgba(255, 0, 25, 0.9);
   border: none;
   color: white;
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   cursor: pointer;
-  display: flex !important;
+  display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index: 300;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .delete-post-btn:hover {
-  background: rgba(220, 53, 69, 1);
-  transform: scale(1.15);
-  box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+  background: rgba(255, 0, 25, 1);
+  transform: scale(1.1);
 }
 
 .delete-post-btn:active {
-  transform: scale(0.9);
+  transform: scale(0.95);
 }
 
-/* Mobile Portrait */
-@media (max-width: 480px) {
+/* Mobile específico */
+@media (max-width: 767px) {
   .delete-post-btn {
-    top: 25px;
-    right: 15px;
-    width: 52px;
-    height: 52px;
-    z-index: 9999;
-  }
-}
-
-/* Mobile Landscape */
-@media (min-width: 481px) and (max-width: 767px) {
-  .delete-post-btn {
-    top: 30px;
+    position: relative;
+    top: -220px;
     right: 20px;
-    width: 50px;
-    height: 50px;
-    z-index: 9999;
+    width: 48px;
+    height: 48px;
+    z-index: 300;
   }
 }
 
 /* Tablet */
 @media (min-width: 768px) and (max-width: 1023px) {
   .delete-post-btn {
-    top: 25px;
+    position: relative;
+    top: -220px;
     right: 20px;
-    width: 46px;
-    height: 46px;
-    z-index: 9999;
+    width: 42px;
+    height: 42px;
   }
 }
 
 /* Desktop */
 @media (min-width: 1024px) {
   .delete-post-btn {
-    top: 20px;
-    right: 20px;
-    width: 44px;
-    height: 44px;
-    z-index: 9999;
+    position: relative;
+    top: -220px;
+    right: 24px;
+    width: 40px;
+    height: 40px;
   }
-}
-
-/* Force visibility */
-.reel-container .delete-post-btn {
-  display: flex !important;
-  visibility: visible !important;
-  opacity: 1 !important;
 }
 
 /* Tokens Taskbar */
@@ -4276,4 +4257,3 @@ input, textarea, [contenteditable="true"] {
 @import url('./camera-interface.css');
 @import url('./publish-interface.css');
 @import url('./store.css');
-@import url('./delete-button.css');
