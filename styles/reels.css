@@ -713,7 +713,7 @@
 /* MOBILE DELETE BUTTON */
 @media (max-width: 767px) {
   .reel-container .delete-post-btn {
-    top: -90px;
+    top: 40px;
     right: 24px;
     width: 50px;
     height: 50px;
