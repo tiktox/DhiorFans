@@ -4144,6 +4144,15 @@ body {
   animation: tokenGlow 2s ease-in-out infinite alternate;
 }
 
+/* Dynamic Tokens Display Mobile*/
+.dynamic-tokens-display.mobile {
+  position: absolute;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+}
+
 .token-icon::before {
   content: '🪙';
   font-size: 14px;
