@@ -149,7 +149,7 @@ export default function Chat({ onNavigateHome }: ChatProps) {
 
       {/* Chat Users */}
       <div className="following-users">
-        <div key="current-user" className={`following-user ${userData?.avatar && userData?.avatar !== userData?.originalProfilePicture && userData?.profilePicture === userData?.avatar ? 'avatar-small-chat' : ''}`}>
+        <div key="current-user" className={`following-user ${userData?.isAvatar ? 'avatar-small-chat' : ''}`} data-is-avatar={userData?.isAvatar ? 'true' : 'false'}>
           {userData?.profilePicture ? (
             <img src={userData.profilePicture} alt="Mi perfil" />
           ) : (
@@ -159,7 +159,8 @@ export default function Chat({ onNavigateHome }: ChatProps) {
         {filteredUsers.map((user) => (
           <div 
             key={user.id} 
-            className={`following-user ${user.avatar && user.avatar !== user.originalProfilePicture && user.profilePicture === user.avatar ? 'avatar-small-chat' : ''}`}
+            className={`following-user ${user.isAvatar ? 'avatar-small-chat' : ''}`}
+            data-is-avatar={user.isAvatar ? 'true' : 'false'}
             onClick={() => setSelectedUser(user)}
           >
             {user.profilePicture ? (
@@ -217,12 +218,13 @@ export default function Chat({ onNavigateHome }: ChatProps) {
                   gender: undefined,
                   followers: 0,
                   following: 0,
-                  posts: 0
+                  posts: 0,
+                  isAvatar: conversation.isAvatar || false
                 };
                 setSelectedUser(user);
               }}
             >
-              <div className="conversation-avatar">
+              <div className={`conversation-avatar ${conversation.isAvatar ? 'avatar-format' : ''}`} data-is-avatar={conversation.isAvatar ? 'true' : 'false'}>
                 {conversation.userAvatar ? (
                   <img src={conversation.userAvatar} alt={conversation.userName} />
                 ) : (

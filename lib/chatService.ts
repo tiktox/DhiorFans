@@ -7,6 +7,7 @@ export interface Conversation {
   userId: string;
   userName: string;
   userAvatar?: string;
+  isAvatar?: boolean;
   lastMessage: string;
   timestamp: number;
   unreadCount: number;
@@ -222,6 +223,7 @@ export const getConversations = async (currentUserId: string): Promise<Conversat
               userId: otherUserId,
               userName: userData.fullName,
               userAvatar: userData.profilePicture,
+              isAvatar: userData.isAvatar || false,
               lastMessage: data.content,
               timestamp: data.timestamp.toMillis(),
               unreadCount: data.isRead ? 0 : 1,
@@ -258,6 +260,7 @@ export const getConversations = async (currentUserId: string): Promise<Conversat
               userId: otherUserId,
               userName: userData.fullName,
               userAvatar: userData.profilePicture,
+              isAvatar: userData.isAvatar || false,
               lastMessage: data.content,
               timestamp: data.timestamp.toMillis(),
               unreadCount: 0,

@@ -121,12 +121,12 @@ export default function ExternalProfile({ userId, userData, onNavigateBack, onVi
         <h2 className="centered-username">{userData.username}</h2>
       </div>
 
-      {/* Centered Profile Picture */}
-      <div className="profile-pic-centered">
+      {/* Centered Profile Picture or Avatar */}
+      <div className={userData.isAvatar ? "avatar-display" : "profile-pic-centered"}>
         {userData.profilePicture ? (
           <img src={userData.profilePicture} alt="Perfil" />
         ) : (
-          <div className="default-avatar">👤</div>
+          <div className="default-avatar-profile">👤</div>
         )}
       </div>
 

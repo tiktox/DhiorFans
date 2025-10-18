@@ -402,8 +402,8 @@
 /* Desktop */
 @media (min-width: 1025px) {
   .store-container {
-    width: 380px;
-    height: 680px;
+    width: 350px;
+    height: 620px;
     margin: 0 auto;
     border: 1px solid #333;
     border-radius: 18px;

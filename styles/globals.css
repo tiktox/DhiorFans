@@ -189,15 +189,15 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 15px;
-  background: rgba(17, 17, 17, 0.95);
+  background: rgba(17, 17, 17, 0);
   backdrop-filter: blur(10px);
   padding: 12px 24px;
-  border-radius: 25px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50px;
+  border: 1px solid rgb(255, 0, 0);
   z-index: 9999;
   width: calc(100% - 40px);
   max-width: 320px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0);
 }
 
 .nav-icon {
@@ -209,7 +209,7 @@ body {
   cursor: pointer;
   border-radius: 50%;
   transition: all 0.3s ease;
-  color: #999;
+  color: #ffffff;
   font-size: 20px;
   padding: 0 !important;
   margin: 0 !important;
@@ -278,7 +278,7 @@ body {
   width: 20px;
   height: 36px;
   border-radius: 4px;
-  border: 1px solid #2196f3;
+  border: 1px solid #2195f300;
   background: transparent;
   transition: all 0.3s ease;
 }
@@ -288,7 +288,7 @@ body {
 }
 
 .profile-pic-nav[data-is-avatar="true"]:hover {
-  border-color: #1976d2;
+  border-color: #1976d200;
   box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
 }
 
@@ -319,7 +319,7 @@ body {
 }
 
 .avatar-format:hover {
-  border-color: #1976d2 !important;
+  border-color: #1976d200 !important;
   box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3) !important;
 }
 
@@ -375,7 +375,7 @@ body {
 }
 
 .user-avatar[data-is-avatar="true"]:hover {
-  border-color: #1976d2;
+  border-color: #1976d200;
   box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
 }
 
@@ -2494,7 +2494,7 @@ body {
 /* Delete Post Button */
 .delete-post-btn {
   position: absolute;
-  top:-385px;
+  top:-350px;
   right: 24px;
   background: rgb(255, 0, 25);
   border: none;
@@ -2604,7 +2604,7 @@ body {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: #333;
+  background: #33333300;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3246,6 +3246,48 @@ body {
   width: 100%;
   height: 100%;
   object-fit: contain;
+}
+
+/* Avatar en conversaciones de chat */
+.conversation-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+}
+
+.conversation-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.conversation-avatar[data-is-avatar="true"] {
+  width: 35px;
+  height: 62px;
+  border-radius: 6px;
+  border: 2px solid #2196f3;
+  background: transparent;
+}
+
+.conversation-avatar[data-is-avatar="true"] img {
+  object-fit: contain;
+}
+
+.conversation-avatar:not([data-is-avatar="true"]) {
+  border: 2px solid white;
+  background: #333;
+}
+
+.conversation-avatar:not([data-is-avatar="true"]) img {
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .default-avatar-dynamic {
@@ -4053,7 +4095,7 @@ body {
 /* Fallback para navegadores sin soporte de backdrop-filter */
 @supports not (backdrop-filter: blur(10px)) {
   .bottom-nav {
-    background: rgba(17, 17, 17, 0.98);
+    background: rgba(17, 17, 17, 0);
   }
 }
 
