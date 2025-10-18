@@ -2494,7 +2494,7 @@ body {
 /* Delete Post Button */
 .delete-post-btn {
   position: absolute;
-  top:-350px;
+  top:-330px;
   right: 24px;
   background: rgb(255, 0, 25);
   border: none;
