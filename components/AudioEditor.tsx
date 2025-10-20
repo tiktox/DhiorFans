@@ -3,7 +3,7 @@ import { AudioService } from '../lib/audioService';
 import { auth } from '../lib/firebase';
 import styles from './AudioEditor.module.css';
 
-const PlayPauseIcon = ({ isPlaying }) => {
+const PlayPauseIcon = ({ isPlaying }: { isPlaying: boolean }) => {
   return isPlaying ? (
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
       <rect x="6" y="4" width="4" height="16" fill="currentColor"/>
