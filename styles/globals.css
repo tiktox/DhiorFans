@@ -4772,8 +4772,10 @@ background-color: linear-gradient(135deg, #FF0000, #00BFFF);
   padding: 4px 8px;
   border-radius: 8px;
   z-index: 5;
-}le(0.98);
-}
+}/* ========================================
+   AUDIO EDITOR STYLES - ORGANIZED SECTION
+   ======================================== */
+
 
 .slider-group:hover label {
   color: #00BFFF;
