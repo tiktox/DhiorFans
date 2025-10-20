@@ -1,7 +1,7 @@
 import { storage, db } from './firebase';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { collection, addDoc, doc, updateDoc, deleteDoc, getDocs, query, where, orderBy, getDoc } from 'firebase/firestore';
-import { getUserData } from './userService';
+import { getUserDataById } from './userService';
 
 export interface AudioMetadata {
   id?: string;
@@ -118,7 +118,7 @@ export class AudioService {
         let userName = 'Usuario';
         
         try {
-          const userData = await getUserData(audioData.userId);
+          const userData = await getUserDataById(audioData.userId);
           userName = userData?.displayName || userData?.email || 'Usuario';
         } catch (error) {
           console.warn('Could not fetch user data for audio:', docSnapshot.id);
