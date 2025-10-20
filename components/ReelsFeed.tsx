@@ -79,9 +79,9 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
     if (isDragging) return;
     
     const delta = e.deltaY;
-    const sensitivity = 5.8; // Reducir sensibilidad significativamente
+    const sensitivity = 2.5; // Reducir sensibilidad significativamente
     const newOffset = scrollOffset - delta * sensitivity;
-    const maxOffset = -(allContent.length - 2.2) * window.innerHeight;
+    const maxOffset = -(allContent.length - 1) * window.innerHeight;
     
     const clampedOffset = Math.max(maxOffset, Math.min(0, newOffset));
     setScrollOffset(clampedOffset);
@@ -104,9 +104,6 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
     setIsDragging(true);
     startY.current = e.touches[0].clientY;
     startOffset.current = scrollOffset;
-    
-    // Prevenir comportamientos no deseados
-    e.preventDefault();
     
     if (scrollContainerRef.current) {
       scrollContainerRef.current.className = 'reels-scroll-container scrolling';
@@ -168,9 +165,8 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
         ref={scrollContainerRef}
         className="reels-scroll-container"
         style={{
-          transform: `translate3d(0, ${scrollOffset}px, 0)`,
-          '--scroll-y': `${scrollOffset}px`
-        } as React.CSSProperties}
+          transform: `translateY(${scrollOffset}px)`
+        }}
       >
         {allContent.map((content, index) => (
           <div
