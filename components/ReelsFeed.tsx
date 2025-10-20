@@ -79,7 +79,7 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
     if (isDragging) return;
     
     const delta = e.deltaY;
-    const sensitivity = 3.55; // Reducir sensibilidad para mejor control
+    const sensitivity = 3.9;
     const newOffset = scrollOffset - delta * sensitivity;
     const maxOffset = -(allContent.length - 1.5) * window.innerHeight;
     
@@ -97,7 +97,7 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
     scrollTimeoutRef.current = setTimeout(() => {
       const targetIndex = Math.round(-clampedOffset / window.innerHeight);
       snapToIndex(Math.max(0, Math.min(allContent.length - 1, targetIndex)));
-    }, 100); // Reducir timeout para respuesta más rápida
+    }, 150);
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
