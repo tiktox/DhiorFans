@@ -6,6 +6,7 @@ import { auth } from '../lib/firebase';
 import { getPostCommentsCount } from '../lib/commentCountService';
 import { useDynamicStatus } from '../hooks/useDynamicStatus';
 import CommentsModal from './CommentsModal';
+import FullscreenButton from './FullscreenButton';
 
 // Reemplaza el componente BorderProgressBar actual
 function BorderProgressBar({ progress }: { progress: number }) {
@@ -241,7 +242,7 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
       )}
       
       {/* Texto con estilos personalizados */}
-      {post.textStyles && post.description && (
+      {post.textStyles && post.overlayText && (
         <div 
           className="custom-text-overlay"
           style={{
@@ -262,7 +263,7 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
             wordWrap: 'break-word'
           }}
         >
-          {post.description.replace(/<[^>]*>/g, '')}
+          {post.overlayText.replace(/<[^>]*>/g, '')}
         </div>
       )}
       
@@ -297,6 +298,9 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
           </svg>
         </div>
       )}
+      
+      {/* Botón de pantalla completa */}
+      {isActive && <FullscreenButton />}
       
       {isActive && (
         <div className="reel-overlay">
@@ -334,7 +338,7 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
                   )}
                 </div>
                 {post.title && <div className="post-title">{post.title}</div>}
-                {post.description && !post.textStyles && <div className="description">{post.description}</div>}
+                {post.description && <div className="description">{post.description}</div>}
               </div>
             </div>
           </div>

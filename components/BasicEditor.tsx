@@ -3,25 +3,34 @@ import { auth } from '../lib/firebase';
 import { getUserData, saveUserData } from '../lib/userService';
 import { createPost } from '../lib/postService';
 import { uploadFile } from '../lib/uploadService';
+import AudioGallery from './AudioGallery';
+import FullscreenButton from './FullscreenButton';
 
 interface MediaFile {
   url: string;
   file: File;
   type: 'image' | 'video';
+  audioFile?: File;
+  audioUrl?: string;
 }
 
 interface BasicEditorProps {
   mediaFile: MediaFile;
   onNavigateBack: () => void;
   onPublish: () => void;
+  onOpenAudioEditor?: (audioFile: File) => void;
+  onOpenAudioGallery?: () => void;
 }
 
-export default function BasicEditor({ mediaFile, onNavigateBack, onPublish }: BasicEditorProps) {
+export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOpenAudioEditor, onOpenAudioGallery }: BasicEditorProps) {
   const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [audioFile, setAudioFile] = useState<File | null>(null);
+  const [overlayText, setOverlayText] = useState('');
+  const [audioFile, setAudioFile] = useState<File | null>(mediaFile.audioFile || null);
+  const [selectedAudioUrl, setSelectedAudioUrl] = useState<string>(mediaFile.audioUrl || '');
+  const [selectedAudioName, setSelectedAudioName] = useState<string>(mediaFile.audioFile?.name || '');
   const [isUploading, setIsUploading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [showAudioGallery, setShowAudioGallery] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -80,15 +89,32 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish }: Ba
   const handleAudioSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file && file.type.startsWith('audio/')) {
-      setAudioFile(file);
+      if (onOpenAudioEditor) {
+        onOpenAudioEditor(file);
+      } else {
+        setAudioFile(file);
+      }
     }
   };
 
+  const handleUseGalleryAudio = (audioUrl: string, audioName: string, audioBlob?: Blob) => {
+    setSelectedAudioUrl(audioUrl);
+    setSelectedAudioName(audioName);
+    if (audioBlob) {
+      const audioFile = new File([audioBlob], audioName, { type: 'audio/wav' });
+      setAudioFile(audioFile);
+    } else {
+      setAudioFile(null);
+    }
+    setShowAudioGallery(false);
+  };
+
   const toggleAudioPreview = () => {
-    if (!audioFile) return;
+    const audioSource = audioFile ? URL.createObjectURL(audioFile) : selectedAudioUrl;
+    if (!audioSource) return;
     
     if (!audioRef.current) {
-      audioRef.current = new Audio(URL.createObjectURL(audioFile));
+      audioRef.current = new Audio(audioSource);
       audioRef.current.addEventListener('ended', () => setIsPlaying(false));
     }
     
@@ -176,7 +202,7 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish }: Ba
       const [userData, mediaUrl, audioUrl] = await Promise.all([
         getUserData(),
         uploadFile(mediaFile.file, auth.currentUser.uid),
-        audioFile ? uploadFile(audioFile, auth.currentUser.uid) : Promise.resolve('')
+        audioFile ? uploadFile(audioFile, auth.currentUser.uid) : Promise.resolve(selectedAudioUrl)
       ]);
       
       if (!userData) {
@@ -195,7 +221,8 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish }: Ba
       const postData: any = {
         userId: auth.currentUser.uid,
         title: title.trim(),
-        description: description.trim(),
+        description: overlayText.trim(),
+        overlayText: overlayText.trim(),
         mediaUrl,
         mediaType: mediaFile.type,
         textStyles
@@ -217,7 +244,16 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish }: Ba
     } finally {
       setIsUploading(false);
     }
-  }, [title, auth.currentUser, isUploading, mediaFile.file, audioFile, textPosition, textSize, textColor, fontFamily, textStyle, textRotation, description, mediaFile.type, onPublish]);
+  }, [title, auth.currentUser, isUploading, mediaFile.file, audioFile, textPosition, textSize, textColor, fontFamily, textStyle, textRotation, overlayText, mediaFile.type, onPublish]);
+
+  // Actualizar audio cuando cambie mediaFile
+  useEffect(() => {
+    if (mediaFile.audioFile && mediaFile.audioUrl) {
+      setAudioFile(mediaFile.audioFile);
+      setSelectedAudioUrl(mediaFile.audioUrl);
+      setSelectedAudioName(mediaFile.audioFile.name);
+    }
+  }, [mediaFile]);
 
   // Cleanup al desmontar componente
   useEffect(() => {
@@ -230,6 +266,7 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish }: Ba
 
   return (
     <div className="basic-editor">
+      <FullscreenButton />
       <div className="basic-editor-header">
         <button className="back-btn" onClick={() => { cleanupAudio(); onNavigateBack(); }}>
           ←
@@ -259,6 +296,17 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish }: Ba
             title="tipos de fuentes"
           >
             A
+          </button>
+          <button 
+            className="music-btn"
+            onClick={() => onOpenAudioGallery ? onOpenAudioGallery() : setShowAudioGallery(true)}
+            title="Galería de audio"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M9 18V5l12-2v13"/>
+              <circle cx="6" cy="18" r="3"/>
+              <circle cx="18" cy="16" r="3"/>
+            </svg>
           </button>
         </div>
       </div>
@@ -296,8 +344,8 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish }: Ba
               <input
                 type="text"
                 placeholder="Escribe algo....."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                value={overlayText}
+                onChange={(e) => setOverlayText(e.target.value)}
                 className="text-input-field"
                 style={{ fontFamily: fontFamily }}
                 maxLength={200}
@@ -307,7 +355,7 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish }: Ba
               />
             ) : (
               <span className="text-display" style={{ fontFamily: fontFamily }}>
-                {description || 'Escribe algo.....'}
+                {overlayText || 'Escribe algo.....'}
               </span>
             )}
           </div>
@@ -317,22 +365,24 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish }: Ba
         </div>
 
         <div className="bottom-section">
-          <input
-            type="text"
-            placeholder="Agregar un título..."
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="title-input"
-            maxLength={100}
-          />
-          
-          <button 
-            className={`publish-btn ${canPublish ? 'active' : ''}`}
-            onClick={handlePublish}
-            disabled={!canPublish}
-          >
-            {isUploading ? 'Publicando...' : 'Publicar'}
-          </button>
+          <div className="input-row">
+            <input
+              type="text"
+              placeholder="Agregar un título..."
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="title-input"
+              maxLength={100}
+            />
+            
+            <button 
+              className={`publish-btn ${canPublish ? 'active' : ''}`}
+              onClick={handlePublish}
+              disabled={!canPublish}
+            >
+              {isUploading ? 'Publicando...' : 'Publicar'}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -344,9 +394,9 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish }: Ba
         style={{ display: 'none' }}
       />
 
-      {audioFile && (
+      {(audioFile || selectedAudioUrl) && (
         <div className="audio-preview">
-          <span>🎵 {audioFile.name}</span>
+          <span>🎵 {audioFile ? audioFile.name : selectedAudioName}</span>
           <button onClick={toggleAudioPreview} title={isPlaying ? "Pausar" : "Reproducir (máx. 1 min)"}>
             {isPlaying ? '⏸️' : '▶️'}
           </button>
@@ -356,8 +406,17 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish }: Ba
               setIsPlaying(false);
             }
             setAudioFile(null);
+            setSelectedAudioUrl('');
+            setSelectedAudioName('');
           }}>×</button>
         </div>
+      )}
+
+      {showAudioGallery && (
+        <AudioGallery
+          onNavigateBack={() => setShowAudioGallery(false)}
+          onUseAudio={handleUseGalleryAudio}
+        />
       )}
     </div>
   );

@@ -1,0 +1,522 @@
+/* Modern Audio Editor - Optimized for 350x620px */
+.modern-audio-editor {
+  width: 350px;
+  height: 620px;
+  background: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Header - 60px height */
+.editor-header {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.back-button {
+  background: white;
+  border: none;
+  color: black;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.back-button:hover {
+  background: #00BFFF;
+  transform: scale(1.05);
+}
+
+.editor-header h1 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+  color: white;
+}
+
+.duration-badge {
+  background: linear-gradient(135deg, #FF0000, #00BFFF);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Content - 560px height */
+.editor-content {
+  flex: 1;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+/* Name Input - 50px */
+.name-input-section {
+  height: 50px;
+}
+
+.audio-name-field {
+  width: 100%;
+  height: 50px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid #FF0000;
+  color: white;
+  padding: 0 16px;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.audio-name-field:focus {
+  outline: none;
+  border-color: #00BFFF;
+  background: rgba(0, 0, 0, 0.8);
+  box-shadow: 0 0 15px rgba(0, 191, 255, 0.3);
+}
+
+.audio-name-field::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Waveform Container - 300px */
+.waveform-container {
+  height: 300px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+}
+
+.waveform-wrapper {
+  position: relative;
+  height: 90px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.waveform {
+  width: 260px;
+  height: 70px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.waveform:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 20px rgba(0, 191, 255, 0.3);
+}
+
+.play-button-overlay {
+  position: absolute;
+  top: 50%;
+  right: -60px;
+  transform: translateY(-50%);
+  z-index: 10;
+}
+
+.play-control {
+  background: linear-gradient(135deg, #FF0000, #00BFFF);
+  border: none;
+  color: white;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.play-control:hover{
+
+}
+
+.play-control:active {
+
+}
+
+/* Time Display - 30px */
+.time-display {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.start-time {
+  color: #FF0000;
+}
+
+.separator {
+  color: white;
+}
+
+.end-time {
+  color: #00BFFF;
+}
+
+.duration {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.total-duration {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 11px;
+  margin: 4px 0;
+}
+
+/* Selection Controls - 90px */
+.selection-controls {
+  height: 90px;
+  display: flex;
+  gap: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.slider-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.slider-group label {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+
+.range-slider {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  transition: all 0.2s ease;
+}
+
+.range-slider:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid white;
+}
+
+.start-slider::-webkit-slider-thumb {
+  background: linear-gradient(135deg, #FF0000, #FF4444);
+  box-shadow: 0 2px 8px rgba(255, 0, 0, 0.5);
+}
+
+.end-slider::-webkit-slider-thumb {
+  background: linear-gradient(135deg, #00BFFF, #44DDFF);
+  box-shadow: 0 2px 8px rgba(0, 191, 255, 0.5);
+}
+
+.range-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.range-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid white;
+  transition: all 0.3s ease;
+}
+
+.start-slider::-moz-range-thumb {
+  background: linear-gradient(135deg, #FF0000, #FF4444);
+}
+
+.end-slider::-moz-range-thumb {
+  background: linear-gradient(135deg, #00BFFF, #44DDFF);
+}
+
+/* Action Buttons - 60px */
+.action-buttons {
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.use-button {
+  position:absolute;
+  top:490px;
+  background: linear-gradient(135deg, #00BFFF, #0099CC);
+  border: none;
+  color: white;
+  padding: 12px 32px;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  min-width: 160px;
+}
+
+.use-button:hover:not(:disabled) {
+}
+
+.use-button:disabled {
+  background: rgba(255, 255, 255, 0.2);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.use-button:active:not(:disabled) {
+  
+}
+
+/* Help Text - 40px */
+.help-text {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.help-text p {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 11px;
+  margin: 0;
+  font-style: italic;
+  line-height: 1.3;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 400px) {
+  .play-button-overlay {
+    position: static;
+    margin-top: 8px;
+    display: flex;
+    justify-content: center;
+    transform: none;
+  }
+  
+  .waveform {
+    width: 100%;
+    max-width: 250px;
+  }
+  
+  .selection-controls {
+    flex-direction: column;
+    height: 100px;
+    gap: 8px;
+  }
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.waveform.playing {
+  animation: pulse 1s ease-in-out infinite;
+}
+
+/* Loading State */
+.use-button:disabled {
+  position: relative;
+  overflow: hidden;
+}
+
+.use-button:disabled::after {
+  content: '';
+  position: absolute;
+  top: 150px;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+}
+
+@keyframes loading {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* Mejoras adicionales para UX */
+.waveform-container::before {
+  content: 'Haz clic en la forma de onda para seleccionar';
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.6);
+  background: rgba(0, 0, 0, 0.7);
+  padding: 4px 8px;
+  border-radius: 8px;
+  z-index: 5;
+}
+
+/* Indicadores visuales mejorados */
+.time-display {
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 12px;
+  padding: 8px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Feedback visual para interacciones */
+.waveform:active {
+  transform: scale(0.98);
+}
+
+.slider-group:hover label {
+  color: #00BFFF;
+  transform: scale(1.05);
+}
+
+/* Estados de carga más claros */
+.use-button.processing {
+  background: linear-gradient(135deg, #666, #999);
+  cursor: wait;
+}
+
+/* Tooltips para mejor UX */
+.play-control::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.play-control:hover::after {
+  opacity: 1;
+}
+
+/* Mejora en la visualización de progreso */
+.waveform.has-selection {
+  box-shadow: inset 0 0 20px rgba(0, 191, 255, 0.3);
+}
+
+/* Responsive mejorado */
+@media (max-width: 400px) {
+  .waveform-container {
+    padding: 16px;
+    height: 320px;
+  }
+  
+  .play-button-overlay {
+    right: -45px;
+  }
+  
+  .selection-controls {
+    gap: 12px;
+    padding: 8px;
+  }
+  
+  .range-slider::-webkit-slider-thumb {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .range-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+/* Accesibilidad mejorada */
+.range-slider:focus {
+  box-shadow: 0 0 0 2px rgba(0, 191, 255, 0.5);
+}
+
+.use-button:focus {
+  outline: 2px solid #00BFFF;
+  outline-offset: 2px;
+}
+
+/* Animación de selección activa */
+@keyframes selection-pulse {
+  0%, 100% {
+    box-shadow: inset 0 0 20px rgba(0, 191, 255, 0.3);
+  }
+  50% {
+    box-shadow: inset 0 0 30px rgba(0, 191, 255, 0.5);
+  }
+}
+
+.waveform.selecting {
+  animation: selection-pulse 2s ease-in-out infinite;
+}

@@ -7,6 +7,7 @@ export interface Post {
   userId: string;
   title: string;
   description: string;
+  overlayText?: string;
   mediaUrl: string;
   mediaType: 'image' | 'video';
   audioUrl?: string;

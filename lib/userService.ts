@@ -195,10 +195,21 @@ export const searchUsers = async (searchQuery: string): Promise<UserWithId[]> =>
       if (matchesUsername || matchesFullName) {
         users.push({
           ...userData,
-          id: doc.id
+          id: doc.id,
+          // Asegurar que isAvatar esté incluido
+          isAvatar: userData.isAvatar || false,
+          profilePicture: userData.profilePicture || '',
+          bio: userData.bio || ''
         });
       }
     });
+    
+    console.log('🔍 Usuarios encontrados en búsqueda:', users.map(u => ({ 
+      id: u.id, 
+      username: u.username, 
+      isAvatar: u.isAvatar,
+      profilePicture: !!u.profilePicture 
+    })));
     
     return users.sort((a, b) => {
       // Priorizar coincidencias exactas en username

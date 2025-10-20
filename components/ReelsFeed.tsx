@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { getAllPosts, Post } from '../lib/postService';
 import ReelPlayer from './ReelPlayer';
 
@@ -14,9 +14,14 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
   const [allContent, setAllContent] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isScrolling, setIsScrolling] = useState(false);
+  const [scrollOffset, setScrollOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const startY = useRef(0);
+  const startOffset = useRef(0);
 
   // Recargar cuando el componente se monta o cambia initialPostId
   useEffect(() => {
@@ -30,6 +35,16 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
         clearTimeout(scrollTimeoutRef.current);
       }
     };
+  }, []);
+
+  const snapToIndex = useCallback((index: number) => {
+    const newOffset = -index * window.innerHeight;
+    setScrollOffset(newOffset);
+    setCurrentIndex(index);
+    
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.className = 'reels-scroll-container snapping';
+    }
   }, []);
 
   const loadContent = async () => {
@@ -46,13 +61,13 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
         const postIndex = sortedPosts.findIndex(item => item.id === initialPostId);
         console.log('📍 Índice encontrado:', postIndex, 'de', sortedPosts.length, 'posts');
         if (postIndex >= 0) {
-          setCurrentIndex(postIndex);
+          snapToIndex(postIndex);
         } else {
           console.log('❌ Post no encontrado, mostrando el primero');
-          setCurrentIndex(0);
+          snapToIndex(0);
         }
       } else {
-        setCurrentIndex(0);
+        snapToIndex(0);
       }
       setIsLoading(false);
     }, 100);
@@ -61,61 +76,67 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
     
-    if (isScrolling) return;
+    if (isDragging) return;
     
-    if (Math.abs(e.deltaY) > 10) {
-      setIsScrolling(true);
-      
-      if (e.deltaY > 0 && currentIndex < allContent.length - 1) {
-        setCurrentIndex(prev => prev + 1);
-      } else if (e.deltaY < 0 && currentIndex > 0) {
-        setCurrentIndex(prev => prev - 1);
-      }
-      
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
-      
-      scrollTimeoutRef.current = setTimeout(() => {
-        setIsScrolling(false);
-      }, 300);
+    const delta = e.deltaY;
+    const newOffset = scrollOffset - delta * 2;
+    const maxOffset = -(allContent.length - 1) * window.innerHeight;
+    
+    const clampedOffset = Math.max(maxOffset, Math.min(0, newOffset));
+    setScrollOffset(clampedOffset);
+    
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.className = 'reels-scroll-container scrolling';
     }
+    
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+    
+    scrollTimeoutRef.current = setTimeout(() => {
+      const targetIndex = Math.round(-clampedOffset / window.innerHeight);
+      snapToIndex(Math.max(0, Math.min(allContent.length - 1, targetIndex)));
+    }, 150);
   };
 
-  const handleTouchStart = useRef({ y: 0, moved: false });
-  
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (isScrolling || !handleTouchStart.current.moved) return;
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true);
+    startY.current = e.touches[0].clientY;
+    startOffset.current = scrollOffset;
     
-    const touch = e.changedTouches[0];
-    const deltaY = handleTouchStart.current.y - touch.clientY;
-    
-    if (Math.abs(deltaY) > 80) {
-      setIsScrolling(true);
-      
-      if (deltaY > 0 && currentIndex < allContent.length - 1) {
-        setCurrentIndex(prev => prev + 1);
-      } else if (deltaY < 0 && currentIndex > 0) {
-        setCurrentIndex(prev => prev - 1);
-      }
-      
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
-      
-      scrollTimeoutRef.current = setTimeout(() => {
-        setIsScrolling(false);
-      }, 400);
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.className = 'reels-scroll-container scrolling';
     }
-    
-    handleTouchStart.current.moved = false;
   };
   
   const handleTouchMove = (e: React.TouchEvent) => {
-    handleTouchStart.current.moved = true;
+    if (!isDragging) return;
+    
+    const currentY = e.touches[0].clientY;
+    const deltaY = currentY - startY.current;
+    const newOffset = startOffset.current + deltaY;
+    const maxOffset = -(allContent.length - 1) * window.innerHeight;
+    
+    const clampedOffset = Math.max(maxOffset, Math.min(0, newOffset));
+    setScrollOffset(clampedOffset);
+  };
+  
+  const handleTouchEnd = () => {
+    if (!isDragging) return;
+    
+    setIsDragging(false);
+    const targetIndex = Math.round(-scrollOffset / window.innerHeight);
+    snapToIndex(Math.max(0, Math.min(allContent.length - 1, targetIndex)));
   };
 
-  // Eliminar el scroll acumulativo problemático
+  useEffect(() => {
+    if (initialPostId && allContent.length > 0) {
+      const postIndex = allContent.findIndex(item => item.id === initialPostId);
+      if (postIndex >= 0) {
+        snapToIndex(postIndex);
+      }
+    }
+  }, [allContent, initialPostId, snapToIndex]);
 
 
 
@@ -129,38 +150,40 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
 
   return (
     <div 
+      ref={containerRef}
       className="reels-background" 
       onWheel={handleWheel}
-      onTouchStart={(e) => {
-        handleTouchStart.current.y = e.touches[0].clientY;
-        handleTouchStart.current.moved = false;
-      }}
+      onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {allContent.map((content, index) => (
-        <div
-          key={content.id}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            display: index === currentIndex ? 'block' : 'none'
-          }}
-        >
-          <ReelPlayer
-            post={content}
-            isActive={index === currentIndex}
-            onProfileClick={onExternalProfile}
-            onPostDeleted={() => {
-              loadContent();
-              onPostDeleted?.();
+      <div
+        ref={scrollContainerRef}
+        className="reels-scroll-container"
+        style={{
+          transform: `translateY(${scrollOffset}px)`
+        }}
+      >
+        {allContent.map((content, index) => (
+          <div
+            key={content.id}
+            className="reel-item"
+            style={{
+              top: `${index * 100}vh`
             }}
-          />
-        </div>
-      ))}
+          >
+            <ReelPlayer
+              post={content}
+              isActive={Math.abs(index - currentIndex) <= 1}
+              onProfileClick={onExternalProfile}
+              onPostDeleted={() => {
+                loadContent();
+                onPostDeleted?.();
+              }}
+            />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

@@ -9,6 +9,8 @@ import Publish from './Publish';
 import CreatePost from './CreatePost';
 import CreateDynamicFlow from './CreateDynamicFlow';
 import BasicEditor from './BasicEditor';
+import AudioEditor from './AudioEditor';
+import AudioGallery from './AudioGallery';
 import Chat from './Chat';
 import ReelsFeed from './ReelsFeed';
 import ExternalProfile from './ExternalProfile';
@@ -23,10 +25,31 @@ export default function Home() {
   const [externalUserId, setExternalUserId] = useState<string | null>(null);
   const [externalUserData, setExternalUserData] = useState<UserData | null>(null);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
-  const [editorMediaFile, setEditorMediaFile] = useState<{url: string; file: File; type: 'image' | 'video'} | null>(null);
+  const [editorMediaFile, setEditorMediaFile] = useState<{url: string; file: File; type: 'image' | 'video'; audioFile?: File; audioUrl?: string} | null>(null);
+  const [audioFile, setAudioFile] = useState<File | null>(null);
+  const [showAudioGallery, setShowAudioGallery] = useState(false);
   
   // Usar hook de sincronización de perfil
   const profileSync = useProfileSync();
+
+  const handleExternalProfile = async (userId: string) => {
+    try {
+      // Si es el propio usuario, ir al perfil normal
+      if (auth.currentUser && userId === auth.currentUser.uid) {
+        setCurrentView('profile');
+        return;
+      }
+      
+      const userData = await getUserDataById(userId);
+      if (userData) {
+        setExternalUserId(userId);
+        setExternalUserData(userData);
+        setCurrentView('external-profile');
+      }
+    } catch (error) {
+      console.error('Error loading external profile:', error);
+    }
+  };
 
 
 
@@ -196,29 +219,69 @@ export default function Home() {
         setRefreshFeed(prev => prev + 1);
         setCurrentView('home');
       }}
+      onOpenAudioEditor={(file) => {
+        setAudioFile(file);
+        setCurrentView('audio-editor');
+      }}
+      onOpenAudioGallery={() => {
+        setShowAudioGallery(true);
+        setCurrentView('audio-gallery');
+      }}
     />;
   }
 
-  const handleExternalProfile = async (userId: string) => {
-    // Si es el usuario actual, ir a su perfil
-    if (auth.currentUser && userId === auth.currentUser.uid) {
-      setCurrentView('profile');
-      return;
-    }
+  if (currentView === 'audio-editor' && audioFile) {
+    return <AudioEditor 
+      audioFile={audioFile}
+      onNavigateBack={() => {
+        setAudioFile(null);
+        setCurrentView('editor');
+      }}
+      onUseAudio={(audioBlob, name, audioUrl) => {
+        console.log('Audio para usar:', name, audioBlob);
+        // Crear archivo temporal para el editor
+        const audioFile = new File([audioBlob], `${name}.wav`, { type: 'audio/wav' });
+        // Pasar el audio al editor básico
+        if (editorMediaFile) {
+          setEditorMediaFile({
+            ...editorMediaFile,
+            audioFile,
+            audioUrl
+          });
+        }
+        setAudioFile(null);
+        setCurrentView('editor');
+      }}
+      onPublishAudio={(audioBlob, name) => {
+        console.log('Audio publicado:', name, audioBlob);
+        setAudioFile(null);
+        setCurrentView('editor');
+      }}
+    />;
+  }
 
-    // Si es otro usuario, ir al perfil externo
-    try {
-      // getUserDataById debe ser async si usa Firestore
-      const userData = await getUserDataById(userId);
-      if (userData) {
-        setExternalUserId(userId);
-        setExternalUserData(userData);
-        setCurrentView('external-profile');
-      }
-    } catch (error) {
-      console.error('Error loading external profile:', error);
-    }
-  };
+  if (currentView === 'audio-gallery') {
+    return <AudioGallery 
+      onNavigateBack={() => {
+        setShowAudioGallery(false);
+        setCurrentView('editor');
+      }}
+      onUseAudio={(audioUrl, audioName, audioBlob) => {
+        console.log('Audio seleccionado de galería:', audioName, audioUrl);
+        // Crear archivo de audio para el editor
+        if (audioBlob && editorMediaFile) {
+          const audioFile = new File([audioBlob], audioName, { type: 'audio/wav' });
+          setEditorMediaFile({
+            ...editorMediaFile,
+            audioFile,
+            audioUrl
+          });
+        }
+        setShowAudioGallery(false);
+        setCurrentView('editor');
+      }}
+    />;
+  }
 
   if (currentView === 'external-profile' && externalUserId && externalUserData) {
     return <ExternalProfile 

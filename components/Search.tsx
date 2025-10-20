@@ -61,6 +61,7 @@ export default function Search({ onNavigateHome, onViewPost, onViewProfile }: Se
             setUserResults([]);
           } else {
             const results = await searchUsers(searchQuery);
+            console.log('🔍 Resultados de búsqueda en Search component:', results);
             setUserResults(results);
             setSearchResults([]);
           }
@@ -146,8 +147,11 @@ export default function Search({ onNavigateHome, onViewPost, onViewProfile }: Se
               </div>
             ) : (
               userResults.map(user => (
-                <div key={user.id} className="user-result" onClick={() => onViewProfile?.(user.id)}>
-                  <div className={`user-avatar ${user.isAvatar ? 'avatar-format' : ''}`} data-is-avatar={user.isAvatar ? 'true' : 'false'}>
+                <div key={user.id} className="user-result" onClick={() => {
+                  console.log('👥 Clic en perfil de usuario:', { id: user.id, username: user.username, isAvatar: user.isAvatar });
+                  onViewProfile?.(user.id);
+                }}>
+                  <div className="user-avatar" data-is-avatar={user.isAvatar ? 'true' : 'false'}>
                     {user.profilePicture ? (
                       <img src={user.profilePicture} alt={user.fullName} />
                     ) : (

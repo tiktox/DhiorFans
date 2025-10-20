@@ -17,6 +17,11 @@ service firebase.storage {
       allow write: if request.auth != null && request.auth.uid == userId;
     }
     
+    // Permitir acceso a archivos de audio
+    match /audio/{userId}/{fileName} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
     // Permitir subir fotos de perfil
     match /profile/{userId}/{fileName} {
       allow write: if request.auth != null && request.auth.uid == userId;
