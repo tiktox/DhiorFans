@@ -38,10 +38,18 @@ export default function AudioGallery({ onNavigateBack, onUseAudio }: AudioGaller
       
       if (activeFilter === 'myAudios' && auth.currentUser) {
         const userAudios = await getUserAudios(auth.currentUser.uid);
-        audioList = userAudios.filter(audio => audio.id) as AudioItem[];
+        audioList = userAudios.filter(audio => audio.id).map(audio => ({
+          ...audio,
+          id: audio.id!,
+          createdAt: new Date(audio.createdAt)
+        }));
       } else {
         const publicAudios = await getPublicAudios();
-        audioList = publicAudios.filter(audio => audio.id) as AudioItem[];
+        audioList = publicAudios.filter(audio => audio.id).map(audio => ({
+          ...audio,
+          id: audio.id!,
+          createdAt: new Date(audio.createdAt)
+        }));
       }
       
       setAudios(audioList);
