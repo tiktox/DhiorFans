@@ -4188,6 +4188,39 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Estilos para mejorar la experiencia de scroll en reels */
+.reels-background {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+  background: #000;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+
+.reels-scroll-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  will-change: transform;
+}
+
+.reels-scroll-container.scrolling {
+  transition: none;
+}
+
+.reels-scroll-container.snapping {
+  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.reel-item {
+  position: absolute;
+  width: 100%;
+  height: 100vh;
+  left: 0;
+}
+
 /* Permitir selección solo en inputs y áreas de texto */
 input, textarea, [contenteditable="true"] {
   -webkit-user-select: text;
