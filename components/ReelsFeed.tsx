@@ -79,9 +79,9 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
     if (isDragging) return;
     
     const delta = e.deltaY;
-    const sensitivity = 5.5; // Reducir sensibilidad significativamente
+    const sensitivity = 5.8; // Reducir sensibilidad significativamente
     const newOffset = scrollOffset - delta * sensitivity;
-    const maxOffset = -(allContent.length - 2.1) * window.innerHeight;
+    const maxOffset = -(allContent.length - 2.2) * window.innerHeight;
     
     const clampedOffset = Math.max(maxOffset, Math.min(0, newOffset));
     setScrollOffset(clampedOffset);
