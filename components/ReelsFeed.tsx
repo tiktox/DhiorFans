@@ -76,61 +76,47 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
     
-    if (isDragging) return;
+    if (isDragging || isScrolling) return;
     
+    setIsScrolling(true);
     const delta = e.deltaY;
-    const sensitivity = 2.5; // Reducir sensibilidad significativamente
-    const newOffset = scrollOffset - delta * sensitivity;
-    const maxOffset = -(allContent.length - 1) * window.innerHeight;
     
-    const clampedOffset = Math.max(maxOffset, Math.min(0, newOffset));
-    setScrollOffset(clampedOffset);
-    
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.className = 'reels-scroll-container scrolling';
+    // Scroll directo a siguiente/anterior publicación
+    if (delta > 0 && currentIndex < allContent.length - 1) {
+      snapToIndex(currentIndex + 1);
+    } else if (delta < 0 && currentIndex > 0) {
+      snapToIndex(currentIndex - 1);
     }
     
-    if (scrollTimeoutRef.current) {
-      clearTimeout(scrollTimeoutRef.current);
-    }
-    
-    scrollTimeoutRef.current = setTimeout(() => {
-      const targetIndex = Math.round(-clampedOffset / window.innerHeight);
-      snapToIndex(Math.max(0, Math.min(allContent.length - 1, targetIndex)));
-    }, 200); // Aumentar timeout para mejor control
+    // Reset scroll state
+    setTimeout(() => setIsScrolling(false), 500);
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setIsDragging(true);
     startY.current = e.touches[0].clientY;
-    startOffset.current = scrollOffset;
-    
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.className = 'reels-scroll-container scrolling';
-    }
   };
   
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isDragging) return;
-    
-    e.preventDefault(); // Prevenir scroll nativo
-    
-    const currentY = e.touches[0].clientY;
-    const deltaY = currentY - startY.current;
-    const sensitivity = 1.2; // Sensibilidad específica para touch
-    const newOffset = startOffset.current + (deltaY * sensitivity);
-    const maxOffset = -(allContent.length - 1) * window.innerHeight;
-    
-    const clampedOffset = Math.max(maxOffset, Math.min(0, newOffset));
-    setScrollOffset(clampedOffset);
+    e.preventDefault();
   };
   
-  const handleTouchEnd = () => {
+  const handleTouchEnd = (e: React.TouchEvent) => {
     if (!isDragging) return;
     
     setIsDragging(false);
-    const targetIndex = Math.round(-scrollOffset / window.innerHeight);
-    snapToIndex(Math.max(0, Math.min(allContent.length - 1, targetIndex)));
+    const endY = e.changedTouches[0].clientY;
+    const deltaY = startY.current - endY;
+    const threshold = 50; // Mínimo movimiento para cambiar
+    
+    if (Math.abs(deltaY) > threshold) {
+      if (deltaY > 0 && currentIndex < allContent.length - 1) {
+        snapToIndex(currentIndex + 1);
+      } else if (deltaY < 0 && currentIndex > 0) {
+        snapToIndex(currentIndex - 1);
+      }
+    }
   };
 
   useEffect(() => {
