@@ -79,7 +79,7 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
     if (isDragging) return;
     
     const delta = e.deltaY;
-    const sensitivity = 4.1; // Reducir sensibilidad para mejor control
+    const sensitivity = 2.5; // Reducir sensibilidad significativamente
     const newOffset = scrollOffset - delta * sensitivity;
     const maxOffset = -(allContent.length - 1) * window.innerHeight;
     
@@ -97,13 +97,16 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
     scrollTimeoutRef.current = setTimeout(() => {
       const targetIndex = Math.round(-clampedOffset / window.innerHeight);
       snapToIndex(Math.max(0, Math.min(allContent.length - 1, targetIndex)));
-    }, 100); // Reducir timeout para respuesta más rápida
+    }, 200); // Aumentar timeout para mejor control
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setIsDragging(true);
     startY.current = e.touches[0].clientY;
     startOffset.current = scrollOffset;
+    
+    // Prevenir comportamientos no deseados
+    e.preventDefault();
     
     if (scrollContainerRef.current) {
       scrollContainerRef.current.className = 'reels-scroll-container scrolling';
@@ -113,9 +116,12 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isDragging) return;
     
+    e.preventDefault(); // Prevenir scroll nativo
+    
     const currentY = e.touches[0].clientY;
     const deltaY = currentY - startY.current;
-    const newOffset = startOffset.current + deltaY;
+    const sensitivity = 1.2; // Sensibilidad específica para touch
+    const newOffset = startOffset.current + (deltaY * sensitivity);
     const maxOffset = -(allContent.length - 1) * window.innerHeight;
     
     const clampedOffset = Math.max(maxOffset, Math.min(0, newOffset));
@@ -162,8 +168,9 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
         ref={scrollContainerRef}
         className="reels-scroll-container"
         style={{
-          transform: `translateY(${scrollOffset}px)`
-        }}
+          transform: `translate3d(0, ${scrollOffset}px, 0)`,
+          '--scroll-y': `${scrollOffset}px`
+        } as React.CSSProperties}
       >
         {allContent.map((content, index) => (
           <div

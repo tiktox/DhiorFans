@@ -4197,6 +4197,12 @@ body {
   background: #000;
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .reels-scroll-container {
@@ -4204,6 +4210,10 @@ body {
   height: 100%;
   position: relative;
   will-change: transform;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-perspective: 1000px;
+  perspective: 1000px;
 }
 
 .reels-scroll-container.scrolling {
@@ -4211,7 +4221,7 @@ body {
 }
 
 .reels-scroll-container.snapping {
-  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .reel-item {
@@ -4219,6 +4229,10 @@ body {
   width: 100%;
   height: 100vh;
   left: 0;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 /* Permitir selección solo en inputs y áreas de texto */
@@ -4240,6 +4254,32 @@ input, textarea, [contenteditable="true"] {
   user-select: none !important;
   -webkit-tap-highlight-color: transparent !important;
 }
+
+/* Optimizaciones específicas para móviles */
+@media (max-width: 768px) {
+  .reels-background {
+    touch-action: pan-y pinch-zoom;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+  
+  .reels-scroll-container {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+  }
+  
+  .reels-scroll-container.scrolling {
+    transition: none;
+    -webkit-transform: translate3d(0, var(--scroll-y, 0), 0);
+    transform: translate3d(0, var(--scroll-y, 0), 0);
+  }
+  
+  .reels-scroll-container.snapping {
+    transition: -webkit-transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), -webkit-transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+}
 /* Progress Bar Styles */
 .progress-bar {
   position: absolute;
@@ -4250,6 +4290,7 @@ input, textarea, [contenteditable="true"] {
   background: rgba(255, 255, 255, 0.3);
   cursor: pointer;
   z-index: 10;
+  touch-action: manipulation;
 }
 
 .progress-bar:hover {
