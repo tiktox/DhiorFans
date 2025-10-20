@@ -119,7 +119,7 @@ export class AudioService {
         
         try {
           const userData = await getUserDataById(audioData.userId);
-          userName = userData?.displayName || userData?.email || 'Usuario';
+          userName = userData?.fullName || userData?.email || 'Usuario';
         } catch (error) {
           console.warn('Could not fetch user data for audio:', docSnapshot.id);
         }
