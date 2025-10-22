@@ -104,7 +104,7 @@
 }
 
 .reel-side-controls {
-  position: absolute;
+  position: relative;
   right: 20px;
   bottom: 180px;
   display: flex;
@@ -114,10 +114,10 @@
 }
 
 .progress-bar {
-  position: absolute;
+  position: relative;
   top:90%;
   bottom: 205px;
-  left: 90px;
+  left: 100px;
   right: 90px;
   width: calc(100% - 225px);
   height: 4px;
