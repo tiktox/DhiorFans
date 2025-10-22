@@ -3449,22 +3449,25 @@ body {
 
 /* Dynamic tokens display - simple style */
 .dynamic-tokens-display {
-  position: absolute;
-  top: -395px;
-  left: 50%;
+  position: relative;
+  top: -2.5px;
+  left: 10%;
+  text-align: center;
   transform: translateX(-50%);
   background: linear-gradient(135deg, var(--primary-gold), var(--secondary-orange));
   background-size: 200% 200%;
   color: var(--text-color);
-  padding: 6px 12px;
+  padding: 6px 6px;
   border-radius: 20px;
   font-weight: 700;
-  font-size: 12px;
+  font-size: 6px;
   border: none;
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  min-width: 60px;
+  min-width: 20px;
+  min-height:20px;
+  justify-items: center;
   justify-content: center;
   overflow: hidden;
   animation: subtleGradient 6s ease-in-out infinite;
@@ -4243,7 +4246,8 @@ input, textarea, [contenteditable="true"] {
 /* Progress Bar Styles */
 .progress-bar {
   position: absolute;
-  bottom: 0;
+  top:10px;
+  bottom: 10%;
   left: 0;
   right: 0;
   height: 4px;
@@ -4796,3 +4800,4 @@ background-color: linear-gradient(135deg, #FF0000, #00BFFF);
   border-radius: 8px;
   z-index: 5;
 }
+@import url('./audio-wave-selector.css');

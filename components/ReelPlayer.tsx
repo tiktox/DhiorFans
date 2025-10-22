@@ -126,6 +126,10 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
     }
   };
 
+  const [isDragging, setIsDragging] = useState(false);
+  const [showTimeIndicator, setShowTimeIndicator] = useState(false);
+  const [indicatorTime, setIndicatorTime] = useState(0);
+
   const handleSeek = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
     if (videoRef.current && isFinite(videoRef.current.duration)) {
       const rect = e.currentTarget.getBoundingClientRect();
@@ -136,8 +140,109 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
     }
   };
 
+  const handleProgressMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    setIsDragging(true);
+    setShowTimeIndicator(true);
+    handleSeek(e);
+  };
+
+  const handleProgressMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (videoRef.current && isFinite(videoRef.current.duration)) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const clientX = e.clientX;
+      const clickX = clientX - rect.left;
+      const newTime = Math.max(0, Math.min(videoRef.current.duration, (clickX / rect.width) * videoRef.current.duration));
+      setIndicatorTime(newTime);
+      
+      if (isDragging) {
+        videoRef.current.currentTime = newTime;
+      }
+    }
+  };
+
+  const handleProgressMouseUp = () => {
+    setIsDragging(false);
+    setTimeout(() => setShowTimeIndicator(false), 1000);
+  };
+
+  const handleProgressMouseLeave = () => {
+    if (!isDragging) {
+      setShowTimeIndicator(false);
+    }
+  };
+
+  const handleProgressTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    setIsDragging(true);
+    setShowTimeIndicator(true);
+    handleSeek(e);
+  };
+
+  const handleProgressTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (videoRef.current && isFinite(videoRef.current.duration)) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const clientX = e.touches[0].clientX;
+      const clickX = clientX - rect.left;
+      const newTime = Math.max(0, Math.min(videoRef.current.duration, (clickX / rect.width) * videoRef.current.duration));
+      setIndicatorTime(newTime);
+      
+      if (isDragging) {
+        videoRef.current.currentTime = newTime;
+      }
+    }
+  };
+
+  const handleProgressTouchEnd = () => {
+    setIsDragging(false);
+    setTimeout(() => setShowTimeIndicator(false), 1000);
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  useEffect(() => {
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if (isDragging && videoRef.current && isFinite(videoRef.current.duration)) {
+        const progressBar = document.querySelector('.progress-bar') as HTMLElement;
+        if (progressBar) {
+          const rect = progressBar.getBoundingClientRect();
+          const clickX = e.clientX - rect.left;
+          const newTime = Math.max(0, Math.min(videoRef.current.duration, (clickX / rect.width) * videoRef.current.duration));
+          setIndicatorTime(newTime);
+          videoRef.current.currentTime = newTime;
+        }
+      }
+    };
+
+    const handleGlobalMouseUp = () => {
+      if (isDragging) {
+        setIsDragging(false);
+        setTimeout(() => setShowTimeIndicator(false), 1000);
+      }
+    };
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleGlobalMouseMove);
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleGlobalMouseMove);
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, [isDragging]);
+
   // Identificador para diferenciar entre imagen y video
   const isImage = post.mediaType === 'image';
+
+  // Prevenir arrastre de imagen por defecto
+  useEffect(() => {
+    const preventDrag = (e: DragEvent) => e.preventDefault();
+    document.addEventListener('dragstart', preventDrag);
+    return () => document.removeEventListener('dragstart', preventDrag);
+  }, []);
   
   const handleDeletePost = async () => {
     if (auth.currentUser && await deletePost(post.id, auth.currentUser.uid)) {
@@ -222,12 +327,21 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
           />
           <div 
             className="progress-bar" 
-            onClick={handleSeek}
-            onTouchStart={handleSeek}
-            onTouchMove={handleSeek}
+            onMouseDown={handleProgressMouseDown}
+            onMouseMove={handleProgressMouseMove}
+            onMouseUp={handleProgressMouseUp}
+            onMouseLeave={handleProgressMouseLeave}
+            onTouchStart={handleProgressTouchStart}
+            onTouchMove={handleProgressTouchMove}
+            onTouchEnd={handleProgressTouchEnd}
           >
             <div className="progress-bar-inner" style={{ width: `${progress}%` }} />
             <div className="progress-thumb" style={{ left: `${progress}%` }} />
+            {showTimeIndicator && (
+              <div className="time-indicator" style={{ left: `${(indicatorTime / (videoRef.current?.duration || 1)) * 100}%` }}>
+                {formatTime(indicatorTime)}
+              </div>
+            )}
           </div>
         </>
       )}

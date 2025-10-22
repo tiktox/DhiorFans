@@ -3,8 +3,10 @@ import { auth } from '../lib/firebase';
 import { getUserData, saveUserData } from '../lib/userService';
 import { createPost } from '../lib/postService';
 import { uploadFile } from '../lib/uploadService';
+import { processAndUploadAudio } from '../lib/audioService';
 import AudioGallery from './AudioGallery';
 import FullscreenButton from './FullscreenButton';
+import AudioWaveSelector from './AudioWaveSelector';
 
 interface MediaFile {
   url: string;
@@ -43,6 +45,8 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
   const [fontIndex, setFontIndex] = useState(0);
   const [showTextControls, setShowTextControls] = useState(false);
   const [textRotation, setTextRotation] = useState(0);
+  const [showWaveSelector, setShowWaveSelector] = useState(false);
+  const [selectedTimeRange, setSelectedTimeRange] = useState({ start: 0, end: 60 });
   
   const colors = ['#ffffff', '#0066ff', '#000000', '#ff0000', '#ffff00', '#00ff00', '#ff00ff', '#00ffff'];
   const fonts = ['Arial', 'Georgia', 'Times New Roman', 'Courier New', 'Verdana', 'Comic Sans MS', 'Impact', 'Trebuchet MS'];
@@ -89,11 +93,27 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
   const handleAudioSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file && file.type.startsWith('audio/')) {
-      if (onOpenAudioEditor) {
-        onOpenAudioEditor(file);
-      } else {
-        setAudioFile(file);
-      }
+      setAudioFile(file);
+      setSelectedAudioName(file.name);
+      setShowWaveSelector(true);
+    }
+  };
+
+  const handleTimeSelect = (startTime: number, endTime: number) => {
+    setSelectedTimeRange({ start: startTime, end: endTime });
+  };
+
+  const handleUseAudioSelection = (audioBlob: Blob, startTime: number, endTime: number) => {
+    const audioFile = new File([audioBlob], `selected_${selectedAudioName}`, { type: 'audio/wav' });
+    setAudioFile(audioFile);
+    setSelectedTimeRange({ start: startTime, end: endTime });
+    setShowWaveSelector(false);
+    
+    // Limpiar audio anterior
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+      setIsPlaying(false);
     }
   };
 
@@ -116,23 +136,26 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
     if (!audioRef.current) {
       audioRef.current = new Audio(audioSource);
       audioRef.current.addEventListener('ended', () => setIsPlaying(false));
+      
+      // Control de tiempo para fragmentos seleccionados
+      audioRef.current.addEventListener('timeupdate', () => {
+        if (audioRef.current && selectedTimeRange.end > 0) {
+          if (audioRef.current.currentTime >= selectedTimeRange.end) {
+            audioRef.current.pause();
+            setIsPlaying(false);
+          }
+        }
+      });
     }
     
     if (isPlaying) {
       audioRef.current.pause();
       setIsPlaying(false);
     } else {
-      audioRef.current.currentTime = 0;
+      // Iniciar desde el tiempo seleccionado
+      audioRef.current.currentTime = selectedTimeRange.start;
       audioRef.current.play();
       setIsPlaying(true);
-      
-      // Limitar a 1 minuto
-      setTimeout(() => {
-        if (audioRef.current && isPlaying) {
-          audioRef.current.pause();
-          setIsPlaying(false);
-        }
-      }, 60000);
     }
   };
 
@@ -199,10 +222,9 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
     setIsUploading(true);
     
     try {
-      const [userData, mediaUrl, audioUrl] = await Promise.all([
+      const [userData, mediaUrl] = await Promise.all([
         getUserData(),
-        uploadFile(mediaFile.file, auth.currentUser.uid),
-        audioFile ? uploadFile(audioFile, auth.currentUser.uid) : Promise.resolve(selectedAudioUrl)
+        uploadFile(mediaFile.file, auth.currentUser.uid)
       ]);
       
       if (!userData) {
@@ -228,8 +250,26 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
         textStyles
       };
       
-      if (audioUrl) {
-        postData.audioUrl = audioUrl;
+      // Procesar y guardar audio si existe
+      if (audioFile) {
+        const audioBlob = new Blob([audioFile], { type: audioFile.type });
+        const audioDuration = selectedTimeRange.end - selectedTimeRange.start;
+        
+        const audioMetadata = await processAndUploadAudio(
+          audioBlob,
+          audioFile.name,
+          auth.currentUser.uid,
+          audioDuration,
+          selectedTimeRange.start,
+          selectedTimeRange.end,
+          true // isPublic = true para que aparezca en la galería
+        );
+        
+        postData.audioUrl = audioMetadata.url;
+        postData.audioTimeRange = selectedTimeRange;
+      } else if (selectedAudioUrl) {
+        postData.audioUrl = selectedAudioUrl;
+        postData.audioTimeRange = selectedTimeRange;
       }
 
       await Promise.all([
@@ -244,7 +284,7 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
     } finally {
       setIsUploading(false);
     }
-  }, [title, auth.currentUser, isUploading, mediaFile.file, audioFile, textPosition, textSize, textColor, fontFamily, textStyle, textRotation, overlayText, mediaFile.type, onPublish]);
+  }, [title, auth.currentUser, isUploading, mediaFile.file, audioFile, selectedAudioUrl, selectedTimeRange, textPosition, textSize, textColor, fontFamily, textStyle, textRotation, overlayText, mediaFile.type, onPublish]);
 
   // Actualizar audio cuando cambie mediaFile
   useEffect(() => {
@@ -262,12 +302,21 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
     };
   }, [cleanupAudio]);
 
+  // Actualizar reproductor cuando cambie el rango de tiempo
+  useEffect(() => {
+    if (audioRef.current && selectedTimeRange.start !== 0) {
+      audioRef.current.currentTime = selectedTimeRange.start;
+    }
+  }, [selectedTimeRange]);
+
   const canPublish = title.trim() && !isUploading && auth.currentUser;
 
   return (
     <div className="basic-editor">
       <FullscreenButton />
+      
       <div className="basic-editor-header">
+        <div className="header-content">
         <button className="back-btn" onClick={() => { cleanupAudio(); onNavigateBack(); }}>
           ←
         </button>
@@ -282,7 +331,7 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
               <circle cx="18" cy="16" r="3"/>
             </svg>
             <span className="scrolling-text">
-              Agrega tu música o sonido (solo si es tuyo o tienes permiso para usarlo).
+              Asegurate de leer nuestra condicciones d...
             </span>
           </button>
           <button 
@@ -309,6 +358,9 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
             </svg>
           </button>
         </div>
+        </div>
+        
+
       </div>
 
       <div className="basic-editor-content">
@@ -416,6 +468,15 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
         <AudioGallery
           onNavigateBack={() => setShowAudioGallery(false)}
           onUseAudio={handleUseGalleryAudio}
+        />
+      )}
+
+      {showWaveSelector && audioFile && (
+        <AudioWaveSelector
+          audioFile={audioFile}
+          onTimeSelect={handleTimeSelect}
+          onClose={() => setShowWaveSelector(false)}
+          onUseSelection={handleUseAudioSelection}
         />
       )}
     </div>

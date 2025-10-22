@@ -4,57 +4,41 @@ import { QueryDocumentSnapshot } from 'firebase/firestore';
 import { useCommentsContext } from '../contexts/CommentsContext';
 
 export const useComments = () => {
-  const { commentsState, setCommentsState } = useCommentsContext();
+  const { commentsState, updateComments } = useCommentsContext();
 
   const loadComments = useCallback(async (
     postId: string,
     pageSize: number = 10,
     reset: boolean = false
   ) => {
-    setCommentsState(prev => ({
+    updateComments(postId, prev => ({
       ...prev,
-      [postId]: {
-        comments: prev[postId]?.comments || [],
-        hasMore: prev[postId]?.hasMore ?? true,
-        expandedReplies: prev[postId]?.expandedReplies || new Set(),
-        loading: true,
-      }
+      loading: true,
     }));
 
     try {
       let lastDoc: QueryDocumentSnapshot | undefined;
       
-      setCommentsState(prev => {
-        const currentState = prev[postId];
-        lastDoc = reset ? undefined : currentState?.lastDoc;
-        return prev;
-      });
+      const currentState = commentsState[postId];
+      lastDoc = reset ? undefined : currentState?.lastDoc;
       
       const page: CommentsPage = await getCommentsForPost(postId, pageSize, lastDoc);
       
-      setCommentsState(prev => ({
+      updateComments(postId, prev => ({
         ...prev,
-        [postId]: {
-          comments: reset ? page.comments : [...(prev[postId]?.comments || []), ...page.comments],
-          lastDoc: page.lastDoc,
-          hasMore: page.hasMore,
-          loading: false,
-          expandedReplies: prev[postId]?.expandedReplies || new Set(),
-        }
+        comments: reset ? page.comments : [...prev.comments, ...page.comments],
+        lastDoc: page.lastDoc,
+        hasMore: page.hasMore,
+        loading: false,
       }));
     } catch (error) {
       console.error('Error loading comments:', error);
-      setCommentsState(prev => ({
+      updateComments(postId, prev => ({
         ...prev,
-        [postId]: {
-          comments: prev[postId]?.comments || [],
-          hasMore: prev[postId]?.hasMore ?? true,
-          expandedReplies: prev[postId]?.expandedReplies || new Set(),
-          loading: false,
-        }
+        loading: false,
       }));
     }
-  }, [setCommentsState]);
+  }, [updateComments]);
 
   const addComment = useCallback(async (
     postId: string,
@@ -65,13 +49,9 @@ export const useComments = () => {
     try {
       const newComment = await createComment(postId, text, postCollection, parentId);
       
-      setCommentsState(prev => ({
+      updateComments(postId, prev => ({
         ...prev,
-        [postId]: {
-          ...prev[postId],
-          comments: [...(prev[postId]?.comments || []), newComment],
-          expandedReplies: prev[postId]?.expandedReplies || new Set(),
-        }
+        comments: [...prev.comments, newComment],
       }));
       
       return newComment;
@@ -79,18 +59,11 @@ export const useComments = () => {
       console.error('Error adding comment:', error);
       throw error;
     }
-  }, [setCommentsState]);
+  }, [updateComments]);
 
   const toggleReplies = useCallback((postId: string, commentId: string) => {
-    setCommentsState(prev => {
-      const currentState = prev[postId] || {
-        comments: [],
-        hasMore: true,
-        loading: false,
-        expandedReplies: new Set(),
-      };
-      
-      const newExpanded = new Set(currentState.expandedReplies);
+    updateComments(postId, prev => {
+      const newExpanded = new Set(prev.expandedReplies);
       if (newExpanded.has(commentId)) {
         newExpanded.delete(commentId);
       } else {
@@ -99,13 +72,10 @@ export const useComments = () => {
       
       return {
         ...prev,
-        [postId]: {
-          ...currentState,
-          expandedReplies: newExpanded,
-        }
+        expandedReplies: newExpanded,
       };
     });
-  }, [setCommentsState]);
+  }, [updateComments]);
 
   const getPostComments = useCallback((postId: string) => {
     return commentsState[postId] || {

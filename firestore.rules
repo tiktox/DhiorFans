@@ -17,7 +17,10 @@ service cloud.firestore {
       allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
       allow update: if request.auth != null && 
         (request.auth.uid == resource.data.userId ||
-         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'comments', 'commentsCount']));
+         (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'comments', 'commentsCount']) &&
+          (!('commentsCount' in request.resource.data.diff(resource.data).changedKeys()) ||
+           request.resource.data.commentsCount == resource.data.commentsCount + 1 ||
+           request.resource.data.commentsCount == resource.data.commentsCount - 1)));
       allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
     }
 
@@ -27,7 +30,10 @@ service cloud.firestore {
       allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
       allow update: if request.auth != null && 
         (request.auth.uid == resource.data.userId ||
-         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'comments', 'commentsCount']));
+         (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'comments', 'commentsCount']) &&
+          (!('commentsCount' in request.resource.data.diff(resource.data).changedKeys()) ||
+           request.resource.data.commentsCount == resource.data.commentsCount + 1 ||
+           request.resource.data.commentsCount == resource.data.commentsCount - 1)));
       allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
     }
 

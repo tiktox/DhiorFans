@@ -9,6 +9,7 @@ interface FullscreenCapabilities {
 
 export const useFullscreen = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [shouldMaintainFullscreen, setShouldMaintainFullscreen] = useState(false);
   const [capabilities, setCapabilities] = useState<FullscreenCapabilities>({
     canFullscreen: false,
     isPWA: false,
@@ -78,6 +79,7 @@ export const useFullscreen = () => {
       
       // Verificar si ya está en fullscreen
       if (document.fullscreenElement) {
+        setShouldMaintainFullscreen(true);
         return true;
       }
       
@@ -94,6 +96,7 @@ export const useFullscreen = () => {
         throw new Error('Fullscreen API not supported');
       }
       
+      setShouldMaintainFullscreen(true);
       return true;
     } catch (error: any) {
       console.error('Error entering fullscreen:', error);
@@ -109,8 +112,21 @@ export const useFullscreen = () => {
     }
   }, []);
 
+  // Efecto separado para manejar la reactivación automática
+  useEffect(() => {
+    if (!isFullscreen && shouldMaintainFullscreen && capabilities.canFullscreen) {
+      const timer = setTimeout(() => {
+        enterFullscreen();
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isFullscreen, shouldMaintainFullscreen, capabilities.canFullscreen, enterFullscreen]);
+
   const exitFullscreen = useCallback(async () => {
     try {
+      setShouldMaintainFullscreen(false);
+      
       // Verificar si no está en fullscreen
       if (!document.fullscreenElement && 
           !(document as any).webkitFullscreenElement && 
@@ -146,11 +162,24 @@ export const useFullscreen = () => {
     }
   }, [isFullscreen, enterFullscreen, exitFullscreen]);
 
+  // Función para mantener fullscreen activo
+  const maintainFullscreen = useCallback(() => {
+    setShouldMaintainFullscreen(true);
+  }, []);
+
+  // Función para permitir salir de fullscreen
+  const allowExitFullscreen = useCallback(() => {
+    setShouldMaintainFullscreen(false);
+  }, []);
+
   return {
     isFullscreen,
     capabilities,
     enterFullscreen,
     exitFullscreen,
-    toggleFullscreen
+    toggleFullscreen,
+    shouldMaintainFullscreen,
+    maintainFullscreen,
+    allowExitFullscreen
   };
 };

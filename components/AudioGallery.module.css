@@ -464,6 +464,26 @@
   }
 }
 
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .playButton, .useButton, .deleteButton {
+    min-width: 44px;
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+  
+  .filterButton {
+    min-height: 36px;
+    touch-action: manipulation;
+  }
+  
+  .backButton {
+    min-width: 36px;
+    min-height: 36px;
+    touch-action: manipulation;
+  }
+}
+
 /* Accessibility - Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .playButton, .useButton, .deleteButton, .backButton {

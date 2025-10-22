@@ -62,9 +62,9 @@ display: flex;
 }
 
 .audioNameField {
+  position:relative;
   color:white;
   background: #000000;
-  position:relative;
   right: 20px;
   width: 350px;
   padding: 10px;
