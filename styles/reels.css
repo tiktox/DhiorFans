@@ -104,9 +104,9 @@
 }
 
 .reel-side-controls {
-  position: relative;
+  position: absolute;
   right: 0;
-  bottom: 10px;
+  bottom: 180px;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -114,9 +114,9 @@
 }
 
 .progress-bar {
-  position: relative;
-  top:85px;
-  bottom: 10px;
+  position: absolute;
+  top:88%;
+  bottom: 205px;
   left: 0;
   right: 90px;
   width: calc(100% - 225px);
