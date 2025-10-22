@@ -161,7 +161,7 @@ export default function CommentsModal({ postId, isOpen, postData, onClose, onPro
             navigator.vibrate([200, 100, 200, 100, 200]);
           }
           
-          setWinnerData({ tokensWon: result.tokensWon, keyword: result.keyword });
+          setWinnerData({ tokensWon: result.tokensWon, keyword: result.keyword || '' });
         }
       }
       
