@@ -89,9 +89,11 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
     if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
+        if (audioRef.current) audioRef.current.pause();
         setIsPlaying(false);
       } else {
         videoRef.current.play();
+        if (audioRef.current) audioRef.current.play();
         setIsPlaying(true);
       }
     }
