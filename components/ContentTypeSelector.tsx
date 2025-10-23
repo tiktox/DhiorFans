@@ -20,6 +20,7 @@ export default function ContentTypeSelector({
   const isDragging = useRef(false);
   const startX = useRef(0);
   const scrollLeft = useRef(0);
+  const hasMoved = useRef(false);
 
   const centerSelectedItem = (index: number) => {
     if (containerRef.current) {
@@ -87,6 +88,7 @@ export default function ContentTypeSelector({
 
   const handleMouseDown = (e: React.MouseEvent) => {
     isDragging.current = true;
+    hasMoved.current = false;
     startX.current = e.pageX - (containerRef.current?.offsetLeft || 0);
     scrollLeft.current = containerRef.current?.scrollLeft || 0;
     if (containerRef.current) {
@@ -98,7 +100,10 @@ export default function ContentTypeSelector({
     if (!isDragging.current || !containerRef.current) return;
     e.preventDefault();
     const x = e.pageX - (containerRef.current.offsetLeft || 0);
-    const walk = (x - startX.current) * 1.2; // Reducir sensibilidad de 2 a 1.2
+    const walk = (x - startX.current) * 0.6;
+    if (Math.abs(walk) > 5) {
+      hasMoved.current = true;
+    }
     containerRef.current.scrollLeft = scrollLeft.current - walk;
     updateButtonColors();
   };
@@ -112,6 +117,7 @@ export default function ContentTypeSelector({
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    hasMoved.current = false;
     startX.current = e.touches[0].clientX;
     scrollLeft.current = containerRef.current?.scrollLeft || 0;
   };
@@ -119,7 +125,10 @@ export default function ContentTypeSelector({
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!containerRef.current) return;
     const touchX = e.touches[0].clientX;
-    const walk = (startX.current - touchX) * 0.8; // Reducir sensibilidad para touch
+    const walk = (startX.current - touchX) * 0.5;
+    if (Math.abs(walk) > 5) {
+      hasMoved.current = true;
+    }
     containerRef.current.scrollLeft = scrollLeft.current + walk;
     updateButtonColors();
   };
@@ -176,7 +185,13 @@ export default function ContentTypeSelector({
         <button 
           key={type.id}
           className="content-type-btn"
-          onClick={() => onSelectionChange(index)}
+          onClick={(e) => {
+            if (!hasMoved.current) {
+              onSelectionChange(index);
+            }
+          }}
+          onMouseDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
         >
           {type.label}
         </button>

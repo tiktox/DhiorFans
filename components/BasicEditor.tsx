@@ -47,6 +47,7 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
   const [textRotation, setTextRotation] = useState(0);
   const [showWaveSelector, setShowWaveSelector] = useState(false);
   const [selectedTimeRange, setSelectedTimeRange] = useState({ start: 0, end: 60 });
+  const [isVideoMuted, setIsVideoMuted] = useState(false);
   
   const colors = ['#ffffff', '#0066ff', '#000000', '#ff0000', '#ffff00', '#00ff00', '#ff00ff', '#00ffff'];
   const fonts = ['Arial', 'Georgia', 'Times New Roman', 'Courier New', 'Verdana', 'Comic Sans MS', 'Impact', 'Trebuchet MS'];
@@ -96,6 +97,7 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
       setAudioFile(file);
       setSelectedAudioName(file.name);
       setShowWaveSelector(true);
+      setIsVideoMuted(true);
     }
   };
 
@@ -108,6 +110,7 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
     setAudioFile(audioFile);
     setSelectedTimeRange({ start: startTime, end: endTime });
     setShowWaveSelector(false);
+    setIsVideoMuted(true);
     
     // Limpiar audio anterior
     if (audioRef.current) {
@@ -126,6 +129,7 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
     } else {
       setAudioFile(null);
     }
+    setIsVideoMuted(true);
     setShowAudioGallery(false);
   };
 
@@ -366,7 +370,26 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
       <div className="basic-editor-content">
         <div className="media-container">
           {mediaFile.type === 'video' ? (
-            <video src={mediaFile.url} className="editor-media" autoPlay loop controls />
+            <>
+              <video ref={videoRef} src={mediaFile.url} className="editor-media" autoPlay loop muted={isVideoMuted} />
+              {(audioFile || selectedAudioUrl) && (
+                <button 
+                  className="video-mute-toggle"
+                  onClick={() => setIsVideoMuted(!isVideoMuted)}
+                  title={isVideoMuted ? "Activar audio del video" : "Silenciar video"}
+                >
+                  {isVideoMuted ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M11 5 6 9H2v6h4l5 4V5ZM22 9l-6 6M16 9l6 6"/>
+                    </svg>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M11 5 6 9H2v6h4l5 4V5ZM19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                    </svg>
+                  )}
+                </button>
+              )}
+            </>
           ) : (
             <img src={mediaFile.url} alt="Media" className="editor-media" />
           )}
@@ -460,6 +483,7 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
             setAudioFile(null);
             setSelectedAudioUrl('');
             setSelectedAudioName('');
+            setIsVideoMuted(false);
           }}>×</button>
         </div>
       )}

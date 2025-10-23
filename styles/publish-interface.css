@@ -77,7 +77,7 @@
   background: rgba(255, 255, 255, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: white;
-  padding: 12px 20px;
+  padding: 12px 12px;
   border-radius: 25px;
   font-size: 14px;
   font-weight: 500;
@@ -139,13 +139,14 @@
 .content-types-container {
   display: flex;
   align-items: center;
-  gap: 50px;
-  padding: 0 30px;
+  gap: 20px;
+  padding: 10px;
   overflow-x: auto;
   scroll-behavior: smooth;
   scrollbar-width: none;
   -ms-overflow-style: none;
   position: relative;
+  -webkit-overflow-scrolling: touch;
 }
 
 .content-types-container::-webkit-scrollbar {
@@ -159,20 +160,23 @@
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  padding: 14px 20px;
+  padding: 16px 24px;
   border-radius: 25px;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   white-space: nowrap;
   position: relative;
   min-width: fit-content;
   text-transform: capitalize;
   letter-spacing: 0.3px;
+  will-change: transform, color, background;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .content-type-item:hover {
   color: #ddd;
   background: rgba(255, 255, 255, 0.08);
-  transform: translateY(-2px);
+  transform: translateY(-1px) scale(1.02);
 }
 
 .content-type-item.active {
@@ -180,7 +184,7 @@
   background: linear-gradient(135deg, rgba(33, 150, 243, 0.2), rgba(33, 150, 243, 0.1));
   border: 1px solid rgba(33, 150, 243, 0.4);
   box-shadow: 0 4px 15px rgba(33, 150, 243, 0.2);
-  transform: scale(1.05);
+  transform: scale(1.08);
 }
 
 .content-type-item.active::before {
