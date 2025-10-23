@@ -50,7 +50,9 @@
 
 /* SCROLL ANIMATION CONTAINER */
 .reels-scroll-container {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -71,6 +73,7 @@
   width: 100%;
   height: 100vh;
   overflow: hidden;
+  will-change: transform;
 }
 
 .reel-container {
@@ -94,7 +97,7 @@
 /* MOBILE ELEMENTS POSITIONING */
 .reel-overlay {
   position: absolute;
-  bottom: 180px;
+  bottom: 100px;
   left: 0;
   right: 0;
   padding: 20px;
@@ -106,7 +109,7 @@
 .reel-side-controls {
   position: absolute;
   right: 20px;
-  bottom: 180px;
+  bottom: 100px;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -115,9 +118,9 @@
 
 .progress-bar {
   position: absolute;
-  bottom: 205px;
-  left: 100px;
-  width: calc(100% - 225px);
+  bottom: 120px;
+  left: 20px;
+  width: calc(100% - 120px);
   height: 4px;
   background: rgba(255, 255, 255, 0.3);
   border-radius: 2px;
@@ -282,7 +285,7 @@
   
   /* TABLET - USER INFO */
   .reel-overlay {
-    bottom: 120px;
+    bottom: 80px;
     padding: 16px;
   }
   
@@ -313,7 +316,7 @@
   
   /* TABLET - SIDE CONTROLS */
   .reel-side-controls {
-    bottom: 150px;
+    bottom: 120px;
     right: 16px;
     gap: 16px;
   }
@@ -330,9 +333,9 @@
   
   /* TABLET - PROGRESS BAR */
   .progress-bar {
-    bottom: 140px;
+    bottom: 100px;
     left: 18px;
-    width: calc(100% - 32px);
+    width: calc(100% - 100px);
     height: 4px;
   }
   
@@ -366,7 +369,7 @@
   
   /* DESKTOP - USER INFO */
   .reel-overlay {
-    bottom: 100px;
+    bottom: 60px;
     padding: 14px;
   }
   
@@ -398,7 +401,7 @@
   
   /* DESKTOP - SIDE CONTROLS */
   .reel-side-controls {
-    bottom: 130px;
+    bottom: 100px;
     right: 14px;
     gap: 14px;
     opacity: 0.9;
@@ -427,9 +430,9 @@
   
   /* DESKTOP - PROGRESS BAR */
   .progress-bar {
-    bottom: 120px;
+    bottom: 80px;
     left: 14px;
-    width: calc(100% - 28px);
+    width: calc(100% - 80px);
     height: 3px;
   }
   
