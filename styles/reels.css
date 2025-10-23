@@ -53,6 +53,8 @@
   position: relative;
   width: 100%;
   height: 100%;
+  display: flex;
+  flex-direction: column;
   transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
@@ -65,11 +67,10 @@
 }
 
 .reel-item {
-  position: absolute;
-  top: 0;
-  left: 0;
+  position: relative;
   width: 100%;
   height: 100vh;
+  flex-shrink: 0;
   overflow: hidden;
 }
 

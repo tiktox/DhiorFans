@@ -38,8 +38,7 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
   }, []);
 
   const snapToIndex = useCallback((index: number) => {
-    const newOffset = -index * window.innerHeight;
-    setScrollOffset(newOffset);
+    setScrollOffset(-index * 100);
     setCurrentIndex(index);
     
     if (scrollContainerRef.current) {
@@ -151,20 +150,17 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
         ref={scrollContainerRef}
         className="reels-scroll-container"
         style={{
-          transform: `translateY(${scrollOffset}px)`
+          transform: `translateY(${scrollOffset}vh)`
         }}
       >
         {allContent.map((content, index) => (
           <div
             key={content.id}
             className="reel-item"
-            style={{
-              top: `${index * 100}vh`
-            }}
           >
             <ReelPlayer
               post={content}
-              isActive={Math.round(-scrollOffset / window.innerHeight) === index}
+              isActive={currentIndex === index}
               onProfileClick={onExternalProfile}
               onPostDeleted={() => {
                 loadContent();
