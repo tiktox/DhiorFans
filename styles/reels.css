@@ -1,20 +1,10 @@
-/* Variables CSS para mejor mantenimiento y rendimiento */
-:root {
-  --reel-transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  --btn-size-mobile: 48px;
-  --btn-size-tablet: 44px;
-  --btn-size-desktop: 40px;
-  --overlay-bg: rgba(0, 0, 0, 0.6);
-  --overlay-bg-hover: rgba(0, 0, 0, 0.8);
-  --progress-color: #00e5ff;
-  --shadow-light: 0 10px 30px rgba(0, 0, 0, 0.3);
-  --shadow-heavy: 0 20px 40px rgba(0, 0, 0, 0.4);
-}
-
 /* Publish Interface */
 .df-publish__overlay {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: rgba(0, 0, 0, 0.9);
   display: flex;
   align-items: center;
@@ -31,26 +21,41 @@
   text-align: center;
 }
 
-/* Base Reels Container - Optimizado para GPU */
+/* Tablet */
+@media (min-width: 768px) {
+  .df-publish__interface {
+    width: 400px;
+    padding: var(--space-2xl);
+  }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  .df-publish__interface {
+    width: 350px;
+  }
+}
+
+/* REELS CONTAINER - BASE MOBILE */
 .reels-background {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
+  pointer-events: auto;
   background: #000;
-  contain: layout style paint;
 }
 
-/* Scroll Container - GPU Accelerated */
+/* SCROLL ANIMATION CONTAINER */
 .reels-scroll-container {
   position: relative;
   width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
-  transition: var(--reel-transition);
-  will-change: transform;
+  transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .reels-scroll-container.scrolling {
@@ -58,17 +63,15 @@
 }
 
 .reels-scroll-container.snapping {
-  transition: var(--reel-transition);
+  transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* Reel Items */
 .reel-item {
   position: relative;
   width: 100%;
   height: 100vh;
   flex-shrink: 0;
   overflow: hidden;
-  contain: layout style paint;
 }
 
 .reel-container {
@@ -87,10 +90,9 @@
   width: 100vw;
   height: 100vh;
   object-fit: cover;
-  will-change: transform;
 }
 
-/* Overlay Elements */
+/* MOBILE ELEMENTS POSITIONING */
 .reel-overlay {
   position: absolute;
   bottom: 180px;
@@ -112,7 +114,7 @@
   z-index: 60;
 }
 
-/* Progress Bar - Optimizado */
+/* BARRA DE PROGRESO - MOBILE */
 .progress-bar {
   position: absolute;
   bottom: 100px;
@@ -125,33 +127,13 @@
   border-radius: 2px;
   cursor: pointer;
   z-index: 70;
-  transition: height 0.15s ease;
-  will-change: height;
 }
 
 .progress-bar:active {
   height: 5px;
 }
 
-.progress-bar-inner {
-  position: absolute;
-  inset: 0 auto 0 0;
-  height: 100%;
-  background: var(--progress-color);
-  transition: width 0.1s ease;
-  border-radius: 2px;
-  will-change: width;
-}
-
-.image-content .progress-bar {
-  display: none;
-}
-
-.video-content .progress-bar {
-  display: block;
-}
-
-/* User Info */
+/* USER INFO - MOBILE */
 .user-info {
   display: flex;
   align-items: flex-start;
@@ -182,7 +164,7 @@
 }
 
 .username {
-  font-weight: 700;
+  font-weight: bold;
   font-size: 16px;
   color: white;
   margin-bottom: 8px;
@@ -208,25 +190,24 @@
   max-width: 100%;
 }
 
-/* Side Controls - GPU Optimized */
+/* SIDE CONTROLS - MOBILE */
 .side-control-btn {
-  background: var(--overlay-bg);
+  background: rgba(0, 0, 0, 0.6);
   border: none;
   color: white;
-  width: var(--btn-size-mobile);
-  height: var(--btn-size-mobile);
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s ease, background 0.2s ease;
-  will-change: transform;
+  transition: transform 0.2s ease;
 }
 
 .side-control-btn:hover {
   transform: scale(1.1);
-  background: var(--overlay-bg-hover);
+  background: rgba(0, 0, 0, 0.8);
 }
 
 .like-container,
@@ -246,248 +227,15 @@
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
 }
 
-/* Interactive Overlays */
-.video-click-overlay,
-.image-click-overlay {
-  position: absolute;
-  inset: 0;
-  cursor: pointer;
-  z-index: 10;
-  user-select: none;
-}
-
-.video-click-overlay {
-  touch-action: pan-x;
-}
-
-/* Animations - GPU Accelerated */
-.like-animation {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 60px;
-  z-index: 30;
-  pointer-events: none;
-  animation: likeAnimation 0.8s ease-out;
-  will-change: transform, opacity;
-}
-
-@keyframes likeAnimation {
-  0% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.8);
-  }
-  50% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1.1);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(-50%, -50%) translateY(-30px);
-  }
-}
-
-.play-pause-indicator {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 20;
-  pointer-events: none;
-  animation: fadeIn 0.2s ease-out;
-  will-change: transform, opacity;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
-}
-
-/* Time Indicator */
-.time-indicator {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.9);
-  color: white;
-  padding: 12px 20px;
-  border-radius: 25px;
-  font-size: 16px;
-  font-weight: 600;
-  z-index: 90;
-  pointer-events: none;
-  border: 2px solid rgba(33, 150, 243, 0.5);
-  animation: timeIndicatorShow 0.15s ease-out;
-  will-change: transform, opacity;
-}
-
-@keyframes timeIndicatorShow {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
-}
-
-/* Empty Feed */
-.empty-feed-background {
-  height: 100vh;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: #999;
-  text-align: center;
-  position: absolute;
-  inset: 0;
-  background: #000;
-  z-index: 1;
-}
-
-.empty-feed-background p {
-  margin: 5px 0;
-  font-size: 18px;
-}
-
-/* Hover Effects */
-.like-btn:hover {
-  color: #ff3040;
-}
-
-.comment-btn:hover {
-  color: #2196f3;
-}
-
-.share-btn:hover {
-  color: #00bcd4;
-}
-
-/* Default Avatar */
-.profile-pic .default-avatar {
-  font-size: 18px;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(45deg, #2196f3, #00bcd4);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-}
-
-/* Delete Button */
-.delete-post-btn {
-  position: absolute;
-  bottom: -215px;
-  right: 20px;
-  background: rgba(255, 0, 25, 0.9);
-  border: none;
-  color: white;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  transition: transform 0.2s ease, background 0.2s ease;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-  will-change: transform;
-}
-
-.delete-post-btn:hover {
-  background: rgb(255, 0, 25);
-  transform: scale(1.1);
-}
-
-.delete-post-btn:active {
-  transform: scale(0.95);
-}
-
-/* Delete Confirm Modal */
-.delete-confirm-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.delete-confirm-modal {
-  background: #1a1a1a;
-  border-radius: 12px;
-  padding: 24px;
-  max-width: 320px;
-  width: 90%;
-  text-align: center;
-}
-
-.delete-confirm-modal p {
-  color: white;
-  font-size: 16px;
-  margin-bottom: 20px;
-}
-
-.confirm-delete-btn,
-.cancel-delete-btn {
-  width: 100%;
-  padding: 12px;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.confirm-delete-btn {
-  background: #ff0019;
-  color: white;
-  margin-bottom: 10px;
-}
-
-.confirm-delete-btn:hover {
-  background: #cc0014;
-}
-
-.cancel-delete-btn {
-  background: #333;
-  color: white;
-}
-
-.cancel-delete-btn:hover {
-  background: #444;
-}
-
-/* TABLET - 768px+ (Consolidado) */
+/* TABLET RESPONSIVE - 768px+ */
 @media (min-width: 768px) {
-  .df-publish__interface {
-    width: 400px;
-    padding: var(--space-2xl);
-  }
-
   .reels-background {
     width: 400px;
     left: 50%;
     transform: translateX(-50%);
     border-radius: 16px;
-    box-shadow: var(--shadow-light);
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   }
   
   .reel-container {
@@ -499,9 +247,11 @@
   .reel-image {
     width: 100%;
     height: 100%;
+    object-fit: cover;
     border-radius: 16px;
   }
   
+  /* TABLET - USER INFO */
   .reel-overlay {
     bottom: 120px;
     padding: 16px;
@@ -532,6 +282,7 @@
     font-size: 13px;
   }
   
+  /* TABLET - SIDE CONTROLS */
   .reel-side-controls {
     bottom: 150px;
     right: 16px;
@@ -539,8 +290,8 @@
   }
   
   .side-control-btn {
-    width: var(--btn-size-tablet);
-    height: var(--btn-size-tablet);
+    width: 44px;
+    height: 44px;
   }
   
   .like-count,
@@ -548,54 +299,34 @@
     font-size: 11px;
   }
   
+
+  
   .time-indicator {
-    font-size: 15px;
-    padding: 10px 16px;
+    font-size: 11px;
+    padding: 3px 6px;
   }
   
+  /* TABLET - PROGRESS BAR */
   .progress-bar {
     bottom: 110px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 40px);
     max-width: 320px;
+    height: 3px;
   }
   
   .progress-bar:hover {
     height: 5px;
   }
-
-  .like-animation {
-    font-size: 50px;
-  }
-
-  .play-pause-indicator {
-    font-size: 40px;
-  }
-
-  .profile-pic .default-avatar {
-    font-size: 16px;
-  }
-
-  .delete-post-btn {
-    top: 20px;
-    bottom: auto;
-    width: 44px;
-    height: 44px;
-  }
 }
 
-/* DESKTOP - 1024px+ (Consolidado) */
+/* DESKTOP RESPONSIVE - 1024px+ */
 @media (min-width: 1024px) {
-  .df-publish__interface {
-    width: 350px;
-  }
-
   .reels-background {
     width: 350px;
     border-radius: 20px;
-    box-shadow: var(--shadow-heavy);
-  }
-
-  .reels-background:hover {
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
   }
   
   .reel-container {
@@ -608,6 +339,7 @@
     border-radius: 20px;
   }
   
+  /* DESKTOP - USER INFO */
   .reel-overlay {
     bottom: 100px;
     padding: 14px;
@@ -639,12 +371,12 @@
     line-height: 1.3;
   }
   
+  /* DESKTOP - SIDE CONTROLS */
   .reel-side-controls {
     bottom: 130px;
     right: 14px;
     gap: 14px;
     opacity: 0.9;
-    transition: opacity 0.2s ease;
   }
   
   .reel-side-controls:hover {
@@ -652,8 +384,8 @@
   }
   
   .side-control-btn {
-    width: var(--btn-size-desktop);
-    height: var(--btn-size-desktop);
+    width: 40px;
+    height: 40px;
     background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(10px);
   }
@@ -662,62 +394,389 @@
     transform: scale(1.15);
     background: rgba(0, 0, 0, 0.9);
   }
-
-  .side-control-btn:focus {
-    outline: 2px solid #2196f3;
-    outline-offset: 2px;
-  }
   
   .like-count,
   .comment-count {
     font-size: 10px;
   }
   
+
+  
+  .time-indicator {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+  
+  /* DESKTOP - PROGRESS BAR */
+  .progress-bar {
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 40px);
+    max-width: 280px;
+    height: 3px;
+  }
+  
+  .progress-bar:hover {
+    height: 5px;
+  }
+  
+  /* DESKTOP - HOVER EFFECTS */
+  .reels-background:hover {
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  }
+}
+
+
+
+
+
+.progress-bar-inner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: #00e5ff;
+  transition: width 0.1s ease;
+  border-radius: 2px;
+}
+
+.image-content .progress-bar {
+  display: none;
+}
+
+.video-content .progress-bar {
+  display: block;
+}
+
+/* INTERACTIVE ELEMENTS */
+.video-click-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  cursor: pointer;
+  z-index: 10;
+  touch-action: pan-x;
+  user-select: none;
+}
+
+.image-click-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  cursor: pointer;
+  z-index: 10;
+}
+
+/* ANIMATIONS */
+.like-animation {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 60px;
+  z-index: 30;
+  pointer-events: none;
+  animation: likeAnimation 0.8s ease-out;
+}
+
+@media (min-width: 768px) {
+  .like-animation {
+    font-size: 50px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .like-animation {
+    font-size: 45px;
+  }
+}
+
+@keyframes likeAnimation {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) translateY(-30px);
+  }
+}
+
+.play-pause-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  pointer-events: none;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@media (min-width: 768px) {
+  .play-pause-indicator {
+    font-size: 40px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .play-pause-indicator {
+    font-size: 35px;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* TIME INDICATOR */
+.time-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: 600;
+  z-index: 90;
+  pointer-events: none;
+  border: 2px solid rgba(33, 150, 243, 0.5);
+  animation: timeIndicatorShow 0.15s ease-out;
+}
+
+@media (min-width: 768px) {
+  .time-indicator {
+    font-size: 15px;
+    padding: 10px 16px;
+  }
+}
+
+@media (min-width: 1024px) {
   .time-indicator {
     font-size: 14px;
     padding: 8px 14px;
   }
-  
-  .progress-bar {
-    bottom: 90px;
-    max-width: 280px;
-  }
-  
-  .progress-bar:hover,
-  .progress-bar:focus {
-    height: 5px;
-  }
+}
 
+@keyframes timeIndicatorShow {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* EMPTY FEED */
+.empty-feed-background {
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  text-align: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: #000;
+  z-index: 1;
+}
+
+.empty-feed-background p {
+  margin: 5px 0;
+  font-size: 18px;
+}
+
+@media (min-width: 1024px) {
+  .empty-feed-background p {
+    font-size: 16px;
+  }
+}
+
+/* HOVER EFFECTS */
+.like-btn:hover {
+  color: #ff3040;
+}
+
+.comment-btn:hover {
+  color: #2196f3;
+}
+
+.share-btn:hover {
+  color: #00bcd4;
+}
+
+/* ACCESSIBILITY */
+@media (min-width: 1024px) and (hover: hover) {
+  .side-control-btn:focus {
+    outline: 2px solid #2196f3;
+    outline-offset: 2px;
+  }
+  
   .progress-bar:focus {
     outline: 2px solid #2196f3;
     outline-offset: 2px;
   }
-
+  
   .video-click-overlay {
     touch-action: none;
   }
+}
 
-  .like-animation {
-    font-size: 45px;
+/* DEFAULT AVATAR */
+.profile-pic .default-avatar {
+  font-size: 18px;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, #2196f3, #00bcd4);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+@media (min-width: 768px) {
+  .profile-pic .default-avatar {
+    font-size: 16px;
   }
+}
 
-  .play-pause-indicator {
-    font-size: 35px;
-  }
-
+@media (min-width: 1024px) {
   .profile-pic .default-avatar {
     font-size: 14px;
   }
+}
 
-  .empty-feed-background p {
-    font-size: 16px;
+/* DELETE BUTTON IN REELS */
+/* DELETE BUTTON - MOBILE */
+.delete-post-btn {
+  position: absolute;
+  bottom:-215px;
+  right: 20px;
+  background: rgba(255, 0, 25, 0.9);
+  border: none;
+  color: white;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.delete-post-btn:hover {
+  background: rgb(255, 0, 25);
+  transform: scale(1.1);
+}
+
+.delete-post-btn:active {
+  transform: scale(0.95);
+}
+
+/* DELETE BUTTON - TABLET */
+@media (min-width: 768px) {
+  .delete-post-btn {
+    top: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
   }
+}
 
+/* DELETE BUTTON - DESKTOP */
+@media (min-width: 1024px) {
   .delete-post-btn {
     top: -215px;
-    bottom: auto;
     right: 14px;
     width: 40px;
     height: 40px;
   }
+}
+
+/* DELETE CONFIRM MODAL */
+.delete-confirm-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.delete-confirm-modal {
+  background: #1a1a1a;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 320px;
+  width: 90%;
+  text-align: center;
+}
+
+.delete-confirm-modal p {
+  color: white;
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+.confirm-delete-btn,
+.cancel-delete-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 8px;
+}
+
+.confirm-delete-btn {
+  background: #ff0019;
+  color: white;
+}
+
+.confirm-delete-btn:hover {
+  background: #cc0014;
+}
+
+.cancel-delete-btn {
+  background: #333;
+  color: white;
+}
+
+.cancel-delete-btn:hover {
+  background: #444;
 }
