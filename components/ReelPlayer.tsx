@@ -8,17 +8,7 @@ import { useDynamicStatus } from '../hooks/useDynamicStatus';
 import CommentsModal from './CommentsModal';
 import FullscreenButton from './FullscreenButton';
 
-// Reemplaza el componente BorderProgressBar actual
-function BorderProgressBar({ progress }: { progress: number }) {
-  return (
-    <div className="video-progress-container">
-      <div 
-        className="video-progress-bar" 
-        style={{ width: `${progress}%` }}
-      />
-    </div>
-  );
-}
+
 
 interface ReelPlayerProps {
   post: Post;
@@ -122,6 +112,7 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
       if (isFinite(duration) && duration > 0) {
         const progress = (currentTime / duration) * 100;
         setProgress(progress);
+        console.log('Progress updated:', progress); // Debug
       }
     }
   };
@@ -321,10 +312,12 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
             loop
             muted={isMuted}
             onTimeUpdate={handleTimeUpdate}
+            onLoadedMetadata={handleTimeUpdate}
             className="reel-video"
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
           />
+          {/* Barra de progreso solo para videos */}
           <div 
             className="progress-bar" 
             onMouseDown={handleProgressMouseDown}
@@ -335,8 +328,14 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
             onTouchMove={handleProgressTouchMove}
             onTouchEnd={handleProgressTouchEnd}
           >
-            <div className="progress-bar-inner" style={{ width: `${progress}%` }} />
-            <div className="progress-thumb" style={{ left: `${progress}%` }} />
+            <div 
+              className="progress-bar-inner" 
+              style={{ 
+                width: `${progress}%`,
+                display: 'block',
+                backgroundColor: '#00e5ff'
+              }} 
+            />
             {showTimeIndicator && (
               <div className="time-indicator" style={{ left: `${(indicatorTime / (videoRef.current?.duration || 1)) * 100}%` }}>
                 {formatTime(indicatorTime)}

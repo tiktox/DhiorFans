@@ -50,9 +50,7 @@
 
 /* SCROLL ANIMATION CONTAINER */
 .reels-scroll-container {
-  position: absolute;
-  top: 0;
-  left: 0;
+  position: relative;
   width: 100%;
   height: 100%;
   transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -116,17 +114,18 @@
 }
 
 .progress-bar {
-  position: absolute;
-  bottom: 120px;
-  left: 20px;
-  width: calc(100% - 120px);
-  height: 4px;
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 2px;
-  cursor: pointer;
-  z-index: 70;
-  overflow: visible;
-  transition: height 0.2s ease;
+  position: fixed !important;
+  bottom: 100px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: calc(100% - 40px) !important;
+  height: 4px !important;
+  background: rgb(0, 225, 255) !important;
+  border-radius: 2px !important;
+  cursor: pointer !important;
+  z-index: 9998 !important;
+  top: auto !important;
+  right: auto !important;
 }
 
 .progress-bar:hover {
@@ -134,7 +133,7 @@
 }
 
 .progress-thumb {
-  position: absolute;
+  position: relative;
   top: 50%;
   width: 12px;
   height: 12px;
@@ -330,17 +329,7 @@
     font-size: 11px;
   }
   
-  /* TABLET - PROGRESS BAR */
-  .progress-bar {
-    bottom: 100px;
-    left: 18px;
-    width: calc(100% - 100px);
-    height: 4px;
-  }
-  
-  .progress-bar:hover {
-    height: 6px;
-  }
+
   
   .time-indicator {
     font-size: 11px;
@@ -427,17 +416,7 @@
     font-size: 10px;
   }
   
-  /* DESKTOP - PROGRESS BAR */
-  .progress-bar {
-    bottom: 80px;
-    left: 14px;
-    width: calc(100% - 80px);
-    height: 3px;
-  }
-  
-  .progress-bar:hover {
-    height: 5px;
-  }
+
   
   .time-indicator {
     font-size: 10px;
@@ -450,62 +429,58 @@
   }
 }
 
-/* PROGRESS BAR INNER */
+
+
+
+
+/* BARRA DE PROGRESO */
+.progress-bar {
+  position: absolute !important;
+  bottom: 100px !important;
+  left: 170px !important;
+  right: -150px !important;
+  width:calc(150px + 100px) !important;
+  height: 4px !important;
+  background: rgba(255, 255, 255, 0.3) !important;
+  cursor: pointer !important;
+  z-index: 70 !important;
+  display: block !important;
+  border-radius: 2px !important;
+}
+
 .progress-bar-inner {
   position: absolute;
   top: 0;
   left: 0;
   height: 100%;
-  background: #00bcd4;
-  width: 0%;
+  background: #00e5ff;
   transition: width 0.1s ease;
   border-radius: 2px;
 }
 
+.progress-bar:hover {
+  height: 6px !important;
+}
+
 .progress-bar:hover .progress-bar-inner {
-  background: #00e5ff;
+  background: #00e5ff !important;
 }
 
-/* VIDEO PROGRESS CONTAINER */
-.video-progress-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  background: rgba(255, 255, 255, 0.2);
-  z-index: 60;
+.image-content .progress-bar {
+  display: none !important;
 }
 
-.video-progress-bar {
-  height: 100%;
-  background: #2196f3;
-  transition: width 0.1s linear;
-  border-radius: 0 2px 2px 0;
-  box-shadow: 0 0 10px rgba(33, 150, 243, 0.5);
+/* Asegurar que la barra sea visible en videos */
+.video-content .progress-bar {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
-/* TABLET VIDEO PROGRESS */
-@media (min-width: 768px) {
-  .video-progress-container {
-    height: 4px;
-  }
-  
-  .video-progress-container:hover {
-    height: 6px;
-    cursor: pointer;
-  }
-}
-
-/* DESKTOP VIDEO PROGRESS */
-@media (min-width: 1024px) {
-  .video-progress-container {
-    height: 3px;
-  }
-  
-  .video-progress-container:hover {
-    height: 5px;
-  }
+.video-content .progress-bar-inner {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 /* INTERACTIVE ELEMENTS */

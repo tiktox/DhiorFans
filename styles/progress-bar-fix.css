@@ -1,0 +1,56 @@
+/* BARRA DE PROGRESO - SOLO VIDEOS */
+.progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  z-index: 60;
+}
+
+.progress-bar-inner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: #ff3040;
+  width: 0%;
+  transition: width 0.1s ease;
+}
+
+.progress-bar:hover {
+  height: 6px;
+}
+
+.progress-bar:hover .progress-bar-inner {
+  background: #00e5ff;
+}
+
+/* OCULTAR EN IMÁGENES */
+.image-content .progress-bar {
+  display: none !important;
+}
+
+/* RESPONSIVE */
+@media (min-width: 768px) {
+  .progress-bar {
+    height: 4px;
+  }
+  
+  .progress-bar:hover {
+    height: 6px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .progress-bar {
+    height: 3px;
+  }
+  
+  .progress-bar:hover {
+    height: 5px;
+  }
+}
