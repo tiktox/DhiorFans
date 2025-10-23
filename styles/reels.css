@@ -117,12 +117,11 @@
 /* BARRA DE PROGRESO - MOBILE */
 .progress-bar {
   position: absolute;
-  bottom: 100px;
-  width:calc(290px + 10px);
-  left: 95px;
-  right: 20px;
+  bottom: 120px;
+  left: 20px;
+  width: calc(100% - 40px);
   height: 3px;
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(0, 35, 65, 0.849);
   border-radius: 2px;
   cursor: pointer;
   z-index: 70;
@@ -131,7 +130,6 @@
 .progress-bar:active {
   height: 5px;
 }
-
 
 /* USER INFO - MOBILE */
 .user-info {
