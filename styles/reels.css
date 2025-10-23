@@ -671,61 +671,113 @@
 }
 
 /* DELETE BUTTON IN REELS */
-.reel-container .delete-post-btn {
+/* DELETE BUTTON - MOBILE */
+.delete-post-btn {
   position: absolute;
-  top: -220px;
-  right: 14px;
+  bottom:-200px;
+  right: 20px;
   background: rgba(255, 0, 25, 0.9);
   border: none;
   color: white;
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 300;
+  z-index: 100;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
-.reel-container .delete-post-btn:hover {
+.delete-post-btn:hover {
   background: rgb(255, 0, 25);
   transform: scale(1.1);
 }
 
-.reel-container .delete-post-btn:active {
+.delete-post-btn:active {
   transform: scale(0.95);
 }
 
-/* TABLET DELETE BUTTON */
+/* DELETE BUTTON - TABLET */
 @media (min-width: 768px) {
-  .reel-container .delete-post-btn {
-    top: -220px;
+  .delete-post-btn {
+    top: 20px;
     right: 20px;
     width: 44px;
     height: 44px;
   }
 }
 
-/* DESKTOP DELETE BUTTON */
+/* DELETE BUTTON - DESKTOP */
 @media (min-width: 1024px) {
-  .reel-container .delete-post-btn {
+  .delete-post-btn {
+    top: -215px;
     right: 14px;
     width: 40px;
     height: 40px;
   }
 }
 
-/* MOBILE DELETE BUTTON */
-@media (max-width: 767px) {
-  .reel-container .delete-post-btn {
-    top: -220px;
-    right: 20px;
-    width: 50px;
-    height: 50px;
-  }
+/* DELETE CONFIRM MODAL */
+.delete-confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.delete-confirm-modal {
+  background: #1a1a1a;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 320px;
+  width: 90%;
+  text-align: center;
+}
+
+.delete-confirm-modal p {
+  color: white;
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+.confirm-delete-btn,
+.cancel-delete-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 8px;
+}
+
+.confirm-delete-btn {
+  background: #ff0019;
+  color: white;
+}
+
+.confirm-delete-btn:hover {
+  background: #cc0014;
+}
+
+.cancel-delete-btn {
+  background: #333;
+  color: white;
+}
+
+.cancel-delete-btn:hover {
+  background: #444;
 }
 
