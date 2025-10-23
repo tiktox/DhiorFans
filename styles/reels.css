@@ -674,7 +674,7 @@
 /* DELETE BUTTON - MOBILE */
 .delete-post-btn {
   position: absolute;
-  bottom:-200px;
+  bottom:-215px;
   right: 20px;
   background: rgba(255, 0, 25, 0.9);
   border: none;
