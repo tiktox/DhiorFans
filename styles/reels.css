@@ -114,55 +114,23 @@
   z-index: 60;
 }
 
+/* BARRA DE PROGRESO - MOBILE */
 .progress-bar {
-  position: fixed !important;
-  bottom: 100px !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  width: calc(100% - 40px) !important;
-  height: 4px !important;
-  background: rgb(0, 225, 255) !important;
-  border-radius: 2px !important;
-  cursor: pointer !important;
-  z-index: 9998 !important;
-  top: auto !important;
-  right: auto !important;
-}
-
-.progress-bar:hover {
-  height: 6px;
-}
-
-.progress-thumb {
-  position: relative;
-  top: 50%;
-  width: 12px;
-  height: 12px;
-  background: #00bcd4;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.progress-bar:hover .progress-thumb {
-  opacity: 1;
-}
-
-.time-indicator {
   position: absolute;
-  bottom: 15px;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.9);
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-  pointer-events: none;
-  z-index: 80;
+  bottom: 100px;
+  left: 20px;
+  right: 20px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  cursor: pointer;
+  z-index: 70;
 }
+
+.progress-bar:active {
+  height: 5px;
+}
+
 
 /* USER INFO - MOBILE */
 .user-info {
@@ -336,6 +304,16 @@
     font-size: 11px;
     padding: 3px 6px;
   }
+  
+  .progress-bar {
+    left: 16px;
+    right: 16px;
+    bottom: 110px;
+  }
+  
+  .progress-bar:hover {
+    height: 5px;
+  }
 }
 
 /* DESKTOP RESPONSIVE - 1024px+ */
@@ -424,6 +402,16 @@
     padding: 2px 6px;
   }
   
+  .progress-bar {
+    left: 14px;
+    right: 14px;
+    bottom: 90px;
+  }
+  
+  .progress-bar:hover {
+    height: 5px;
+  }
+  
   /* DESKTOP - HOVER EFFECTS */
   .reels-background:hover {
     box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
@@ -433,21 +421,6 @@
 
 
 
-
-/* BARRA DE PROGRESO */
-.progress-bar {
-  position: absolute !important;
-  bottom: 100px !important;
-  left: 170px !important;
-  right: -150px !important;
-  width:calc(150px + 100px) !important;
-  height: 4px !important;
-  background: rgba(255, 255, 255, 0.3) !important;
-  cursor: pointer !important;
-  z-index: 70 !important;
-  display: block !important;
-  border-radius: 2px !important;
-}
 
 .progress-bar-inner {
   position: absolute;
@@ -459,29 +432,12 @@
   border-radius: 2px;
 }
 
-.progress-bar:hover {
-  height: 6px !important;
-}
-
-.progress-bar:hover .progress-bar-inner {
-  background: #00e5ff !important;
-}
-
 .image-content .progress-bar {
-  display: none !important;
+  display: none;
 }
 
-/* Asegurar que la barra sea visible en videos */
 .video-content .progress-bar {
-  display: block !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-
-.video-content .progress-bar-inner {
-  display: block !important;
-  opacity: 1 !important;
-  visibility: visible !important;
+  display: block;
 }
 
 /* INTERACTIVE ELEMENTS */
