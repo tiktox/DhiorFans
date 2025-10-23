@@ -118,7 +118,7 @@
 .progress-bar {
   position: absolute;
   bottom: 150px;
-  left:173.5px;
+  left:145px;
   width: calc(50% - 40px);
   height: 3px;
   background: rgba(0, 35, 65, 0.849);
@@ -306,7 +306,7 @@
   
   /* TABLET - PROGRESS BAR */
   .progress-bar {
-    bottom:200px;
+    bottom:300px;
     left: 100px;
     width: calc(100% - 32px);
     bottom: 110px;
