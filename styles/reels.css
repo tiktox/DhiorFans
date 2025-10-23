@@ -117,11 +117,13 @@
 /* BARRA DE PROGRESO - MOBILE */
 .progress-bar {
   position: absolute;
-  bottom: 150px;
-  left:120px;
-  width: calc(50% - 40px);
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 40px);
+  max-width: 250px;
   height: 3px;
-  background: rgba(0, 35, 65, 0.849);
+  background: rgba(255, 255, 255, 0.3);
   border-radius: 2px;
   cursor: pointer;
   z-index: 70;
@@ -306,10 +308,11 @@
   
   /* TABLET - PROGRESS BAR */
   .progress-bar {
-    position:absolute;
-    bottom:300px;
-    left: 150px;
-    width: calc(100% - 32px);
+    bottom: 110px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 40px);
+    max-width: 320px;
     height: 3px;
   }
   
@@ -406,9 +409,11 @@
   
   /* DESKTOP - PROGRESS BAR */
   .progress-bar {
-    left: 14px;
-    width: calc(100% - 28px);
     bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 40px);
+    max-width: 280px;
     height: 3px;
   }
   
