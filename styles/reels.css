@@ -306,8 +306,8 @@
   
   /* TABLET - PROGRESS BAR */
   .progress-bar {
-    bottom:150px;
-    left: 25px;
+    bottom:200px;
+    left: 100px;
     width: calc(100% - 32px);
     bottom: 110px;
     height: 3px;
