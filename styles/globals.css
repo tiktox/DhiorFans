@@ -4245,11 +4245,10 @@ input, textarea, [contenteditable="true"] {
 }
 /* Progress Bar Styles */
 .progress-bar {
-  position: absolute;
-  top:10px;
-  bottom: 10%;
-  left: 0;
-  right: 0;
+  position: relative;
+  top:100px;
+  bottom: 0;
+  left: -20px;
   height: 4px;
   background: rgba(255, 255, 255, 0.3);
   cursor: pointer;
@@ -4267,8 +4266,8 @@ input, textarea, [contenteditable="true"] {
 }
 
 .progress-thumb {
-  position: absolute;
-  top: 50%;
+  position: relative;
+  top: 0;
   width: 12px;
   height: 12px;
   background: #ff3040;
