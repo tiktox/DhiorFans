@@ -3,7 +3,7 @@ import { auth } from '../lib/firebase';
 import { getUserData, saveUserData } from '../lib/userService';
 import { createPost } from '../lib/postService';
 import { uploadFile } from '../lib/uploadService';
-import { processAndUploadAudio } from '../lib/audioService';
+import { AudioService } from '../lib/audioService';
 import AudioGallery from './AudioGallery';
 import FullscreenButton from './FullscreenButton';
 import AudioWaveSelector from './AudioWaveSelector';
@@ -259,14 +259,14 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
         const audioBlob = new Blob([audioFile], { type: audioFile.type });
         const audioDuration = selectedTimeRange.end - selectedTimeRange.start;
         
-        const audioMetadata = await processAndUploadAudio(
+        const audioMetadata = await AudioService.processAndUploadAudio(
           audioBlob,
           audioFile.name,
           auth.currentUser.uid,
           audioDuration,
           selectedTimeRange.start,
           selectedTimeRange.end,
-          true // isPublic = true para que aparezca en la galería
+          true
         );
         
         postData.audioUrl = audioMetadata.url;
