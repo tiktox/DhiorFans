@@ -19,10 +19,15 @@ export interface AudioMetadata {
 export class AudioService {
   static async uploadAudio(audioBlob: Blob, fileName: string, userId: string): Promise<string> {
     const timestamp = Date.now();
-    const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9]/g, '_');
+    const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 50);
     const audioRef = ref(storage, `audio/${userId}/${timestamp}_${sanitizedFileName}.wav`);
     
-    await uploadBytes(audioRef, audioBlob);
+    const metadata = {
+      contentType: 'audio/wav',
+      cacheControl: 'public,max-age=31536000'
+    };
+    
+    await uploadBytes(audioRef, audioBlob, metadata);
     return await getDownloadURL(audioRef);
   }
 
@@ -59,15 +64,15 @@ export class AudioService {
   }
 
   static validateAudioFile(file: File): { isValid: boolean; error?: string } {
-    const maxSize = 50 * 1024 * 1024; // 50MB
-    const allowedTypes = ['audio/mpeg', 'audio/wav', 'audio/mp3', 'audio/ogg', 'audio/m4a'];
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    const allowedTypes = ['audio/mpeg', 'audio/wav', 'audio/mp3', 'audio/ogg', 'audio/m4a', 'audio/webm'];
     
-    if (!allowedTypes.includes(file.type)) {
+    if (!allowedTypes.includes(file.type) && !file.type.startsWith('audio/')) {
       return { isValid: false, error: 'Formato de audio no soportado' };
     }
     
     if (file.size > maxSize) {
-      return { isValid: false, error: 'El archivo es demasiado grande (máximo 50MB)' };
+      return { isValid: false, error: 'El archivo es demasiado grande (máximo 10MB)' };
     }
     
     return { isValid: true };
@@ -82,11 +87,14 @@ export class AudioService {
     endTime: number,
     isPublic: boolean = false
   ): Promise<AudioMetadata> {
-    const audioUrl = await this.uploadAudio(audioBlob, name, userId);
-    
+    // Validar tamaño del blob
+    if (audioBlob.size > 10 * 1024 * 1024) {
+      throw new Error('El audio es muy grande (máximo 10MB)');
+    }
+
     const metadata: Omit<AudioMetadata, 'id'> = {
       name,
-      url: audioUrl,
+      url: '', // Se actualizará después
       duration: endTime - startTime,
       originalDuration: duration,
       startTime,
@@ -96,11 +104,19 @@ export class AudioService {
       isPublic
     };
     
-    const audioId = await this.saveAudioMetadata(metadata);
+    // Subir audio y guardar metadata en paralelo
+    const [audioUrl, audioId] = await Promise.all([
+      this.uploadAudio(audioBlob, name, userId),
+      this.saveAudioMetadata(metadata)
+    ]);
+    
+    // Actualizar URL en metadata
+    await updateDoc(doc(db, 'audios', audioId), { url: audioUrl });
     
     return {
       id: audioId,
-      ...metadata
+      ...metadata,
+      url: audioUrl
     };
   }
 

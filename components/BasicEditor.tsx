@@ -91,9 +91,14 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
     document.addEventListener('touchend', handleEnd);
   };
 
-  const handleAudioSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAudioSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file && file.type.startsWith('audio/')) {
+      // Validar tamaño antes de procesar
+      if (file.size > 10 * 1024 * 1024) {
+        alert('El audio es muy grande. Máximo 10MB.');
+        return;
+      }
       setAudioFile(file);
       setSelectedAudioName(file.name);
       setShowWaveSelector(true);
@@ -138,10 +143,11 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
     if (!audioSource) return;
     
     if (!audioRef.current) {
-      audioRef.current = new Audio(audioSource);
+      audioRef.current = new Audio();
+      audioRef.current.preload = 'metadata';
+      audioRef.current.src = audioSource;
       audioRef.current.addEventListener('ended', () => setIsPlaying(false));
       
-      // Control de tiempo para fragmentos seleccionados
       audioRef.current.addEventListener('timeupdate', () => {
         if (audioRef.current && selectedTimeRange.end > 0) {
           if (audioRef.current.currentTime >= selectedTimeRange.end) {
@@ -156,9 +162,11 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
       audioRef.current.pause();
       setIsPlaying(false);
     } else {
-      // Iniciar desde el tiempo seleccionado
       audioRef.current.currentTime = selectedTimeRange.start;
-      audioRef.current.play();
+      audioRef.current.play().catch(() => {
+        alert('Error al reproducir audio');
+        setIsPlaying(false);
+      });
       setIsPlaying(true);
     }
   };
@@ -226,15 +234,6 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
     setIsUploading(true);
     
     try {
-      const [userData, mediaUrl] = await Promise.all([
-        getUserData(),
-        uploadFile(mediaFile.file, auth.currentUser.uid)
-      ]);
-      
-      if (!userData) {
-        throw new Error('No se pudo obtener los datos del usuario');
-      }
-
       const textStyles = {
         position: textPosition,
         size: textSize,
@@ -249,26 +248,46 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
         title: title.trim(),
         description: overlayText.trim(),
         overlayText: overlayText.trim(),
-        mediaUrl,
         mediaType: mediaFile.type,
         textStyles
       };
       
-      // Procesar y guardar audio si existe
+      // Subir archivos en paralelo
+      const uploadPromises: Promise<any>[] = [
+        getUserData(),
+        uploadFile(mediaFile.file, auth.currentUser.uid)
+      ];
+
+      // Agregar audio a las promesas si existe
       if (audioFile) {
-        const audioBlob = new Blob([audioFile], { type: audioFile.type });
+        const audioBlob = new Blob([audioFile], { type: 'audio/wav' });
         const audioDuration = selectedTimeRange.end - selectedTimeRange.start;
         
-        const audioMetadata = await AudioService.processAndUploadAudio(
-          audioBlob,
-          audioFile.name,
-          auth.currentUser.uid,
-          audioDuration,
-          selectedTimeRange.start,
-          selectedTimeRange.end,
-          true
+        uploadPromises.push(
+          AudioService.processAndUploadAudio(
+            audioBlob,
+            audioFile.name,
+            auth.currentUser.uid,
+            audioDuration,
+            selectedTimeRange.start,
+            selectedTimeRange.end,
+            true
+          )
         );
-        
+      }
+
+      const results = await Promise.all(uploadPromises);
+      const userData = results[0];
+      const mediaUrl = results[1];
+      const audioMetadata = results[2];
+      
+      if (!userData) {
+        throw new Error('No se pudo obtener los datos del usuario');
+      }
+
+      postData.mediaUrl = mediaUrl;
+      
+      if (audioMetadata) {
         postData.audioUrl = audioMetadata.url;
         postData.audioTimeRange = selectedTimeRange;
       } else if (selectedAudioUrl) {
@@ -284,11 +303,11 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
       onPublish();
     } catch (error) {
       console.error('Error al publicar:', error);
-      alert(error instanceof Error ? error.message : 'Error al publicar. Inténtalo de nuevo.');
+      alert(error instanceof Error ? error.message : 'Error del cliente. Verifica tu conexión.');
     } finally {
       setIsUploading(false);
     }
-  }, [title, auth.currentUser, isUploading, mediaFile.file, audioFile, selectedAudioUrl, selectedTimeRange, textPosition, textSize, textColor, fontFamily, textStyle, textRotation, overlayText, mediaFile.type, onPublish]);
+  }, [title, auth.currentUser, isUploading, mediaFile.file, audioFile, selectedAudioUrl, selectedTimeRange, textPosition, textSize, textColor, fontFamily, textStyle, textRotation, overlayText, mediaFile.type, onPublish, cleanupAudio]);
 
   // Actualizar audio cuando cambie mediaFile
   useEffect(() => {
