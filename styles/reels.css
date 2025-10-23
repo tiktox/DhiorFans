@@ -117,9 +117,9 @@
 /* BARRA DE PROGRESO - MOBILE */
 .progress-bar {
   position: absolute;
-  bottom: 120px;
-  left: 20px;
-  width: calc(100% - 40px);
+  bottom: 150px;
+  left: 75px;
+  width: calc(75% - 40px);
   height: 3px;
   background: rgba(0, 35, 65, 0.849);
   border-radius: 2px;
