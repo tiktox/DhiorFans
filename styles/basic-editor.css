@@ -488,9 +488,9 @@
 
 .audio-preview {
   position: absolute;
-  width:75%;
-  top: 68px;
-  left: 10px;
+  width:50%;
+  top: 70px;
+  left:95px;
   right: 20px;
   background: rgba(0, 0, 0, 0);
   border-radius: 10px;
@@ -504,6 +504,9 @@
 }
 
 .audio-preview span {
+  position:relative;
+  right:-10x;
+  width: calc(35px + 10px);
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;

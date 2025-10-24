@@ -1,16 +1,18 @@
 .audio-wave-selector {
   position: absolute;
   top: 20px;
-  left: 38%;
+  left: 132px;
   transform: translateX(-50%);
   width: 150px;
   height: 35px;
-  background: rgba(255, 0, 0, 0.8);
+  background: rgba(255, 0, 0, 0.9);
   border-radius: 100px;
-  border: 1px solid rgb(255, 255, 255);
+  border: 2px solid rgb(255, 255, 255);
   backdrop-filter: blur(10px);
-  z-index: 200;
-  overflow: hidden;
+  z-index: 1000;
+  overflow: visible;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
 }
 
 .audio-wave-selector canvas {
@@ -24,46 +26,78 @@
   cursor: grabbing;
 }
 
-.use-selection {
+
+
+.selector-actions {
   position: absolute;
-  top: 5px;
-  left: 5px;
-  width: 20px;
-  height: 20px;
-  background: #4caf50;
-  border: none;
+  top: -45px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+}
+
+.confirm-btn
+{ 
+  position:relative;
+  right:64px;
+  bottom:-102px;
+  width: 18px;
+  height: 18px;
+  border: 2px solid white;
   border-radius: 50%;
   color: white;
-  font-size: 12px;
+  font-size: 16px;
+  font-weight: bold;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10;
+  transition: all 0.2s ease;
 }
 
-.use-selection:hover {
-  background: #66bb6a;
-}
-
-.close-selector {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  width: 20px;
-  height: 20px;
-  background: #000000;
-  border: none;
-  border-radius: 50%;
+.cancel-btn {
+  position:relative;
+  right:70px;
+  bottom:-98px;
+  width: 15px;
+  height: 15px;
+  border: 2px solid white;
+  border-radius: 100px;
   color: white;
-  font-size: 12px;
+  font-size: 16px;
+  font-weight: bold;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index:10;
+  transition: all 0.2s ease;
+}
+.confirm-btn {
+  background: linear-gradient(135deg, #00BFFF, #0099CC);
 }
 
-.close-selector:hover {
-  background: #ff6666;
+.confirm-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #00FF00, #00CC00);
+  transform: scale(1.1);
+}
+
+.confirm-btn:disabled {
+  background: rgba(100, 100, 100, 0.5);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.cancel-btn {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.cancel-btn:hover:not(:disabled) {
+  background: #ff4444;
+  transform: scale(1.1);
+}
+
+.cancel-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

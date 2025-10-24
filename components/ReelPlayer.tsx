@@ -123,70 +123,30 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
   const [showTimeIndicator, setShowTimeIndicator] = useState(false);
   const [indicatorTime, setIndicatorTime] = useState(0);
 
-  const handleSeek = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
+  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
+    e.stopPropagation();
     if (videoRef.current && isFinite(videoRef.current.duration)) {
       const rect = e.currentTarget.getBoundingClientRect();
       const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-      const clickX = clientX - rect.left;
+      const clickX = Math.max(0, Math.min(rect.width, clientX - rect.left));
       const newTime = (clickX / rect.width) * videoRef.current.duration;
       videoRef.current.currentTime = newTime;
+      setProgress((newTime / videoRef.current.duration) * 100);
     }
   };
 
   const handleProgressMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
     setIsDragging(true);
     setShowTimeIndicator(true);
-    handleSeek(e);
-  };
-
-  const handleProgressMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (videoRef.current && isFinite(videoRef.current.duration)) {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const clientX = e.clientX;
-      const clickX = clientX - rect.left;
-      const newTime = Math.max(0, Math.min(videoRef.current.duration, (clickX / rect.width) * videoRef.current.duration));
-      setIndicatorTime(newTime);
-      
-      if (isDragging) {
-        videoRef.current.currentTime = newTime;
-      }
-    }
-  };
-
-  const handleProgressMouseUp = () => {
-    setIsDragging(false);
-    setTimeout(() => setShowTimeIndicator(false), 1000);
-  };
-
-  const handleProgressMouseLeave = () => {
-    if (!isDragging) {
-      setShowTimeIndicator(false);
-    }
+    handleProgressClick(e);
   };
 
   const handleProgressTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    e.stopPropagation();
     setIsDragging(true);
     setShowTimeIndicator(true);
-    handleSeek(e);
-  };
-
-  const handleProgressTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (videoRef.current && isFinite(videoRef.current.duration)) {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const clientX = e.touches[0].clientX;
-      const clickX = clientX - rect.left;
-      const newTime = Math.max(0, Math.min(videoRef.current.duration, (clickX / rect.width) * videoRef.current.duration));
-      setIndicatorTime(newTime);
-      
-      if (isDragging) {
-        videoRef.current.currentTime = newTime;
-      }
-    }
-  };
-
-  const handleProgressTouchEnd = () => {
-    setIsDragging(false);
-    setTimeout(() => setShowTimeIndicator(false), 1000);
+    handleProgressClick(e);
   };
 
   const formatTime = (seconds: number) => {
@@ -201,15 +161,30 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
         const progressBar = document.querySelector('.progress-bar') as HTMLElement;
         if (progressBar) {
           const rect = progressBar.getBoundingClientRect();
-          const clickX = e.clientX - rect.left;
-          const newTime = Math.max(0, Math.min(videoRef.current.duration, (clickX / rect.width) * videoRef.current.duration));
-          setIndicatorTime(newTime);
+          const clickX = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+          const newTime = (clickX / rect.width) * videoRef.current.duration;
           videoRef.current.currentTime = newTime;
+          setProgress((newTime / videoRef.current.duration) * 100);
+          setIndicatorTime(newTime);
         }
       }
     };
 
-    const handleGlobalMouseUp = () => {
+    const handleGlobalTouchMove = (e: TouchEvent) => {
+      if (isDragging && videoRef.current && isFinite(videoRef.current.duration)) {
+        const progressBar = document.querySelector('.progress-bar') as HTMLElement;
+        if (progressBar) {
+          const rect = progressBar.getBoundingClientRect();
+          const clickX = Math.max(0, Math.min(rect.width, e.touches[0].clientX - rect.left));
+          const newTime = (clickX / rect.width) * videoRef.current.duration;
+          videoRef.current.currentTime = newTime;
+          setProgress((newTime / videoRef.current.duration) * 100);
+          setIndicatorTime(newTime);
+        }
+      }
+    };
+
+    const handleGlobalEnd = () => {
       if (isDragging) {
         setIsDragging(false);
         setTimeout(() => setShowTimeIndicator(false), 1000);
@@ -218,12 +193,16 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
 
     if (isDragging) {
       document.addEventListener('mousemove', handleGlobalMouseMove);
-      document.addEventListener('mouseup', handleGlobalMouseUp);
+      document.addEventListener('mouseup', handleGlobalEnd);
+      document.addEventListener('touchmove', handleGlobalTouchMove);
+      document.addEventListener('touchend', handleGlobalEnd);
     }
 
     return () => {
       document.removeEventListener('mousemove', handleGlobalMouseMove);
-      document.removeEventListener('mouseup', handleGlobalMouseUp);
+      document.removeEventListener('mouseup', handleGlobalEnd);
+      document.removeEventListener('touchmove', handleGlobalTouchMove);
+      document.removeEventListener('touchend', handleGlobalEnd);
     };
   }, [isDragging]);
 
@@ -323,12 +302,8 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
           <div 
             className="progress-bar" 
             onMouseDown={handleProgressMouseDown}
-            onMouseMove={handleProgressMouseMove}
-            onMouseUp={handleProgressMouseUp}
-            onMouseLeave={handleProgressMouseLeave}
             onTouchStart={handleProgressTouchStart}
-            onTouchMove={handleProgressTouchMove}
-            onTouchEnd={handleProgressTouchEnd}
+            onClick={handleProgressClick}
           >
             <div 
               className="progress-bar-inner" 

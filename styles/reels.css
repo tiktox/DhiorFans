@@ -183,11 +183,11 @@
 
 /* SIDE CONTROLS */
 .side-control-btn {
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0);
   border: none;
   color: white;
-  width: 48px;
-  height: 48px;
+  width: 25px;
+  height: 25px;
   border-radius: 50%;
   cursor: pointer;
   display: flex;
@@ -199,7 +199,7 @@
 
 .side-control-btn:hover {
   transform: scale(1.1);
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0);
 }
 
 .like-container,
@@ -331,7 +331,7 @@
 
 /* HOVER EFFECTS */
 .like-btn:hover {
-  color: #ff3040;
+  color: #ff0015;
 }
 
 .comment-btn:hover {
@@ -508,8 +508,8 @@
   }
   
   .side-control-btn {
-    width: 44px;
-    height: 44px;
+    width: 25px;
+    height: 25px;
   }
   
   .like-count,
@@ -617,15 +617,15 @@
   }
   
   .side-control-btn {
-    width: 40px;
-    height: 40px;
-    background: rgba(0, 0, 0, 0.7);
+    width: 25px;
+    height: 25px;
+    background: rgba(0, 0, 0, 0);
     backdrop-filter: blur(10px);
   }
   
   .side-control-btn:hover {
     transform: scale(1.15);
-    background: rgba(0, 0, 0, 0.9);
+    background: rgba(0, 0, 0, 0);
   }
 
   .side-control-btn:focus {

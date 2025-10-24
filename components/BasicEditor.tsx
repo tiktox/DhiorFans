@@ -93,12 +93,22 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
 
   const handleAudioSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file && file.type.startsWith('audio/')) {
-      // Validar tamaño antes de procesar
+    if (file) {
+      // Validar que sea un archivo de audio por extensión si el tipo MIME no está disponible
+      const audioExtensions = ['.mp3', '.wav', '.ogg', '.m4a', '.aac', '.flac', '.wma', '.opus'];
+      const isAudio = file.type.startsWith('audio/') || 
+                     audioExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+      
+      if (!isAudio) {
+        alert('Por favor selecciona un archivo de audio válido.');
+        return;
+      }
+      
       if (file.size > 10 * 1024 * 1024) {
         alert('El audio es muy grande. Máximo 10MB.');
         return;
       }
+      
       setAudioFile(file);
       setSelectedAudioName(file.name);
       setShowWaveSelector(true);
@@ -111,8 +121,8 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
   };
 
   const handleUseAudioSelection = (audioBlob: Blob, startTime: number, endTime: number) => {
-    const audioFile = new File([audioBlob], `selected_${selectedAudioName}`, { type: 'audio/wav' });
-    setAudioFile(audioFile);
+    const processedAudioFile = new File([audioBlob], `selected_${selectedAudioName}`, { type: 'audio/wav' });
+    setAudioFile(processedAudioFile);
     setSelectedTimeRange({ start: startTime, end: endTime });
     setShowWaveSelector(false);
     setIsVideoMuted(true);
@@ -120,6 +130,7 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
     // Limpiar audio anterior
     if (audioRef.current) {
       audioRef.current.pause();
+      audioRef.current.src = '';
       audioRef.current = null;
       setIsPlaying(false);
     }
@@ -483,7 +494,7 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
       <input
         ref={audioInputRef}
         type="file"
-        accept="audio/*"
+        accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac,.flac,.wma,.opus"
         onChange={handleAudioSelect}
         style={{ display: 'none' }}
       />
@@ -518,7 +529,15 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
         <AudioWaveSelector
           audioFile={audioFile}
           onTimeSelect={handleTimeSelect}
-          onClose={() => setShowWaveSelector(false)}
+          onClose={() => {
+            setShowWaveSelector(false);
+            // Mantener el audio original si el usuario cancela
+            if (!selectedAudioUrl) {
+              setAudioFile(null);
+              setSelectedAudioName('');
+              setIsVideoMuted(false);
+            }
+          }}
           onUseSelection={handleUseAudioSelection}
         />
       )}

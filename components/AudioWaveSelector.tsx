@@ -13,6 +13,8 @@ export default function AudioWaveSelector({ audioFile, onTimeSelect, onClose, on
   const [audioDuration, setAudioDuration] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null);
+  const [hasValidSelection, setHasValidSelection] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -101,6 +103,7 @@ export default function AudioWaveSelector({ audioFile, onTimeSelect, onClose, on
     
     setSelectorPosition(newPosition);
     drawWaveform(waveformData, newPosition);
+    setHasValidSelection(true);
     
     const startTime = (newPosition / 150) * audioDuration;
     const endTime = Math.min(startTime + 60, audioDuration);
@@ -124,9 +127,10 @@ export default function AudioWaveSelector({ audioFile, onTimeSelect, onClose, on
     }
   }, [waveformData, selectorPosition]);
 
-  const createAudioSegment = async () => {
-    if (!audioBuffer) return;
+  const handleConfirm = async () => {
+    if (!audioBuffer || !hasValidSelection || isProcessing) return;
     
+    setIsProcessing(true);
     const startTime = (selectorPosition / 150) * audioDuration;
     const endTime = Math.min(startTime + 60, audioDuration);
     
@@ -187,6 +191,11 @@ export default function AudioWaveSelector({ audioFile, onTimeSelect, onClose, on
     
     const blob = new Blob([buffer], { type: 'audio/wav' });
     onUseSelection(blob, startTime, endTime);
+    setIsProcessing(false);
+  };
+
+  const handleCancel = () => {
+    onClose();
   };
 
   return (
@@ -197,8 +206,24 @@ export default function AudioWaveSelector({ audioFile, onTimeSelect, onClose, on
         height={35}
         onMouseDown={handleMouseDown}
       />
-      <button className="use-selection" onClick={createAudioSegment}>✓</button>
-      <button className="close-selector" onClick={onClose}>×</button>
+      <div className="selector-actions">
+        <button 
+          className="confirm-btn" 
+          onClick={handleConfirm}
+          disabled={!hasValidSelection || isProcessing}
+          title="Aplicar selección"
+        >
+          {isProcessing ? '...' : '✓'}
+        </button>
+        <button 
+          className="cancel-btn" 
+          onClick={handleCancel}
+          disabled={isProcessing}
+          title="Cancelar"
+        >
+          ×
+        </button>
+      </div>
     </div>
   );
 }
