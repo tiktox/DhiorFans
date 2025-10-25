@@ -3996,7 +3996,7 @@ body {
 
 /* Like Styles */
 .like-btn {
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .like-btn.liked {
@@ -4038,6 +4038,10 @@ body {
   50% {
     opacity: 1;
     transform: translate(-50%, -50%) scale(1.2);
+  }
+   75% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.5);
   }
   100% {
     opacity: 0;

@@ -226,17 +226,31 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
   const handleLike = async () => {
     if (!auth.currentUser) return;
     
+    // ✅ OPTIMISTIC UI: Actualizar inmediatamente
+    const previousIsLiked = isLiked;
+    const previousLikesCount = likesCount;
+    const newIsLiked = !isLiked;
+    const newLikesCount = newIsLiked ? likesCount + 1 : likesCount - 1;
+    
+    setIsLiked(newIsLiked);
+    setLikesCount(newLikesCount);
+    
+    if (newIsLiked) {
+      setShowLikeAnimation(true);
+      setTimeout(() => setShowLikeAnimation(false), 1000);
+    }
+    
+    // ✅ Ejecutar en background
     try {
       const result = await toggleLike(post.id);
+      // Actualizar con datos reales del servidor
       setIsLiked(result.isLiked);
       setLikesCount(result.likesCount);
-      
-      if (result.isLiked) {
-        setShowLikeAnimation(true);
-        setTimeout(() => setShowLikeAnimation(false), 1000);
-      }
     } catch (error) {
+      // ✅ Revertir en caso de error
       console.error('Error al dar like:', error);
+      setIsLiked(previousIsLiked);
+      setLikesCount(previousLikesCount);
     }
   };
 
@@ -374,7 +388,34 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
       {/* Animación de like */}
       {showLikeAnimation && (
         <div className="like-animation">
-          ❤️
+          <svg width="120" height="120" viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 4px 8px rgba(255, 0, 0, 0.5))' }}>
+            <defs>
+              <linearGradient id="heartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style={{ stopColor: '#ff1744', stopOpacity: 1 }} />
+                <stop offset="50%" style={{ stopColor: '#ff3d71', stopOpacity: 1 }} />
+                <stop offset="100%" style={{ stopColor: '#c2185b', stopOpacity: 1 }} />
+              </linearGradient>
+              <radialGradient id="heartShine">
+                <stop offset="0%" style={{ stopColor: '#ffffff', stopOpacity: 0.8 }} />
+                <stop offset="100%" style={{ stopColor: '#ffffff', stopOpacity: 0 }} />
+              </radialGradient>
+            </defs>
+            <path 
+              d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" 
+              fill="url(#heartGradient)"
+              stroke="#ff1744"
+              strokeWidth="0.5"
+            />
+            <ellipse 
+              cx="9" 
+              cy="9" 
+              rx="3" 
+              ry="2.5" 
+              fill="url(#heartShine)" 
+              opacity="0.4"
+              transform="rotate(-20 9 9)"
+            />
+          </svg>
         </div>
       )}
       

@@ -65,28 +65,32 @@ export const getAllPosts = async (): Promise<Post[]> => {
   console.log('🔍 getAllPosts() - Obteniendo todos los posts...');
   const q = query(postsCollection, orderBy('timestamp', 'desc'));
   const querySnapshot = await getDocs(q);
-  const posts: Post[] = [];
   
   console.log('🔍 getAllPosts() - Documentos encontrados:', querySnapshot.size);
   
-  for (const docSnap of querySnapshot.docs) {
+  // ✅ OPTIMIZACIÓN: Cargar likes en paralelo
+  const postsPromises = querySnapshot.docs.map(async (docSnap) => {
     const data = docSnap.data();
     const postId = docSnap.id;
     
-    // Obtener información de likes
-    const likesCount = await getPostLikesCount(postId);
-    const isLikedByUser = auth.currentUser ? 
-      await checkUserLike(postId, auth.currentUser.uid) !== null : false;
+    // Ejecutar ambas queries en paralelo
+    const [likesCount, isLikedByUser] = await Promise.all([
+      getPostLikesCount(postId),
+      auth.currentUser ? 
+        checkUserLike(postId, auth.currentUser.uid).then(r => r !== null) : 
+        Promise.resolve(false)
+    ]);
     
-    posts.push({
+    return {
       id: postId,
       ...data,
       timestamp: (data.timestamp as Timestamp).toMillis(),
       likesCount,
       isLikedByUser
-    } as Post);
-  }
+    } as Post;
+  });
   
+  const posts = await Promise.all(postsPromises);
   console.log('✅ getAllPosts() - Posts encontrados en Firestore:', posts.length);
   return posts;
 };
@@ -104,26 +108,29 @@ export const getUserPosts = async (userId: string): Promise<Post[]> => {
     const querySnapshot = await getDocs(q);
     console.log('🔍 Query ejecutada, documentos encontrados:', querySnapshot.size);
     
-    const posts: Post[] = [];
-    
-    for (const docSnap of querySnapshot.docs) {
+    // ✅ OPTIMIZACIÓN: Cargar likes en paralelo
+    const postsPromises = querySnapshot.docs.map(async (docSnap) => {
       const data = docSnap.data();
       const postId = docSnap.id;
       
-      // Obtener información de likes
-      const likesCount = await getPostLikesCount(postId);
-      const isLikedByUser = auth.currentUser ? 
-        await checkUserLike(postId, auth.currentUser.uid) !== null : false;
+      // Ejecutar ambas queries en paralelo
+      const [likesCount, isLikedByUser] = await Promise.all([
+        getPostLikesCount(postId),
+        auth.currentUser ? 
+          checkUserLike(postId, auth.currentUser.uid).then(r => r !== null) : 
+          Promise.resolve(false)
+      ]);
       
-      posts.push({
+      return {
         id: postId,
         ...data,
         timestamp: (data.timestamp as Timestamp).toMillis(),
         likesCount,
         isLikedByUser
-      } as Post);
-    }
+      } as Post;
+    });
     
+    const posts = await Promise.all(postsPromises);
     console.log('✅ getUserPosts() - Total posts procesados:', posts.length);
     return posts;
     
@@ -147,29 +154,33 @@ const getUserPostsFallback = async (userId: string): Promise<Post[]> => {
     // Obtener todos los posts y filtrar en cliente
     const q = query(postsCollection);
     const querySnapshot = await getDocs(q);
-    const posts: Post[] = [];
     
-    for (const docSnap of querySnapshot.docs) {
+    // Filtrar posts del usuario
+    const userDocs = querySnapshot.docs.filter(doc => doc.data().userId === userId);
+    
+    // ✅ OPTIMIZACIÓN: Cargar likes en paralelo
+    const postsPromises = userDocs.map(async (docSnap) => {
       const data = docSnap.data();
+      const postId = docSnap.id;
       
-      // Filtrar por userId
-      if (data.userId === userId) {
-        const postId = docSnap.id;
-        
-        // Obtener información de likes
-        const likesCount = await getPostLikesCount(postId);
-        const isLikedByUser = auth.currentUser ? 
-          await checkUserLike(postId, auth.currentUser.uid) !== null : false;
-        
-        posts.push({
-          id: postId,
-          ...data,
-          timestamp: (data.timestamp as Timestamp).toMillis(),
-          likesCount,
-          isLikedByUser
-        } as Post);
-      }
-    }
+      // Ejecutar ambas queries en paralelo
+      const [likesCount, isLikedByUser] = await Promise.all([
+        getPostLikesCount(postId),
+        auth.currentUser ? 
+          checkUserLike(postId, auth.currentUser.uid).then(r => r !== null) : 
+          Promise.resolve(false)
+      ]);
+      
+      return {
+        id: postId,
+        ...data,
+        timestamp: (data.timestamp as Timestamp).toMillis(),
+        likesCount,
+        isLikedByUser
+      } as Post;
+    });
+    
+    const posts = await Promise.all(postsPromises);
     
     // Ordenar por timestamp descendente
     posts.sort((a, b) => b.timestamp - a.timestamp);
@@ -189,32 +200,39 @@ export const searchPostsByTitle = async (searchQuery: string): Promise<Post[]> =
   try {
     const q = query(postsCollection, orderBy('timestamp', 'desc'));
     const querySnapshot = await getDocs(q);
-    const posts: Post[] = [];
     const lowerQuery = searchQuery.toLowerCase();
     
-    for (const docSnap of querySnapshot.docs) {
+    // Filtrar posts que coincidan
+    const matchingDocs = querySnapshot.docs.filter(docSnap => {
+      const data = docSnap.data();
+      const matchesTitle = data.title?.toLowerCase().includes(lowerQuery);
+      const matchesDescription = data.description?.toLowerCase().includes(lowerQuery);
+      return matchesTitle || matchesDescription;
+    });
+    
+    // ✅ OPTIMIZACIÓN: Cargar likes en paralelo
+    const postsPromises = matchingDocs.map(async (docSnap) => {
       const data = docSnap.data();
       const postId = docSnap.id;
       
-      // Filtrar por título y descripción
-      const matchesTitle = data.title?.toLowerCase().includes(lowerQuery);
-      const matchesDescription = data.description?.toLowerCase().includes(lowerQuery);
+      // Ejecutar ambas queries en paralelo
+      const [likesCount, isLikedByUser] = await Promise.all([
+        getPostLikesCount(postId),
+        auth.currentUser ? 
+          checkUserLike(postId, auth.currentUser.uid).then(r => r !== null) : 
+          Promise.resolve(false)
+      ]);
       
-      if (matchesTitle || matchesDescription) {
-        // Obtener información de likes
-        const likesCount = await getPostLikesCount(postId);
-        const isLikedByUser = auth.currentUser ? 
-          await checkUserLike(postId, auth.currentUser.uid) !== null : false;
-        
-        posts.push({
-          id: postId,
-          ...data,
-          timestamp: (data.timestamp as Timestamp).toMillis(),
-          likesCount,
-          isLikedByUser
-        } as Post);
-      }
-    }
+      return {
+        id: postId,
+        ...data,
+        timestamp: (data.timestamp as Timestamp).toMillis(),
+        likesCount,
+        isLikedByUser
+      } as Post;
+    });
+    
+    const posts = await Promise.all(postsPromises);
     
     return posts.sort((a, b) => {
       // Priorizar coincidencias exactas en título

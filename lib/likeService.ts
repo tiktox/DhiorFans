@@ -30,7 +30,7 @@ export const toggleLike = async (postId: string): Promise<{ isLiked: boolean; li
     });
   }
   
-  // Obtener nuevo contador
+  // ✅ OPTIMIZACIÓN: Obtener contador real del servidor
   const likesCount = await getPostLikesCount(postId);
   
   return {

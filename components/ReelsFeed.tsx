@@ -53,23 +53,21 @@ export default function ReelsFeed({ activeTab, onExternalProfile, initialPostId,
     const sortedPosts = allPosts.sort((a, b) => b.timestamp - a.timestamp);
     setAllContent(sortedPosts);
     
-    // Si hay un postId inicial, encontrar su índice después de que se actualice el estado
-    setTimeout(() => {
-      if (initialPostId) {
-        console.log('🎯 Buscando post:', initialPostId);
-        const postIndex = sortedPosts.findIndex(item => item.id === initialPostId);
-        console.log('📍 Índice encontrado:', postIndex, 'de', sortedPosts.length, 'posts');
-        if (postIndex >= 0) {
-          snapToIndex(postIndex);
-        } else {
-          console.log('❌ Post no encontrado, mostrando el primero');
-          snapToIndex(0);
-        }
+    // ✅ OPTIMIZACIÓN: Ejecutar inmediatamente sin timeout artificial
+    if (initialPostId) {
+      console.log('🎯 Buscando post:', initialPostId);
+      const postIndex = sortedPosts.findIndex(item => item.id === initialPostId);
+      console.log('📍 Índice encontrado:', postIndex, 'de', sortedPosts.length, 'posts');
+      if (postIndex >= 0) {
+        snapToIndex(postIndex);
       } else {
+        console.log('❌ Post no encontrado, mostrando el primero');
         snapToIndex(0);
       }
-      setIsLoading(false);
-    }, 100);
+    } else {
+      snapToIndex(0);
+    }
+    setIsLoading(false);
   };
 
   const handleWheel = (e: React.WheelEvent) => {

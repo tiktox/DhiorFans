@@ -24,7 +24,7 @@
   padding: 12px 16px;
   background: rgb(0, 0, 0);
   backdrop-filter: blur(15px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.747);
+  border-bottom: 1px solid rgba(255, 255, 255, 0);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -32,15 +32,14 @@
 }
 
 .back-btn-chat {
-  background: none;
   border: none;
-  color: white;
+  color: rgb(0, 0, 0);
   cursor: pointer;
   padding: 8px;
   border-radius: 50%;
   transition: all 0.3s ease;
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -48,7 +47,9 @@
 }
 
 .back-btn-chat:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgb(0, 255, 34);
+  color:white;
+  border-color: 1px solid (0, 0, 0, 0.1);
   transform: scale(1.1);
 }
 
@@ -137,6 +138,8 @@
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
+
+
 
 .messages-container::-webkit-scrollbar {
   display: none;
