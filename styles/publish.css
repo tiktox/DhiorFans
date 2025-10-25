@@ -226,7 +226,17 @@
   }
 }
 
-.cancel-btn,
+.cancel-btn
+{
+  bottom:-100.5px;
+  width:25px;
+  height:25px;
+  border-radius: 100px;
+  cursor: pointer;
+  font-size: 20px;
+  transition: all 0.3s;
+}
+
 .publish-btn {
   flex: 1;
   max-width: 150px;
@@ -239,9 +249,9 @@
 }
 
 .cancel-btn {
-  background: none;
-  border: 2px solid #555;
-  color: #999;
+  background: #00c3d1;
+  border: 2px solid #ffffff;
+  color: #ffffff;
 }
 
 .cancel-btn:hover {

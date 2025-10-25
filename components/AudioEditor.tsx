@@ -366,7 +366,7 @@ export default function AudioEditor({ audioFile, onNavigateBack, onUseAudio, onP
           </svg>
         </button>
         <h1>Editor de Audio</h1>
-        <div className={styles.durationBadge}>MAX 01:00</div>
+        <div className={styles.durationBadge}>MAX 05:00</div>
       </div>
 
       <div className={styles.editorContent}>
