@@ -3996,7 +3996,7 @@ body {
 
 /* Like Styles */
 .like-btn {
-  transition: all 0.3s ease;
+  transition: all 0.9s ease;
 }
 
 .like-btn.liked {
