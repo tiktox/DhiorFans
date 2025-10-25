@@ -328,6 +328,8 @@
 }
 
 .gallery-item {
+  width: 200px;
+  height:300px;
   animation: slideUp 0.3s ease-out;
 }
 

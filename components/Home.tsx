@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { auth } from '../lib/firebase';
 import { getUserData, getUserDataById, UserData } from '../lib/userService';
 import { useProfileSync } from '../hooks/useProfileSync';
+import { claimDailyTokens, canClaimTokens, getUserTokens } from '../lib/tokenService';
 import Profile from './Profile';
 import Search from './Search';
 import Publish from './Publish';
@@ -77,6 +78,19 @@ export default function Home() {
           console.log('🎭 isAvatar:', data?.isAvatar);
           setUserData(data);
           setIsLoadingUser(false);
+          
+          // Intentar reclamar tokens diarios automáticamente
+          try {
+            const tokenData = await getUserTokens(auth.currentUser.uid);
+            if (canClaimTokens(tokenData.lastClaim)) {
+              const result = await claimDailyTokens(auth.currentUser.uid, data.followers || 0);
+              if (result.success) {
+                console.log(`🪙 Tokens diarios reclamados: +${result.tokensEarned} (Total: ${result.totalTokens})`);
+              }
+            }
+          } catch (tokenError) {
+            console.error('Error reclamando tokens diarios:', tokenError);
+          }
         } catch (error) {
           console.error('Error loading initial user data:', error);
           setIsLoadingUser(false);
