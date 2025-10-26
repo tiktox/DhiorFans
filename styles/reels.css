@@ -703,3 +703,89 @@
     touch-action: none;
   }
 }
+
+/* MULTI IMAGE PLAYER */
+.multi-image-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.multi-images-scroll {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-behavior: smooth;
+  touch-action: pan-x;
+}
+
+.multi-images-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.multi-image-slide {
+  min-width: 100%;
+  height: 100%;
+  position: relative;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.multi-image-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.multi-image-indicators {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 70;
+  pointer-events: none;
+}
+
+.multi-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transition: all 0.3s ease;
+}
+
+.multi-indicator.active {
+  background: #fff;
+  width: 24px;
+  border-radius: 4px;
+}
+
+/* TABLET - 768px+ */
+@media (min-width: 768px) {
+  .multi-image-indicators {
+    bottom: 120px;
+  }
+}
+
+/* DESKTOP - 1024px+ */
+@media (min-width: 1024px) {
+  .multi-indicator {
+    width: 6px;
+    height: 6px;
+  }
+
+  .multi-indicator.active {
+    width: 20px;
+  }
+
+  .multi-image-indicators {
+    bottom: 100px;
+  }
+}

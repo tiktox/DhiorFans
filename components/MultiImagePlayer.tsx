@@ -44,57 +44,16 @@ export default function MultiImagePlayer({ post, isActive, onProfileClick, onPos
     fetchCommentsCount();
   }, [post.userId, post.id]);
 
-  const handleScroll = (direction: 'left' | 'right') => {
-    if (direction === 'left' && currentImageIndex > 0) {
-      setCurrentImageIndex(currentImageIndex - 1);
-    } else if (direction === 'right' && currentImageIndex < imagesData.length - 1) {
-      setCurrentImageIndex(currentImageIndex + 1);
-    }
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    const touch = e.touches[0];
+  const handleScroll = () => {
     if (scrollRef.current) {
-      scrollRef.current.dataset.startX = touch.clientX.toString();
-      scrollRef.current.dataset.startTime = Date.now().toString();
-    }
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!scrollRef.current) return;
-    const touch = e.touches[0];
-    const startX = parseFloat(scrollRef.current.dataset.startX || '0');
-    const diff = touch.clientX - startX;
-    scrollRef.current.scrollLeft = currentImageIndex * scrollRef.current.offsetWidth - diff;
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!scrollRef.current) return;
-    const touch = e.changedTouches[0];
-    const startX = parseFloat(scrollRef.current.dataset.startX || '0');
-    const startTime = parseFloat(scrollRef.current.dataset.startTime || '0');
-    const diff = startX - touch.clientX;
-    const timeDiff = Date.now() - startTime;
-    const velocity = Math.abs(diff) / timeDiff;
-    
-    if (velocity > 0.5 || Math.abs(diff) > scrollRef.current.offsetWidth * 0.3) {
-      if (diff > 0 && currentImageIndex < imagesData.length - 1) {
-        setCurrentImageIndex(currentImageIndex + 1);
-      } else if (diff < 0 && currentImageIndex > 0) {
-        setCurrentImageIndex(currentImageIndex - 1);
-      } else {
-        scrollRef.current.scrollTo({ left: currentImageIndex * scrollRef.current.offsetWidth, behavior: 'smooth' });
+      const scrollLeft = scrollRef.current.scrollLeft;
+      const width = scrollRef.current.offsetWidth;
+      const newIndex = Math.round(scrollLeft / width);
+      if (newIndex !== currentImageIndex) {
+        setCurrentImageIndex(newIndex);
       }
-    } else {
-      scrollRef.current.scrollTo({ left: currentImageIndex * scrollRef.current.offsetWidth, behavior: 'smooth' });
     }
   };
-
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTo({ left: currentImageIndex * scrollRef.current.offsetWidth, behavior: 'smooth' });
-    }
-  }, [currentImageIndex]);
 
   const handleDeletePost = async () => {
     if (auth.currentUser && await deletePost(post.id, auth.currentUser.uid)) {
@@ -146,7 +105,7 @@ export default function MultiImagePlayer({ post, isActive, onProfileClick, onPos
 
   return (
     <div className="multi-image-container">
-      <div className="multi-images-scroll" ref={scrollRef} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
+      <div className="multi-images-scroll" ref={scrollRef} onScroll={handleScroll}>
         {imagesData.map((imageData: any, index: number) => (
           <div key={index} className={`multi-image-slide ${index === currentImageIndex ? 'active' : ''}`}>
             <img src={imageData.url} alt={`Image ${index + 1}`} className="reel-image" />
@@ -174,13 +133,6 @@ export default function MultiImagePlayer({ post, isActive, onProfileClick, onPos
           </div>
         ))}
       </div>
-
-      {currentImageIndex > 0 && (
-        <button className="multi-nav-btn multi-nav-left" onClick={() => handleScroll('left')}>‹</button>
-      )}
-      {currentImageIndex < imagesData.length - 1 && (
-        <button className="multi-nav-btn multi-nav-right" onClick={() => handleScroll('right')}>›</button>
-      )}
 
       <div className="multi-image-indicators">
         {imagesData.map((_: any, i: number) => (
