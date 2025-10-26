@@ -155,6 +155,8 @@ export default function MultiImageEditor({ mediaFiles, onNavigateBack, onPublish
       const postData = {
         userId: auth.currentUser.uid,
         title: title.trim(),
+        description: '',
+        mediaUrl: mediaUrls[0],
         mediaType: 'multi-image' as any,
         mediaUrls,
         imagesData: images.map((img, i) => ({
