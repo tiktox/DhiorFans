@@ -30,6 +30,7 @@ interface MultiImageEditorProps {
 }
 
 export default function MultiImageEditor({ mediaFiles, onNavigateBack, onPublish }: MultiImageEditorProps) {
+  // Fixed: Added description and mediaUrl fields for TypeScript
   const [currentIndex, setCurrentIndex] = useState(0);
   const [title, setTitle] = useState('');
   const [images, setImages] = useState<ImageData[]>(
