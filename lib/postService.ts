@@ -35,10 +35,10 @@ const postsCollection = collection(db, 'posts');
 
 export const createPost = async (postData: Omit<Post, 'id' | 'timestamp' | 'likes' | 'comments' | 'username' | 'profilePicture'>): Promise<Post> => {
   if (!postData.title?.trim()) throw new Error('El título es requerido');
-  if (!postData.mediaUrl) throw new Error('La URL del archivo es requerida');
+  if (!postData.mediaUrl && !(postData as any).mediaUrls) throw new Error('La URL del archivo es requerida');
   if (!postData.userId) throw new Error('El usuario es requerido');
   
-  const newPostData = {
+  const newPostData: any = {
     ...postData,
     timestamp: Timestamp.now(),
     likes: 0,
@@ -47,7 +47,25 @@ export const createPost = async (postData: Omit<Post, 'id' | 'timestamp' | 'like
     description: postData.description?.trim() || ''
   };
   
-  const docRef = await addDoc(postsCollection, newPostData);
+  // Deep clean undefined values
+  const cleanObject = (obj: any): any => {
+    if (Array.isArray(obj)) {
+      return obj.map(item => cleanObject(item));
+    }
+    if (obj && typeof obj === 'object' && !(obj instanceof Timestamp)) {
+      const cleaned: any = {};
+      Object.keys(obj).forEach(key => {
+        if (obj[key] !== undefined) {
+          cleaned[key] = cleanObject(obj[key]);
+        }
+      });
+      return cleaned;
+    }
+    return obj;
+  };
+  
+  const cleanedData = cleanObject(newPostData);
+  const docRef = await addDoc(postsCollection, cleanedData);
   console.log('✅ Nueva publicación creada en Firestore:');
   console.log('  - ID:', docRef.id);
   console.log('  - Usuario:', postData.userId);

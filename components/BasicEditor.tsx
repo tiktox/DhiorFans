@@ -27,9 +27,11 @@ interface BasicEditorProps {
 }
 
 export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack, onPublish, onOpenAudioEditor, onOpenAudioGallery, isTextMode }: BasicEditorProps) {
-  const isMultiImage = multipleImages && multipleImages.length > 1;
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [images, setImages] = useState<MediaFile[]>(multipleImages || [mediaFile]);
+  const isMultiImage = images.length > 1;
+  const [currentImageIndex, setCurrentImageIndex] = useState(images.length - 1);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
   const isTextModeActive = isTextMode || mediaFile.file.name === 'text_background.jpg';
   const [title, setTitle] = useState('');
   const [overlayText, setOverlayText] = useState('');
@@ -68,6 +70,39 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
   const fonts = ['Arial', 'Georgia', 'Times New Roman', 'Courier New', 'Verdana', 'Comic Sans MS', 'Impact', 'Trebuchet MS'];
   const audioInputRef = useRef<HTMLInputElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
+
+  const handleAddMoreImages = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || images.length >= 7) return;
+    
+    const newImages: MediaFile[] = [];
+    const remainingSlots = 7 - images.length;
+    
+    Array.from(files).slice(0, remainingSlots).forEach(file => {
+      if (file.type.startsWith('image/')) {
+        const url = URL.createObjectURL(file);
+        newImages.push({ url, file, type: 'image' });
+      }
+    });
+    
+    if (newImages.length > 0) {
+      const updatedImages = [...images, ...newImages];
+      setImages(updatedImages);
+      setImageTexts(prev => [...prev, ...newImages.map(() => '')]);
+      setImageTextStyles(prev => [...prev, ...newImages.map(() => ({
+        position: { x: 50, y: 50 },
+        size: 16,
+        color: '#ffffff',
+        fontFamily: 'Arial',
+        style: 'normal',
+        rotation: 0
+      }))]);
+      setCurrentImageIndex(updatedImages.length - 1);
+      setTimeout(() => {
+        scrollRef.current?.scrollTo({ left: (updatedImages.length - 1) * scrollRef.current.offsetWidth, behavior: 'smooth' });
+      }, 100);
+    }
+  };
 
   const handleDragStart = (e: React.MouseEvent | React.TouchEvent, type: 'mouse' | 'touch') => {
     if (showTextControls) return;
@@ -289,17 +324,18 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
       const userData = await getUserData();
       if (!userData) throw new Error('No se pudo obtener los datos del usuario');
 
-      // Si es multi-imagen
-      if (isMultiImage && multipleImages) {
-        const uploadPromises = multipleImages.map(img => uploadFile(img.file, auth.currentUser!.uid));
+      // Si es multi-imagen o si se agregaron imágenes
+      if (images.length > 1) {
+        const uploadPromises = images.map(img => uploadFile(img.file, auth.currentUser!.uid));
         const mediaUrls = await Promise.all(uploadPromises);
 
-        const postData = {
+        const postData: any = {
           userId: auth.currentUser.uid,
           title: title.trim(),
-          mediaType: 'multi-image' as any,
+          mediaType: 'multi-image',
+          mediaUrl: mediaUrls[0],
           mediaUrls,
-          imagesData: multipleImages.map((img, i) => ({
+          imagesData: images.map((img, i) => ({
             url: mediaUrls[i],
             overlayText: imageTexts[i]?.trim() || '',
             textStyles: imageTextStyles[i]
@@ -316,28 +352,29 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
       }
 
       // Publicación normal (una imagen o video)
-      const textStyles = {
-        position: textPosition,
-        size: textSize,
-        color: textColor,
-        fontFamily: fontFamily,
-        style: textStyle,
-        rotation: textRotation
-      };
-
       const postData: any = {
         userId: auth.currentUser.uid,
         title: title.trim(),
-        description: overlayText.trim(),
-        overlayText: overlayText.trim(),
-        mediaType: mediaFile.type,
-        textStyles
+        mediaType: images[0].type
       };
+      
+      if (overlayText.trim()) {
+        postData.description = overlayText.trim();
+        postData.overlayText = overlayText.trim();
+        postData.textStyles = {
+          position: textPosition,
+          size: textSize,
+          color: textColor,
+          fontFamily: fontFamily,
+          style: textStyle,
+          rotation: textRotation
+        };
+      }
       
       // Subir archivos en paralelo
       const uploadPromises: Promise<any>[] = [
         getUserData(),
-        uploadFile(mediaFile.file, auth.currentUser.uid)
+        uploadFile(images[0].file, auth.currentUser.uid)
       ];
 
       // Agregar audio a las promesas si existe
@@ -369,7 +406,7 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
 
       postData.mediaUrl = mediaUrl;
       
-      if (audioMetadata) {
+      if (audioMetadata?.url) {
         postData.audioUrl = audioMetadata.url;
         postData.audioTimeRange = selectedTimeRange;
       } else if (selectedAudioUrl) {
@@ -389,7 +426,7 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
     } finally {
       setIsUploading(false);
     }
-  }, [title, auth.currentUser, isUploading, mediaFile.file, audioFile, selectedAudioUrl, selectedTimeRange, textPosition, textSize, textColor, fontFamily, textStyle, textRotation, overlayText, mediaFile.type, onPublish, cleanupAudio, isMultiImage, multipleImages, imageTexts, imageTextStyles]);
+  }, [title, auth.currentUser, isUploading, mediaFile.file, audioFile, selectedAudioUrl, selectedTimeRange, textPosition, textSize, textColor, fontFamily, textStyle, textRotation, overlayText, mediaFile.type, onPublish, cleanupAudio, isMultiImage, images, imageTexts, imageTextStyles]);
 
   // Actualizar audio cuando cambie mediaFile
   useEffect(() => {
@@ -469,10 +506,10 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
       </div>
 
       <div className="basic-editor-content">
-        {isMultiImage && multipleImages && (
+        {isMultiImage && images.length > 1 && (
           <>
             <div className="multi-image-scroll" ref={scrollRef}>
-              {multipleImages.map((img, index) => (
+              {images.map((img, index) => (
                 <div key={index} className={`image-slide ${index === currentImageIndex ? 'active' : ''}`}>
                   <img src={img.url} alt={`Image ${index + 1}`} className="editor-media" />
                   
@@ -521,13 +558,24 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
               ))}
             </div>
 
+            {images.length < 7 && mediaFile.type === 'image' && (
+              <button className="add-gallery-btn" onClick={() => galleryInputRef.current?.click()} title="Agregar más imágenes">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21,15 16,10 5,21"/>
+                </svg>
+                <span className="plus-icon">+</span>
+              </button>
+            )}
+
             {currentImageIndex > 0 && (
               <button className="nav-btn nav-left" onClick={() => {
                 setCurrentImageIndex(currentImageIndex - 1);
                 scrollRef.current?.scrollTo({ left: (currentImageIndex - 1) * scrollRef.current.offsetWidth, behavior: 'smooth' });
               }}>‹</button>
             )}
-            {currentImageIndex < multipleImages.length - 1 && (
+            {currentImageIndex < images.length - 1 && (
               <button className="nav-btn nav-right" onClick={() => {
                 setCurrentImageIndex(currentImageIndex + 1);
                 scrollRef.current?.scrollTo({ left: (currentImageIndex + 1) * scrollRef.current.offsetWidth, behavior: 'smooth' });
@@ -535,7 +583,7 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
             )}
 
             <div className="image-indicators">
-              {multipleImages.map((_, i) => (
+              {images.map((_, i) => (
                 <div key={i} className={`indicator ${i === currentImageIndex ? 'active' : ''}`} onClick={() => {
                   setCurrentImageIndex(i);
                   scrollRef.current?.scrollTo({ left: i * scrollRef.current.offsetWidth, behavior: 'smooth' });
@@ -543,6 +591,17 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
               ))}
             </div>
           </>
+        )}
+
+        {images.length < 7 && mediaFile.type === 'image' && !isMultiImage && (
+          <button className="add-gallery-btn" onClick={() => galleryInputRef.current?.click()} title="Agregar más imágenes">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21,15 16,10 5,21"/>
+            </svg>
+            <span className="plus-icon">+</span>
+          </button>
         )}
         
         {!isMultiImage && (
@@ -645,6 +704,15 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
         type="file"
         accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac,.flac,.wma,.opus"
         onChange={handleAudioSelect}
+        style={{ display: 'none' }}
+      />
+
+      <input
+        ref={galleryInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        onChange={handleAddMoreImages}
         style={{ display: 'none' }}
       />
 

@@ -52,6 +52,25 @@ export default function MultiImagePlayer({ post, isActive, onProfileClick, onPos
     }
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    scrollRef.current!.dataset.startX = touch.clientX.toString();
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const touch = e.changedTouches[0];
+    const startX = parseFloat(scrollRef.current!.dataset.startX || '0');
+    const diff = startX - touch.clientX;
+    
+    if (Math.abs(diff) > 50) {
+      if (diff > 0 && currentImageIndex < imagesData.length - 1) {
+        handleScroll('right');
+      } else if (diff < 0 && currentImageIndex > 0) {
+        handleScroll('left');
+      }
+    }
+  };
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTo({ left: currentImageIndex * scrollRef.current.offsetWidth, behavior: 'smooth' });
@@ -108,7 +127,7 @@ export default function MultiImagePlayer({ post, isActive, onProfileClick, onPos
 
   return (
     <div className="multi-image-container">
-      <div className="multi-images-scroll" ref={scrollRef}>
+      <div className="multi-images-scroll" ref={scrollRef} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
         {imagesData.map((imageData: any, index: number) => (
           <div key={index} className={`multi-image-slide ${index === currentImageIndex ? 'active' : ''}`}>
             <img src={imageData.url} alt={`Image ${index + 1}`} className="reel-image" />
