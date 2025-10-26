@@ -7,6 +7,7 @@ import { getPostCommentsCount } from '../lib/commentCountService';
 import { useDynamicStatus } from '../hooks/useDynamicStatus';
 import CommentsModal from './CommentsModal';
 import FullscreenButton from './FullscreenButton';
+import MultiImagePlayer from './MultiImagePlayer';
 
 
 
@@ -18,6 +19,18 @@ interface ReelPlayerProps {
   onDynamicCompleted?: () => void;
 }
 export default function ReelPlayer({ post, isActive, onProfileClick, onPostDeleted, onDynamicCompleted }: ReelPlayerProps) {
+  // Si es multi-imagen, usar el componente especializado
+  if (post.mediaType === 'multi-image') {
+    return (
+      <MultiImagePlayer 
+        post={post}
+        isActive={isActive}
+        onProfileClick={onProfileClick}
+        onPostDeleted={onPostDeleted}
+      />
+    );
+  }
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [progress, setProgress] = useState(0);

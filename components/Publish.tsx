@@ -4,7 +4,6 @@ import { getUserData, saveUserData } from '../lib/userService';
 import { createPost } from '../lib/postService';
 import { uploadFile } from '../lib/uploadService';
 import ContentTypeSelector from './ContentTypeSelector';
-import CountdownSelector from './CountdownSelector';
 
 interface PublishProps {
   onNavigateHome: () => void;
@@ -52,8 +51,7 @@ export default function Publish({ onNavigateHome, onPublish, onNavigateToCreateP
   ];
   const [activeIndex, setActiveIndex] = useState(1);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
-  const [showCountdown, setShowCountdown] = useState(false);
-  const [pendingSelection, setPendingSelection] = useState<string | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -146,47 +144,46 @@ export default function Publish({ onNavigateHome, onPublish, onNavigateToCreateP
 
   const handleContentTypeChange = (index: number) => {
     setActiveIndex(index);
-    
     const selectedType = contentTypes[index];
     
-    // Para tipos con countdown, mostrar cuenta regresiva
-    if (['dinamica', 'escribir', 'live'].includes(selectedType.id)) {
-      setPendingSelection(selectedType.id);
-      setShowCountdown(true);
-      return;
-    }
-    
-    // Solo para "Publicación" activar cámara inmediatamente
-    if (selectedType.id === 'publicacion') {
+    // Navegación inmediata sin countdown
+    if (selectedType.id === 'dinamica') {
+      stopCamera();
+      onNavigateToCreateDynamic?.();
+    } else if (selectedType.id === 'escribir') {
+      stopCamera();
+      // Crear archivo virtual con fondo negro para BasicEditor
+      const canvas = document.createElement('canvas');
+      canvas.width = 1080;
+      canvas.height = 1920;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const blackFile = new File([blob], 'text_background.jpg', { type: 'image/jpeg' });
+            const mediaFile = {
+              url: URL.createObjectURL(blackFile),
+              file: blackFile,
+              type: 'image' as const
+            };
+            onNavigateToEditor?.(mediaFile);
+          }
+        }, 'image/jpeg', 1.0);
+      }
+    } else if (selectedType.id === 'live') {
+      stopCamera();
+      // Implementar navegación a Live aquí
+      alert('Función Live próximamente disponible');
+    } else if (selectedType.id === 'publicacion') {
+      // Activar cámara para publicación
       if (cameraPermission === 'granted') {
         handleCameraPermission();
       } else if (cameraPermission === 'prompt') {
         handleCameraPermission();
       }
-    } else {
-      stopCamera();
     }
-  };
-
-  const handleCountdownComplete = () => {
-    setShowCountdown(false);
-    
-    if (pendingSelection === 'dinamica') {
-      onNavigateToCreateDynamic?.();
-    } else if (pendingSelection === 'escribir') {
-      onNavigateToCreatePost?.();
-    } else if (pendingSelection === 'live') {
-      console.log('Navegando a Live');
-    }
-    
-    setPendingSelection(null);
-  };
-
-  const handleCountdownCancel = () => {
-    setShowCountdown(false);
-    setPendingSelection(null);
-    // Volver a publicación por defecto
-    setActiveIndex(1);
   };
 
 
@@ -288,7 +285,7 @@ export default function Publish({ onNavigateHome, onPublish, onNavigateToCreateP
           
           <div className="capture-section">
             <div className="user-gallery">
-              <button className="gallery-item" onClick={openGallery}>
+              <button className="camera-gallery-item" onClick={openGallery}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
                   <circle cx="8.5" cy="8.5" r="1.5"/>
@@ -319,13 +316,6 @@ export default function Publish({ onNavigateHome, onPublish, onNavigateToCreateP
           className="file-input"
           accept="image/*,video/*"
           onChange={handleFileSelect}
-        />
-        
-        <CountdownSelector
-          isActive={showCountdown}
-          contentType={pendingSelection || ''}
-          onCountdownComplete={handleCountdownComplete}
-          onCancel={handleCountdownCancel}
         />
       </div>
     );

@@ -3,6 +3,7 @@ import { auth } from '../lib/firebase';
 import { getUserTokens } from '../lib/tokenService';
 import CreateDynamic from './CreateDynamic';
 import Editor from './Editor';
+import BasicEditor from './BasicEditor';
 
 interface MediaFile {
   url: string;
@@ -17,8 +18,9 @@ interface CreateDynamicFlowProps {
 }
 
 export default function CreateDynamicFlow({ onNavigateBack, onPublish, onSwitchToPost }: CreateDynamicFlowProps) {
-  const [currentStep, setCurrentStep] = useState<'selector' | 'editor'>('selector');
+  const [currentStep, setCurrentStep] = useState<'selector' | 'editor' | 'multi-editor'>('selector');
   const [selectedFile, setSelectedFile] = useState<MediaFile | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<MediaFile[]>([]);
   const [userTokens, setUserTokens] = useState(90);
 
   // Cargar tokens del usuario
@@ -36,9 +38,14 @@ export default function CreateDynamicFlow({ onNavigateBack, onPublish, onSwitchT
     loadUserTokens();
   }, []);
 
-  const handleNavigateToEditor = (file: MediaFile) => {
-    setSelectedFile(file);
-    setCurrentStep('editor');
+  const handleNavigateToEditor = (file: MediaFile | MediaFile[]) => {
+    if (Array.isArray(file)) {
+      setSelectedFiles(file);
+      setCurrentStep('multi-editor');
+    } else {
+      setSelectedFile(file);
+      setCurrentStep('editor');
+    }
   };
 
   const handleBackFromEditor = () => {
@@ -61,6 +68,19 @@ export default function CreateDynamicFlow({ onNavigateBack, onPublish, onSwitchT
         mediaFile={selectedFile}
         onNavigateBack={handleBackFromEditor}
         userTokens={userTokens}
+      />
+    );
+  }
+
+  if (currentStep === 'multi-editor' && selectedFiles.length > 0) {
+    return (
+      <BasicEditor 
+        mediaFile={selectedFiles[0]}
+        multipleImages={selectedFiles}
+        onNavigateBack={handleBackFromEditor}
+        onPublish={() => {
+          onPublish?.();
+        }}
       />
     );
   }

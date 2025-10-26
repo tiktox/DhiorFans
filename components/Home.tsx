@@ -224,6 +224,7 @@ export default function Home() {
   if (currentView === 'editor' && editorMediaFile) {
     return <BasicEditor 
       mediaFile={editorMediaFile}
+      isTextMode={editorMediaFile.file.name === 'text_background.jpg'}
       onNavigateBack={() => {
         setEditorMediaFile(null);
         setCurrentView('publish');

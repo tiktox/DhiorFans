@@ -18,15 +18,30 @@ interface MediaFile {
 
 interface BasicEditorProps {
   mediaFile: MediaFile;
+  multipleImages?: MediaFile[];
   onNavigateBack: () => void;
   onPublish: () => void;
   onOpenAudioEditor?: (audioFile: File) => void;
   onOpenAudioGallery?: () => void;
+  isTextMode?: boolean;
 }
 
-export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOpenAudioEditor, onOpenAudioGallery }: BasicEditorProps) {
+export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack, onPublish, onOpenAudioEditor, onOpenAudioGallery, isTextMode }: BasicEditorProps) {
+  const isMultiImage = multipleImages && multipleImages.length > 1;
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const isTextModeActive = isTextMode || mediaFile.file.name === 'text_background.jpg';
   const [title, setTitle] = useState('');
   const [overlayText, setOverlayText] = useState('');
+  const [imageTexts, setImageTexts] = useState<string[]>(multipleImages ? multipleImages.map(() => '') : ['']);
+  const [imageTextStyles, setImageTextStyles] = useState<any[]>(multipleImages ? multipleImages.map(() => ({
+    position: { x: 50, y: 50 },
+    size: 16,
+    color: '#ffffff',
+    fontFamily: 'Arial',
+    style: 'normal',
+    rotation: 0
+  })) : []);
   const [audioFile, setAudioFile] = useState<File | null>(mediaFile.audioFile || null);
   const [selectedAudioUrl, setSelectedAudioUrl] = useState<string>(mediaFile.audioUrl || '');
   const [selectedAudioName, setSelectedAudioName] = useState<string>(mediaFile.audioFile?.name || '');
@@ -62,8 +77,9 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
     const clientX = type === 'mouse' ? (e as React.MouseEvent).clientX : (e as React.TouchEvent).touches[0].clientX;
     const clientY = type === 'mouse' ? (e as React.MouseEvent).clientY : (e as React.TouchEvent).touches[0].clientY;
     
-    const offsetX = clientX - rect.left - (textPosition.x * rect.width / 100);
-    const offsetY = clientY - rect.top - (textPosition.y * rect.height / 100);
+    const currentPos = isMultiImage ? imageTextStyles[currentImageIndex]?.position || { x: 50, y: 50 } : textPosition;
+    const offsetX = clientX - rect.left - (currentPos.x * rect.width / 100);
+    const offsetY = clientY - rect.top - (currentPos.y * rect.height / 100);
     
     const handleMove = (e: MouseEvent | TouchEvent) => {
       const moveX = e instanceof MouseEvent ? e.clientX : e.touches[0].clientX;
@@ -71,10 +87,18 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
       
       const newX = ((moveX - rect.left - offsetX) / rect.width) * 100;
       const newY = ((moveY - rect.top - offsetY) / rect.height) * 100;
-      setTextPosition({ 
+      const newPosition = { 
         x: Math.max(0, Math.min(90, newX)), 
         y: Math.max(5, Math.min(85, newY)) 
-      });
+      };
+      
+      if (isMultiImage) {
+        const newStyles = [...imageTextStyles];
+        newStyles[currentImageIndex] = { ...newStyles[currentImageIndex], position: newPosition };
+        setImageTextStyles(newStyles);
+      } else {
+        setTextPosition(newPosition);
+      }
     };
     
     const handleEnd = () => {
@@ -186,18 +210,35 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
     const nextIndex = (colorIndex + 1) % colors.length;
     setColorIndex(nextIndex);
     setTextColor(colors[nextIndex]);
+    if (isMultiImage) {
+      const newStyles = [...imageTextStyles];
+      newStyles[currentImageIndex] = { ...newStyles[currentImageIndex], color: colors[nextIndex] };
+      setImageTextStyles(newStyles);
+    }
   };
 
   const handleFontChange = () => {
     const nextIndex = (fontIndex + 1) % fonts.length;
     setFontIndex(nextIndex);
     setFontFamily(fonts[nextIndex]);
+    if (isMultiImage) {
+      const newStyles = [...imageTextStyles];
+      newStyles[currentImageIndex] = { ...newStyles[currentImageIndex], fontFamily: fonts[nextIndex] };
+      setImageTextStyles(newStyles);
+    }
   };
 
   const handleTextWheel = (e: React.WheelEvent) => {
     e.preventDefault();
     const delta = e.deltaY > 0 ? -2 : 2;
-    setTextSize(prev => Math.max(12, Math.min(48, prev + delta)));
+    if (isMultiImage) {
+      const newStyles = [...imageTextStyles];
+      const currentSize = newStyles[currentImageIndex]?.size || 16;
+      newStyles[currentImageIndex] = { ...newStyles[currentImageIndex], size: Math.max(12, Math.min(48, currentSize + delta)) };
+      setImageTextStyles(newStyles);
+    } else {
+      setTextSize(prev => Math.max(12, Math.min(48, prev + delta)));
+    }
   };
 
   const handleTextPinch = (e: React.TouchEvent) => {
@@ -245,6 +286,36 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
     setIsUploading(true);
     
     try {
+      const userData = await getUserData();
+      if (!userData) throw new Error('No se pudo obtener los datos del usuario');
+
+      // Si es multi-imagen
+      if (isMultiImage && multipleImages) {
+        const uploadPromises = multipleImages.map(img => uploadFile(img.file, auth.currentUser!.uid));
+        const mediaUrls = await Promise.all(uploadPromises);
+
+        const postData = {
+          userId: auth.currentUser.uid,
+          title: title.trim(),
+          mediaType: 'multi-image' as any,
+          mediaUrls,
+          imagesData: multipleImages.map((img, i) => ({
+            url: mediaUrls[i],
+            overlayText: imageTexts[i]?.trim() || '',
+            textStyles: imageTextStyles[i]
+          }))
+        };
+
+        await Promise.all([
+          createPost(postData),
+          saveUserData({ posts: userData.posts + 1 })
+        ]);
+
+        onPublish();
+        return;
+      }
+
+      // Publicación normal (una imagen o video)
       const textStyles = {
         position: textPosition,
         size: textSize,
@@ -288,11 +359,11 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
       }
 
       const results = await Promise.all(uploadPromises);
-      const userData = results[0];
+      const userDataResult = results[0];
       const mediaUrl = results[1];
       const audioMetadata = results[2];
       
-      if (!userData) {
+      if (!userDataResult) {
         throw new Error('No se pudo obtener los datos del usuario');
       }
 
@@ -308,7 +379,7 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
 
       await Promise.all([
         createPost(postData),
-        saveUserData({ posts: userData.posts + 1 })
+        saveUserData({ posts: userDataResult.posts + 1 })
       ]);
 
       onPublish();
@@ -318,7 +389,7 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
     } finally {
       setIsUploading(false);
     }
-  }, [title, auth.currentUser, isUploading, mediaFile.file, audioFile, selectedAudioUrl, selectedTimeRange, textPosition, textSize, textColor, fontFamily, textStyle, textRotation, overlayText, mediaFile.type, onPublish, cleanupAudio]);
+  }, [title, auth.currentUser, isUploading, mediaFile.file, audioFile, selectedAudioUrl, selectedTimeRange, textPosition, textSize, textColor, fontFamily, textStyle, textRotation, overlayText, mediaFile.type, onPublish, cleanupAudio, isMultiImage, multipleImages, imageTexts, imageTextStyles]);
 
   // Actualizar audio cuando cambie mediaFile
   useEffect(() => {
@@ -346,7 +417,7 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
   const canPublish = title.trim() && !isUploading && auth.currentUser;
 
   return (
-    <div className="basic-editor">
+    <div className={`basic-editor ${isTextModeActive ? 'text-mode' : ''}`}>
       <FullscreenButton />
       
       <div className="basic-editor-header">
@@ -398,6 +469,83 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
       </div>
 
       <div className="basic-editor-content">
+        {isMultiImage && multipleImages && (
+          <>
+            <div className="multi-image-scroll" ref={scrollRef}>
+              {multipleImages.map((img, index) => (
+                <div key={index} className={`image-slide ${index === currentImageIndex ? 'active' : ''}`}>
+                  <img src={img.url} alt={`Image ${index + 1}`} className="editor-media" />
+                  
+                  {index === currentImageIndex && (
+                    <div 
+                      ref={textRef}
+                      className={`draggable-text ${showTextControls ? 'editing' : ''}`}
+                      style={{
+                        left: `${imageTextStyles[index]?.position.x || 50}%`,
+                        top: `${imageTextStyles[index]?.position.y || 50}%`,
+                        fontSize: `${imageTextStyles[index]?.size || 16}px`,
+                        color: imageTextStyles[index]?.color || '#ffffff',
+                        fontFamily: imageTextStyles[index]?.fontFamily || 'Arial',
+                        transform: `translate(-50%, -50%) rotate(${imageTextStyles[index]?.rotation || 0}deg)`
+                      }}
+                      onWheel={handleTextWheel}
+                      onMouseDown={(e) => handleDragStart(e, 'mouse')}
+                      onTouchStart={(e) => handleDragStart(e, 'touch')}
+                      onClick={() => setShowTextControls(true)}
+                    >
+                      {showTextControls ? (
+                        <input
+                          type="text"
+                          placeholder="Escribe algo....."
+                          value={imageTexts[index] || ''}
+                          onChange={(e) => {
+                            const newTexts = [...imageTexts];
+                            newTexts[index] = e.target.value;
+                            setImageTexts(newTexts);
+                          }}
+                          className="text-input-field"
+                          style={{ fontFamily: imageTextStyles[index]?.fontFamily || 'Arial' }}
+                          maxLength={200}
+                          autoFocus
+                          onBlur={() => setShowTextControls(false)}
+                          onKeyDown={(e) => e.key === 'Enter' && setShowTextControls(false)}
+                        />
+                      ) : (
+                        <span className="text-display" style={{ fontFamily: imageTextStyles[index]?.fontFamily || 'Arial' }}>
+                          {imageTexts[index] || 'Escribe algo.....'}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {currentImageIndex > 0 && (
+              <button className="nav-btn nav-left" onClick={() => {
+                setCurrentImageIndex(currentImageIndex - 1);
+                scrollRef.current?.scrollTo({ left: (currentImageIndex - 1) * scrollRef.current.offsetWidth, behavior: 'smooth' });
+              }}>‹</button>
+            )}
+            {currentImageIndex < multipleImages.length - 1 && (
+              <button className="nav-btn nav-right" onClick={() => {
+                setCurrentImageIndex(currentImageIndex + 1);
+                scrollRef.current?.scrollTo({ left: (currentImageIndex + 1) * scrollRef.current.offsetWidth, behavior: 'smooth' });
+              }}>›</button>
+            )}
+
+            <div className="image-indicators">
+              {multipleImages.map((_, i) => (
+                <div key={i} className={`indicator ${i === currentImageIndex ? 'active' : ''}`} onClick={() => {
+                  setCurrentImageIndex(i);
+                  scrollRef.current?.scrollTo({ left: i * scrollRef.current.offsetWidth, behavior: 'smooth' });
+                }} />
+              ))}
+            </div>
+          </>
+        )}
+        
+        {!isMultiImage && (
         <div className="media-container">
           {mediaFile.type === 'video' ? (
             <>
@@ -448,7 +596,7 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
             {showTextControls ? (
               <input
                 type="text"
-                placeholder="Escribe algo....."
+                placeholder={isTextModeActive ? "Escribe tu frase..." : "Escribe algo....."}
                 value={overlayText}
                 onChange={(e) => setOverlayText(e.target.value)}
                 className="text-input-field"
@@ -460,7 +608,7 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
               />
             ) : (
               <span className="text-display" style={{ fontFamily: fontFamily }}>
-                {overlayText || 'Escribe algo.....'}
+                {overlayText || (isTextModeActive ? 'Toca para escribir...' : 'Escribe algo.....')}
               </span>
             )}
           </div>
@@ -468,6 +616,7 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
           <div className="text-controls">
           </div>
         </div>
+        )}
 
         <div className="bottom-section">
           <div className="input-row">
@@ -525,7 +674,7 @@ export default function BasicEditor({ mediaFile, onNavigateBack, onPublish, onOp
         />
       )}
 
-      {showWaveSelector && audioFile && (
+      {!isMultiImage && showWaveSelector && audioFile && (
         <AudioWaveSelector
           audioFile={audioFile}
           onTimeSelect={handleTimeSelect}

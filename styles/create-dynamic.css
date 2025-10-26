@@ -72,7 +72,9 @@
   margin-bottom: 20px;
 }
 
-.gallery-item {
+.dynamic-gallery-item {
+  width: 200px;
+  height:300px;
   aspect-ratio: 1;
   border-radius: 12px;
   overflow: hidden;
@@ -82,19 +84,19 @@
   transition: all 0.3s ease;
 }
 
-.gallery-item:hover {
+.dynamic-gallery-item:hover {
   transform: scale(1.05);
   border-color: rgba(255, 255, 255, 0.3);
 }
 
-.gallery-item.selected {
+.dynamic-gallery-item.selected {
   border-color: #2196f3;
   box-shadow: 0 0 20px rgba(33, 150, 243, 0.4);
 }
 
-.gallery-item img, .gallery-item video {
-  width: 100%;
-  height: 100%;
+.dynamic-gallery-item img, .dynamic-gallery-item video {
+  width: 200px;
+  height: 300px;
   object-fit: cover;
 }
 
@@ -127,6 +129,8 @@
 }
 
 .add-more-btn {
+  width: 50px;
+  height:50px;
   aspect-ratio: 1;
   border: 2px dashed #666;
   border-radius: 12px;
@@ -162,6 +166,17 @@
 .select-media-btn:hover {
   background: #1976d2;
   transform: translateY(-2px);
+}
+
+.selection-counter {
+  text-align: center;
+  color: #2196f3;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 10px 0;
+  padding: 8px;
+  background: rgba(33, 150, 243, 0.1);
+  border-radius: 8px;
 }
 
 /* Smartphone Portrait */
@@ -293,7 +308,7 @@
     gap: 12px;
   }
   
-  .gallery-item:hover {
+  .dynamic-gallery-item:hover {
     transform: scale(1.08);
   }
 }
@@ -326,22 +341,15 @@
 .create-dynamic-container {
   animation: slideUp 0.4s ease-out;
 }
-
-.gallery-item {
-  width: 200px;
-  height:300px;
-  animation: slideUp 0.3s ease-out;
-}
-
-.gallery-item:nth-child(1) { animation-delay: 0.1s; }
-.gallery-item:nth-child(2) { animation-delay: 0.15s; }
-.gallery-item:nth-child(3) { animation-delay: 0.2s; }
-.gallery-item:nth-child(4) { animation-delay: 0.25s; }
+.dynamic-gallery-item:nth-child(1) { animation-delay: 0.1s; }
+.dynamic-gallery-item:nth-child(2) { animation-delay: 0.15s; }
+.dynamic-gallery-item:nth-child(3) { animation-delay: 0.2s; }
+.dynamic-gallery-item:nth-child(4) { animation-delay: 0.25s; }
 
 /* Focus states for accessibility */
 .back-btn:focus,
 .switch-mode-btn:focus,
-.gallery-item:focus,
+.dynamic-gallery-item:focus,
 .add-more-btn:focus,
 .select-media-btn:focus {
   outline: 2px solid #2196f3;

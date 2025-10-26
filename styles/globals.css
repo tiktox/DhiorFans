@@ -4000,7 +4000,7 @@ body {
 }
 
 .like-btn.liked {
-  color: #ff3040;
+  color: #ff0015;
   transform: scale(1.1);
 }
 
@@ -4798,3 +4798,4 @@ background-color: linear-gradient(135deg, #FF0000, #00BFFF);
   z-index: 5;
 }
 @import url('./audio-wave-selector.css');
+@import url('./multi-image.css');

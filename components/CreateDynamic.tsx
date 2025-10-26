@@ -14,7 +14,7 @@ interface MediaFile {
 
 export default function CreateDynamic({ onNavigateBack, onNavigateToEditor, onSwitchToPost }: CreateDynamicProps) {
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
-  const [selectedFile, setSelectedFile] = useState<MediaFile | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<MediaFile[]>([]);
 
   useEffect(() => {
     loadDeviceMedia();
@@ -62,8 +62,42 @@ export default function CreateDynamic({ onNavigateBack, onNavigateToEditor, onSw
   };
 
   const selectMedia = (media: MediaFile) => {
-    setSelectedFile(media);
-    console.log('Archivo seleccionado:', media.file.name);
+    setSelectedFiles(prev => {
+      const isSelected = prev.find(f => f.url === media.url);
+      if (isSelected) {
+        return prev.filter(f => f.url !== media.url);
+      } else {
+        // Solo permitir selección múltiple de imágenes (máximo 7)
+        if (media.type === 'image') {
+          const currentImages = prev.filter(f => f.type === 'image');
+          if (currentImages.length < 7) {
+            return [...prev.filter(f => f.type === 'video'), media];
+          }
+          return prev;
+        } else {
+          // Si es video, solo permitir uno
+          return [media];
+        }
+      }
+    });
+  };
+
+  const handleContinue = () => {
+    if (selectedFiles.length === 0) return;
+    
+    const images = selectedFiles.filter(f => f.type === 'image');
+    
+    // Si hay múltiples imágenes (2-7), enviar al MultiImageEditor
+    if (images.length >= 2 && images.length <= 7) {
+      if (onNavigateToEditor) {
+        (onNavigateToEditor as any)(images);
+      }
+    } else {
+      // Si es una sola imagen o un video, enviar al BasicEditor
+      if (onNavigateToEditor) {
+        onNavigateToEditor(selectedFiles[0]);
+      }
+    }
   };
 
   return (
@@ -93,7 +127,7 @@ export default function CreateDynamic({ onNavigateBack, onNavigateToEditor, onSw
               mediaFiles.map((media, index) => (
                 <div 
                   key={index} 
-                  className={`gallery-item ${selectedFile?.url === media.url ? 'selected' : ''}`}
+                  className={`dynamic-gallery-item ${selectedFiles.find(f => f.url === media.url) ? 'selected' : ''}`}
                   onClick={() => selectMedia(media)}
                 >
                   {media.type === 'video' ? (
@@ -111,14 +145,15 @@ export default function CreateDynamic({ onNavigateBack, onNavigateToEditor, onSw
           </div>
         </div>
 
-        {selectedFile && (
-          <button className="select-media-btn" onClick={() => {
-            if (onNavigateToEditor) {
-              onNavigateToEditor(selectedFile);
-            }
-          }}>
-            Continuar
-          </button>
+        {selectedFiles.length > 0 && (
+          <>
+            <div className="selection-counter">
+              {selectedFiles.length > 1 ? `${selectedFiles.length} imágenes seleccionadas` : '1 archivo seleccionado'}
+            </div>
+            <button className="select-media-btn" onClick={handleContinue}>
+              Continuar
+            </button>
+          </>
         )}
       </div>
     </div>
