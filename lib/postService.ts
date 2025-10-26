@@ -9,7 +9,7 @@ export interface Post {
   description: string;
   overlayText?: string;
   mediaUrl: string;
-  mediaType: 'image' | 'video';
+  mediaType: 'image' | 'video' | 'multi-image';
   audioUrl?: string;
   textStyles?: {
     position: { x: number; y: number };
@@ -24,7 +24,19 @@ export interface Post {
   comments: number;
   likesCount?: number;
   isLikedByUser?: boolean;
-  // Metadatos de dinámica
+  mediaUrls?: string[];
+  imagesData?: Array<{
+    url: string;
+    overlayText: string;
+    textStyles?: {
+      position: { x: number; y: number };
+      size: number;
+      color: string;
+      fontFamily: string;
+      style: string;
+      rotation: number;
+    };
+  }>;
   isDynamic?: boolean;
   keywords?: string[];
   tokensReward?: number;
