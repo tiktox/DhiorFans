@@ -16,6 +16,7 @@ import AudioGallery from './AudioGallery';
 import Chat from './Chat';
 import ReelsFeed from './ReelsFeed';
 import ExternalProfile from './ExternalProfile';
+
 import '../lib/testData'; // Importar funciones de prueba
 
 export default function Home() {

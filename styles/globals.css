@@ -4799,6 +4799,7 @@ background-color: linear-gradient(135deg, #FF0000, #00BFFF);
 }
 @import url('./audio-wave-selector.css');
 @import url('./multi-image.css');
+@import url('./google-auth.css');
 
 
 /* Username Validation Styles */
@@ -5314,3 +5315,72 @@ background-color: linear-gradient(135deg, #FF0000, #00BFFF);
     border-width: 1.5px;
   }
 }
+
+/* Verification Banner */
+.verification-banner {
+  position: fixed;
+  border-radius: 12px;
+  width:351px;
+  top: 0;
+  left: 583.8px;
+  right: 0;
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+  color: white;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 9999;
+  font-size: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.verification-banner span {
+  flex: 1;
+  font-weight: 500;
+}
+
+.banner-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.banner-actions button {
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.4);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.banner-actions button:hover:not(:disabled) {
+  background: rgba(255,255,255,0.3);
+}
+
+.banner-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 767px) {
+  .verification-banner {
+    font-size: 12px;
+    padding: 10px 12px;
+  }
+  
+  .verification-banner span {
+    font-size: 11px;
+  }
+  
+  .banner-actions button {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+}
+
+
+

@@ -3,6 +3,12 @@ import { getAuth } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 import { getFirestore, connectFirestoreEmulator, enableNetwork, disableNetwork } from 'firebase/firestore';
 
+// Configurar idioma para emails
+if (typeof window !== 'undefined') {
+  const auth = getAuth();
+  auth.languageCode = 'es';
+}
+
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -21,6 +27,7 @@ if (!firebaseConfig.apiKey) {
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 export const auth = getAuth(app);
+auth.languageCode = 'es'; // Configurar idioma español
 export const storage = getStorage(app);
 export const db = getFirestore(app);
 
