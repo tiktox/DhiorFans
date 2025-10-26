@@ -13,8 +13,10 @@ import {
   limit,
   startAfter,
   QueryDocumentSnapshot,
+  getDoc,
 } from 'firebase/firestore';
 import { getUserData } from './userService';
+import { notifyComment } from './notificationService';
 
 export interface Comment {
   id: string;
@@ -61,6 +63,13 @@ export const createComment = async (
   try {
     const postRef = doc(db, postCollection, postId);
     await updateDoc(postRef, { commentsCount: increment(1) });
+    
+    // Crear notificación para el dueño del post
+    const postDoc = await getDoc(postRef);
+    if (postDoc.exists()) {
+      const postOwnerId = postDoc.data().userId;
+      await notifyComment(postOwnerId, auth.currentUser.uid, postId, docRef.id);
+    }
   } catch (error) {
     const sanitizedPostId = postId.replace(/[\r\n\t]/g, '');
     const sanitizedCollection = postCollection.replace(/[\r\n\t]/g, '');

@@ -3,10 +3,11 @@ import { auth } from '../lib/firebase';
 import { getUserData, getUserDataById, UserData } from '../lib/userService';
 import { useProfileSync } from '../hooks/useProfileSync';
 import { claimDailyTokens, canClaimTokens, getUserTokens } from '../lib/tokenService';
+import { getUnreadNotificationsCount } from '../lib/notificationService';
 import Profile from './Profile';
 import Search from './Search';
 import Publish from './Publish';
-
+import Notifications from './Notifications';
 import CreatePost from './CreatePost';
 import CreateDynamicFlow from './CreateDynamicFlow';
 import BasicEditor from './BasicEditor';
@@ -29,6 +30,7 @@ export default function Home() {
   const [editorMediaFile, setEditorMediaFile] = useState<{url: string; file: File; type: 'image' | 'video'; audioFile?: File; audioUrl?: string} | null>(null);
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [showAudioGallery, setShowAudioGallery] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   
   // Usar hook de sincronización de perfil
   const profileSync = useProfileSync();
@@ -78,6 +80,10 @@ export default function Home() {
           console.log('🎭 isAvatar:', data?.isAvatar);
           setUserData(data);
           setIsLoadingUser(false);
+          
+          // Cargar contador de notificaciones
+          const count = await getUnreadNotificationsCount(auth.currentUser.uid);
+          setUnreadCount(count);
           
           // Intentar reclamar tokens diarios automáticamente
           try {
@@ -221,6 +227,22 @@ export default function Home() {
     />;
   }
 
+  if (currentView === 'notifications') {
+    return <Notifications 
+      onNavigateBack={() => {
+        setSelectedPostId(null);
+        setCurrentView('home');
+      }}
+      onViewProfile={(userId) => {
+        handleExternalProfile(userId);
+      }}
+      onViewPost={(postId) => {
+        setSelectedPostId(postId);
+        setCurrentView('home');
+      }}
+    />;
+  }
+
   if (currentView === 'editor' && editorMediaFile) {
     return <BasicEditor 
       mediaFile={editorMediaFile}
@@ -355,10 +377,12 @@ export default function Home() {
             <line x1="8" y1="12" x2="16" y2="12"/>
           </svg>
         </div>
-        <div className="nav-icon message-icon" onClick={() => setCurrentView('chat')}>
+        <div className="nav-icon notifications-icon" onClick={() => setCurrentView('notifications')}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
           </svg>
+          {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
         </div>
         <div 
           className={`profile-pic-nav ${profileSync.isAvatar ? 'avatar-format' : ''}`}

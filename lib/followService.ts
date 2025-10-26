@@ -1,6 +1,7 @@
 import { auth, db } from './firebase';
 import { doc, updateDoc, increment, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import { updateFollowersCount, grantFollowerBonus } from './tokenService';
+import { notifyFollow } from './notificationService';
 
 export interface FollowData {
   followerId: string;
@@ -58,6 +59,9 @@ export const followUser = async (targetUserId: string): Promise<void> => {
       // Solo actualizar contador si no hubo bonus
       await updateFollowersCount(targetUserId, newFollowersCount);
     }
+    
+    // Crear notificación para el usuario seguido
+    await notifyFollow(targetUserId, followerId);
 
     console.log(`✅ Usuario ${followerId} ahora sigue a ${targetUserId}`);
 

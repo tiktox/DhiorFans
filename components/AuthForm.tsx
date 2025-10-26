@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, User } from 'firebase/auth';
 import { auth, db } from '../lib/firebase';
-import { saveUserData, getUserData } from '../lib/userService';
+import { saveUserData, getUserData, checkUsernameAvailability } from '../lib/userService';
 import Home from './Home';
 
 export default function AuthForm() {
@@ -14,6 +14,8 @@ export default function AuthForm() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
+  const [usernameCheckTimeout, setUsernameCheckTimeout] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -21,6 +23,39 @@ export default function AuthForm() {
     });
     return () => unsubscribe();
   }, []);
+
+  const checkUsername = async (value: string) => {
+    if (!value.trim() || isLogin) {
+      setUsernameStatus('idle');
+      return;
+    }
+    
+    setUsernameStatus('checking');
+    
+    const formattedUsername = value.replace(/\s+/g, '_').toLowerCase();
+    const available = await checkUsernameAvailability(formattedUsername);
+    
+    setUsernameStatus(available ? 'available' : 'taken');
+  };
+
+  const handleUsernameChange = (value: string) => {
+    setUsername(value);
+    
+    if (usernameCheckTimeout) {
+      clearTimeout(usernameCheckTimeout);
+    }
+    
+    if (!value.trim()) {
+      setUsernameStatus('idle');
+      return;
+    }
+    
+    const timeout = setTimeout(() => {
+      checkUsername(value);
+    }, 500);
+    
+    setUsernameCheckTimeout(timeout);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,8 +85,21 @@ export default function AuthForm() {
           setLoading(false);
           return;
         }
+        
+        if (usernameStatus === 'taken') {
+          setError('Este nombre de usuario ya está en uso');
+          setLoading(false);
+          return;
+        }
+        
+        if (usernameStatus !== 'available') {
+          setError('Por favor espera a que se valide el nombre de usuario');
+          setLoading(false);
+          return;
+        }
+        
+        const formattedUsername = (username || email.split('@')[0]).replace(/\s+/g, '_').toLowerCase();
         await createUserWithEmailAndPassword(auth, email, password);
-        const formattedUsername = (username || email.split('@')[0]).replace(/\s+/g, '_');
         await saveUserData({
           fullName: fullName || email.split('@')[0],
           username: formattedUsername,
@@ -92,13 +140,19 @@ export default function AuthForm() {
                 onChange={(e) => setFullName(e.target.value)}
                 required
               />
-              <input
-                type="text"
-                placeholder="Nombre de usuario"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-              />
+              <div className="username-input-wrapper">
+                <input
+                  type="text"
+                  placeholder="Nombre de usuario"
+                  value={username}
+                  onChange={(e) => handleUsernameChange(e.target.value)}
+                  required
+                  className={usernameStatus === 'taken' ? 'input-error' : usernameStatus === 'available' ? 'input-success' : ''}
+                />
+                {usernameStatus === 'checking' && <span className="checking-text">Validando nombre de usuario...</span>}
+                {usernameStatus === 'available' && <span className="success-text">✓ Nombre de usuario disponible</span>}
+                {usernameStatus === 'taken' && <span className="error-text">✗ Este nombre de usuario ya está en uso</span>}
+              </div>
             </>
           )}
           

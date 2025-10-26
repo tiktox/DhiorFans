@@ -1,5 +1,6 @@
 import { auth, db } from './firebase';
-import { collection, addDoc, deleteDoc, getDocs, query, where, doc, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, getDocs, query, where, doc, Timestamp, getDoc } from 'firebase/firestore';
+import { notifyLike } from './notificationService';
 
 export interface Like {
   id: string;
@@ -28,6 +29,17 @@ export const toggleLike = async (postId: string): Promise<{ isLiked: boolean; li
       userId,
       timestamp: Timestamp.now()
     });
+    
+    // Crear notificación para el dueño del post
+    try {
+      const postDoc = await getDoc(doc(db, 'posts', postId));
+      if (postDoc.exists()) {
+        const postOwnerId = postDoc.data().userId;
+        await notifyLike(postOwnerId, userId, postId);
+      }
+    } catch (error) {
+      console.error('Error creating like notification:', error);
+    }
   }
   
   // ✅ OPTIMIZACIÓN: Obtener contador real del servidor

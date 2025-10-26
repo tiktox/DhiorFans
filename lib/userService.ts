@@ -75,11 +75,24 @@ const canChangeUsername = (lastChange?: number): boolean => {
   return lastChange < oneMonthAgo;
 };
 
-const isUsernameAvailable = async (username: string): Promise<boolean> => {
+const isUsernameAvailable = async (username: string, currentUserId?: string): Promise<boolean> => {
   const formattedUsername = formatUsername(username);
   const q = query(collection(db, 'users'), where('username', '==', formattedUsername));
   const querySnapshot = await getDocs(q);
-  return querySnapshot.empty;
+  
+  if (querySnapshot.empty) return true;
+  
+  // Si hay un usuario con ese username, verificar si es el usuario actual
+  if (currentUserId) {
+    const docs = querySnapshot.docs;
+    return docs.length === 1 && docs[0].id === currentUserId;
+  }
+  
+  return false;
+};
+
+export const checkUsernameAvailability = async (username: string): Promise<boolean> => {
+  return isUsernameAvailable(username);
 };
 
 export const validateUsername = async (username: string, currentUsername: string, lastChange?: number): Promise<{ valid: boolean; error?: string }> => {

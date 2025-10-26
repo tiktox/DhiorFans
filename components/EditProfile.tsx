@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { UserData, saveUserData, validateUsername } from '../lib/userService';
+import { UserData, saveUserData, validateUsername, checkUsernameAvailability } from '../lib/userService';
 import { uploadProfilePicture } from '../lib/uploadService';
 import { auth } from '../lib/firebase';
 
@@ -17,7 +17,8 @@ export default function EditProfile({ userData, onNavigateBack, onSave }: EditPr
     link: '',
     profilePicture: ''
   });
-  const [usernameError, setUsernameError] = useState('');
+  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
+  const [usernameCheckTimeout, setUsernameCheckTimeout] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (userData) {
@@ -34,6 +35,11 @@ export default function EditProfile({ userData, onNavigateBack, onSave }: EditPr
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (usernameStatus === 'taken') {
+      alert('Este nombre de usuario ya está en uso');
+      return;
+    }
+    
     const usernameValidation = await validateUsername(
       formData.username,
       userData.username,
@@ -41,7 +47,7 @@ export default function EditProfile({ userData, onNavigateBack, onSave }: EditPr
     );
     
     if (!usernameValidation.valid) {
-      setUsernameError(usernameValidation.error || '');
+      alert(usernameValidation.error || 'Error al validar nombre de usuario');
       return;
     }
     
@@ -101,10 +107,38 @@ export default function EditProfile({ userData, onNavigateBack, onSave }: EditPr
     }
   };
 
+  const checkUsername = async (value: string) => {
+    const formattedUsername = value.replace(/\s+/g, '_').toLowerCase();
+    const originalUsername = userData.username.toLowerCase();
+    
+    if (formattedUsername === originalUsername) {
+      setUsernameStatus('idle');
+      return;
+    }
+    
+    if (!value.trim()) {
+      setUsernameStatus('idle');
+      return;
+    }
+    
+    setUsernameStatus('checking');
+    const available = await checkUsernameAvailability(formattedUsername);
+    setUsernameStatus(available ? 'available' : 'taken');
+  };
+
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setFormData({ ...formData, username: value });
-    setUsernameError('');
+    
+    if (usernameCheckTimeout) {
+      clearTimeout(usernameCheckTimeout);
+    }
+    
+    const timeout = setTimeout(() => {
+      checkUsername(value);
+    }, 500);
+    
+    setUsernameCheckTimeout(timeout);
   };
 
   return (
@@ -160,9 +194,12 @@ export default function EditProfile({ userData, onNavigateBack, onSave }: EditPr
             value={formData.username}
             onChange={handleUsernameChange}
             required
+            className={usernameStatus === 'taken' ? 'input-error' : usernameStatus === 'available' ? 'input-success' : ''}
           />
           <small className="username-help">Los espacios se reemplazarán por guiones bajos (_)</small>
-          {usernameError && <div className="error-message">{usernameError}</div>}
+          {usernameStatus === 'checking' && <small className="checking-text">Validando nombre de usuario...</small>}
+          {usernameStatus === 'available' && <small className="success-text">✓ Nombre de usuario disponible</small>}
+          {usernameStatus === 'taken' && <div className="error-message">✗ Este nombre de usuario ya está en uso</div>}
         </div>
 
         <div className="form-group">
