@@ -50,7 +50,7 @@ export default function MultiImagePlayer({ post, isActive, onProfileClick, onPos
   }, [post.userId, post.id]);
 
   const handleImageTouchStart = (e: React.TouchEvent) => {
-    if (!scrollRef.current) return;
+    if (!scrollRef.current || !isActive) return;
     touchStartX.current = e.touches[0].clientX;
     touchStartTime.current = Date.now();
     hasMovedSignificantly.current = false;
@@ -61,13 +61,13 @@ export default function MultiImagePlayer({ post, isActive, onProfileClick, onPos
   };
 
   const handleImageTouchMove = (e: React.TouchEvent) => {
-    if (!isDraggingImage.current || !wrapperRef.current || !scrollRef.current) return;
+    if (!isDraggingImage.current || !wrapperRef.current || !scrollRef.current || !isActive) return;
     const currentX = e.touches[0].clientX;
     const diff = currentX - touchStartX.current;
     
-    // Detectar movimiento significativo para diferenciar de tap
     if (Math.abs(diff) > 10) {
       hasMovedSignificantly.current = true;
+      e.stopPropagation();
     }
     
     const containerWidth = scrollRef.current.offsetWidth;
@@ -76,8 +76,7 @@ export default function MultiImagePlayer({ post, isActive, onProfileClick, onPos
   };
 
   const handleImageTouchEnd = (e: React.TouchEvent) => {
-    if (!isDraggingImage.current || !wrapperRef.current || !scrollRef.current) return;
-
+    if (!isDraggingImage.current || !wrapperRef.current || !scrollRef.current || !isActive) return;
     
     const endX = e.changedTouches[0].clientX;
     const diff = endX - touchStartX.current;
@@ -85,15 +84,14 @@ export default function MultiImagePlayer({ post, isActive, onProfileClick, onPos
     const threshold = containerWidth * 0.2;
     const touchDuration = Date.now() - touchStartTime.current;
     
-    // Si fue un tap rápido sin movimiento significativo, manejar como like
     if (!hasMovedSignificantly.current && touchDuration < 250) {
       isDraggingImage.current = false;
-      // No hacer nada aquí, el overlay manejará el tap
       wrapperRef.current.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
       wrapperRef.current.style.transform = `translateX(-${currentImageIndex * 100}%)`;
       return;
     }
     
+    isDraggingImage.current = false;
     wrapperRef.current.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
     
     let newIndex = currentImageIndex;
@@ -208,7 +206,7 @@ export default function MultiImagePlayer({ post, isActive, onProfileClick, onPos
         ))}
       </div>
 
-      <div className="image-click-overlay" onClick={handleImageClick} />
+      {isActive && <div className="image-click-overlay" onClick={handleImageClick} />}
 
       {showLikeAnimation && (
         <div className="like-animation">

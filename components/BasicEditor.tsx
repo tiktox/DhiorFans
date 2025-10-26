@@ -149,10 +149,13 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
         style: 'normal',
         rotation: 0
       }))]);
-      setCurrentImageIndex(updatedImages.length - 1);
+      const newIndex = updatedImages.length - 1;
+      setCurrentImageIndex(newIndex);
       setTimeout(() => {
-        scrollRef.current?.scrollTo({ left: (updatedImages.length - 1) * scrollRef.current.offsetWidth, behavior: 'smooth' });
-      }, 100);
+        if (wrapperRef.current) {
+          wrapperRef.current.style.transform = `translateX(-${newIndex * 100}%)`;
+        }
+      }, 50);
     }
   };
 
