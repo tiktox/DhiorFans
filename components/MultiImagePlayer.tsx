@@ -50,7 +50,7 @@ export default function MultiImagePlayer({ post, isActive, onProfileClick, onPos
   }, [post.userId, post.id]);
 
   const handleImageTouchStart = (e: React.TouchEvent) => {
-    if (!scrollRef.current || !isActive) return;
+    if (!scrollRef.current) return;
     touchStartX.current = e.touches[0].clientX;
     touchStartTime.current = Date.now();
     hasMovedSignificantly.current = false;
@@ -61,13 +61,12 @@ export default function MultiImagePlayer({ post, isActive, onProfileClick, onPos
   };
 
   const handleImageTouchMove = (e: React.TouchEvent) => {
-    if (!isDraggingImage.current || !wrapperRef.current || !scrollRef.current || !isActive) return;
+    if (!isDraggingImage.current || !wrapperRef.current || !scrollRef.current) return;
     const currentX = e.touches[0].clientX;
     const diff = currentX - touchStartX.current;
     
     if (Math.abs(diff) > 10) {
       hasMovedSignificantly.current = true;
-      e.stopPropagation();
     }
     
     const containerWidth = scrollRef.current.offsetWidth;
@@ -76,7 +75,7 @@ export default function MultiImagePlayer({ post, isActive, onProfileClick, onPos
   };
 
   const handleImageTouchEnd = (e: React.TouchEvent) => {
-    if (!isDraggingImage.current || !wrapperRef.current || !scrollRef.current || !isActive) return;
+    if (!isDraggingImage.current || !wrapperRef.current || !scrollRef.current) return;
     
     const endX = e.changedTouches[0].clientX;
     const diff = endX - touchStartX.current;
@@ -88,6 +87,7 @@ export default function MultiImagePlayer({ post, isActive, onProfileClick, onPos
       isDraggingImage.current = false;
       wrapperRef.current.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
       wrapperRef.current.style.transform = `translateX(-${currentImageIndex * 100}%)`;
+      handleImageClick();
       return;
     }
     
@@ -206,7 +206,7 @@ export default function MultiImagePlayer({ post, isActive, onProfileClick, onPos
         ))}
       </div>
 
-      {isActive && <div className="image-click-overlay" onClick={handleImageClick} />}
+
 
       {showLikeAnimation && (
         <div className="like-animation">
