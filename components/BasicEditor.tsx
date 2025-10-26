@@ -31,9 +31,11 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
   const isMultiImage = images.length > 1;
   const [currentImageIndex, setCurrentImageIndex] = useState(images.length - 1);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const touchStartX = useRef<number>(0);
-  const touchEndX = useRef<number>(0);
+  const isDraggingImage = useRef<boolean>(false);
+  const startOffset = useRef<number>(0);
   const isTextModeActive = isTextMode || mediaFile.file.name === 'text_background.jpg';
   const [title, setTitle] = useState('');
   const [overlayText, setOverlayText] = useState('');
@@ -73,16 +75,45 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
   const audioInputRef = useRef<HTMLInputElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
 
-  const handleScroll = () => {
-    if (scrollRef.current) {
-      const scrollLeft = scrollRef.current.scrollLeft;
-      const width = scrollRef.current.offsetWidth;
-      const newIndex = Math.round(scrollLeft / width);
-      if (newIndex !== currentImageIndex) {
-        setCurrentImageIndex(newIndex);
-      }
+  const handleImageTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    isDraggingImage.current = true;
+    startOffset.current = currentImageIndex;
+    if (wrapperRef.current) {
+      wrapperRef.current.style.transition = 'none';
     }
   };
+
+  const handleImageTouchMove = (e: React.TouchEvent) => {
+    if (!isDraggingImage.current || !wrapperRef.current) return;
+    const diff = e.touches[0].clientX - touchStartX.current;
+    const offset = -currentImageIndex * 100 + (diff / wrapperRef.current.offsetWidth) * 100;
+    wrapperRef.current.style.transform = `translateX(${offset}%)`;
+  };
+
+  const handleImageTouchEnd = (e: React.TouchEvent) => {
+    if (!isDraggingImage.current || !wrapperRef.current) return;
+    isDraggingImage.current = false;
+    
+    const diff = e.changedTouches[0].clientX - touchStartX.current;
+    const threshold = wrapperRef.current.offsetWidth * 0.25;
+    
+    wrapperRef.current.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+    
+    if (diff < -threshold && currentImageIndex < images.length - 1) {
+      setCurrentImageIndex(currentImageIndex + 1);
+    } else if (diff > threshold && currentImageIndex > 0) {
+      setCurrentImageIndex(currentImageIndex - 1);
+    } else {
+      wrapperRef.current.style.transform = `translateX(-${currentImageIndex * 100}%)`;
+    }
+  };
+
+  useEffect(() => {
+    if (wrapperRef.current) {
+      wrapperRef.current.style.transform = `translateX(-${currentImageIndex * 100}%)`;
+    }
+  }, [currentImageIndex]);
 
   const handleAddMoreImages = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -521,7 +552,14 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
       <div className="basic-editor-content">
         {isMultiImage && images.length > 1 && (
           <>
-            <div className="multi-image-scroll" ref={scrollRef} onScroll={handleScroll}>
+            <div 
+              className="multi-image-scroll" 
+              ref={scrollRef}
+              onTouchStart={handleImageTouchStart}
+              onTouchMove={handleImageTouchMove}
+              onTouchEnd={handleImageTouchEnd}
+            >
+              <div className="multi-image-wrapper" ref={wrapperRef}>
               {images.map((img, index) => (
                 <div key={index} className={`image-slide ${index === currentImageIndex ? 'active' : ''}`}>
                   <img src={img.url} alt={`Image ${index + 1}`} className="editor-media" />
@@ -569,6 +607,7 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
                   )}
                 </div>
               ))}
+              </div>
             </div>
 
             {images.length < 7 && mediaFile.type === 'image' && (

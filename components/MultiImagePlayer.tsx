@@ -24,7 +24,10 @@ export default function MultiImagePlayer({ post, isActive, onProfileClick, onPos
   const [showComments, setShowComments] = useState(false);
   const [commentsCount, setCommentsCount] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const lastTapRef = useRef<number>(0);
+  const touchStartX = useRef<number>(0);
+  const isDragging = useRef<boolean>(false);
 
   const isOwner = auth.currentUser && auth.currentUser.uid === post.userId;
   const imagesData = post.imagesData || [];
@@ -44,16 +47,44 @@ export default function MultiImagePlayer({ post, isActive, onProfileClick, onPos
     fetchCommentsCount();
   }, [post.userId, post.id]);
 
-  const handleScroll = () => {
-    if (scrollRef.current) {
-      const scrollLeft = scrollRef.current.scrollLeft;
-      const width = scrollRef.current.offsetWidth;
-      const newIndex = Math.round(scrollLeft / width);
-      if (newIndex !== currentImageIndex) {
-        setCurrentImageIndex(newIndex);
-      }
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    isDragging.current = true;
+    if (wrapperRef.current) {
+      wrapperRef.current.style.transition = 'none';
     }
   };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging.current || !wrapperRef.current) return;
+    const diff = e.touches[0].clientX - touchStartX.current;
+    const offset = -currentImageIndex * 100 + (diff / wrapperRef.current.offsetWidth) * 100;
+    wrapperRef.current.style.transform = `translateX(${offset}%)`;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!isDragging.current || !wrapperRef.current) return;
+    isDragging.current = false;
+    
+    const diff = e.changedTouches[0].clientX - touchStartX.current;
+    const threshold = wrapperRef.current.offsetWidth * 0.25;
+    
+    wrapperRef.current.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+    
+    if (diff < -threshold && currentImageIndex < imagesData.length - 1) {
+      setCurrentImageIndex(currentImageIndex + 1);
+    } else if (diff > threshold && currentImageIndex > 0) {
+      setCurrentImageIndex(currentImageIndex - 1);
+    } else {
+      wrapperRef.current.style.transform = `translateX(-${currentImageIndex * 100}%)`;
+    }
+  };
+
+  useEffect(() => {
+    if (wrapperRef.current) {
+      wrapperRef.current.style.transform = `translateX(-${currentImageIndex * 100}%)`;
+    }
+  }, [currentImageIndex]);
 
   const handleDeletePost = async () => {
     if (auth.currentUser && await deletePost(post.id, auth.currentUser.uid)) {
@@ -105,7 +136,14 @@ export default function MultiImagePlayer({ post, isActive, onProfileClick, onPos
 
   return (
     <div className="multi-image-container">
-      <div className="multi-images-scroll" ref={scrollRef} onScroll={handleScroll}>
+      <div 
+        className="multi-images-scroll" 
+        ref={scrollRef}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        <div className="multi-image-wrapper" ref={wrapperRef}>
         {imagesData.map((imageData: any, index: number) => (
           <div key={index} className={`multi-image-slide ${index === currentImageIndex ? 'active' : ''}`}>
             <img src={imageData.url} alt={`Image ${index + 1}`} className="reel-image" />
@@ -132,6 +170,7 @@ export default function MultiImagePlayer({ post, isActive, onProfileClick, onPos
             )}
           </div>
         ))}
+        </div>
       </div>
 
       <div className="multi-image-indicators">
