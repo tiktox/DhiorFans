@@ -21,7 +21,6 @@ export default function AuthForm() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      setNeedsVerification(false); // Permitir acceso sin verificación
     });
     return () => unsubscribe();
   }, []);
