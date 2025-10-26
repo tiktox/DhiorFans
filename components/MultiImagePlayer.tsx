@@ -28,6 +28,8 @@ export default function MultiImagePlayer({ post, isActive, onProfileClick, onPos
   const lastTapRef = useRef<number>(0);
   const touchStartX = useRef<number>(0);
   const isDraggingImage = useRef<boolean>(false);
+  const touchStartTime = useRef<number>(0);
+  const hasMovedSignificantly = useRef<boolean>(false);
 
   const isOwner = auth.currentUser && auth.currentUser.uid === post.userId;
   const imagesData = post.imagesData || [];
@@ -50,6 +52,8 @@ export default function MultiImagePlayer({ post, isActive, onProfileClick, onPos
   const handleImageTouchStart = (e: React.TouchEvent) => {
     if (!scrollRef.current) return;
     touchStartX.current = e.touches[0].clientX;
+    touchStartTime.current = Date.now();
+    hasMovedSignificantly.current = false;
     isDraggingImage.current = true;
     if (wrapperRef.current) {
       wrapperRef.current.style.transition = 'none';
@@ -60,6 +64,12 @@ export default function MultiImagePlayer({ post, isActive, onProfileClick, onPos
     if (!isDraggingImage.current || !wrapperRef.current || !scrollRef.current) return;
     const currentX = e.touches[0].clientX;
     const diff = currentX - touchStartX.current;
+    
+    // Detectar movimiento significativo para diferenciar de tap
+    if (Math.abs(diff) > 10) {
+      hasMovedSignificantly.current = true;
+    }
+    
     const containerWidth = scrollRef.current.offsetWidth;
     const offset = -currentImageIndex * 100 + (diff / containerWidth) * 100;
     wrapperRef.current.style.transform = `translateX(${offset}%)`;
@@ -67,12 +77,22 @@ export default function MultiImagePlayer({ post, isActive, onProfileClick, onPos
 
   const handleImageTouchEnd = (e: React.TouchEvent) => {
     if (!isDraggingImage.current || !wrapperRef.current || !scrollRef.current) return;
-    isDraggingImage.current = false;
+
     
     const endX = e.changedTouches[0].clientX;
     const diff = endX - touchStartX.current;
     const containerWidth = scrollRef.current.offsetWidth;
     const threshold = containerWidth * 0.2;
+    const touchDuration = Date.now() - touchStartTime.current;
+    
+    // Si fue un tap rápido sin movimiento significativo, manejar como like
+    if (!hasMovedSignificantly.current && touchDuration < 250) {
+      isDraggingImage.current = false;
+      // No hacer nada aquí, el overlay manejará el tap
+      wrapperRef.current.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+      wrapperRef.current.style.transform = `translateX(-${currentImageIndex * 100}%)`;
+      return;
+    }
     
     wrapperRef.current.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
     
