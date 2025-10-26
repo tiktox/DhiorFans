@@ -54,20 +54,39 @@ export default function MultiImagePlayer({ post, isActive, onProfileClick, onPos
 
   const handleTouchStart = (e: React.TouchEvent) => {
     const touch = e.touches[0];
-    scrollRef.current!.dataset.startX = touch.clientX.toString();
+    if (scrollRef.current) {
+      scrollRef.current.dataset.startX = touch.clientX.toString();
+      scrollRef.current.dataset.startTime = Date.now().toString();
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!scrollRef.current) return;
+    const touch = e.touches[0];
+    const startX = parseFloat(scrollRef.current.dataset.startX || '0');
+    const diff = touch.clientX - startX;
+    scrollRef.current.scrollLeft = currentImageIndex * scrollRef.current.offsetWidth - diff;
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!scrollRef.current) return;
     const touch = e.changedTouches[0];
-    const startX = parseFloat(scrollRef.current!.dataset.startX || '0');
+    const startX = parseFloat(scrollRef.current.dataset.startX || '0');
+    const startTime = parseFloat(scrollRef.current.dataset.startTime || '0');
     const diff = startX - touch.clientX;
+    const timeDiff = Date.now() - startTime;
+    const velocity = Math.abs(diff) / timeDiff;
     
-    if (Math.abs(diff) > 50) {
+    if (velocity > 0.5 || Math.abs(diff) > scrollRef.current.offsetWidth * 0.3) {
       if (diff > 0 && currentImageIndex < imagesData.length - 1) {
-        handleScroll('right');
+        setCurrentImageIndex(currentImageIndex + 1);
       } else if (diff < 0 && currentImageIndex > 0) {
-        handleScroll('left');
+        setCurrentImageIndex(currentImageIndex - 1);
+      } else {
+        scrollRef.current.scrollTo({ left: currentImageIndex * scrollRef.current.offsetWidth, behavior: 'smooth' });
       }
+    } else {
+      scrollRef.current.scrollTo({ left: currentImageIndex * scrollRef.current.offsetWidth, behavior: 'smooth' });
     }
   };
 
@@ -127,7 +146,7 @@ export default function MultiImagePlayer({ post, isActive, onProfileClick, onPos
 
   return (
     <div className="multi-image-container">
-      <div className="multi-images-scroll" ref={scrollRef} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+      <div className="multi-images-scroll" ref={scrollRef} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
         {imagesData.map((imageData: any, index: number) => (
           <div key={index} className={`multi-image-slide ${index === currentImageIndex ? 'active' : ''}`}>
             <img src={imageData.url} alt={`Image ${index + 1}`} className="reel-image" />
