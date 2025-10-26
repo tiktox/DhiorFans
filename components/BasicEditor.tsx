@@ -32,6 +32,8 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
   const [currentImageIndex, setCurrentImageIndex] = useState(images.length - 1);
   const scrollRef = useRef<HTMLDivElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
+  const touchStartX = useRef<number>(0);
+  const touchEndX = useRef<number>(0);
   const isTextModeActive = isTextMode || mediaFile.file.name === 'text_background.jpg';
   const [title, setTitle] = useState('');
   const [overlayText, setOverlayText] = useState('');
@@ -70,6 +72,17 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
   const fonts = ['Arial', 'Georgia', 'Times New Roman', 'Courier New', 'Verdana', 'Comic Sans MS', 'Impact', 'Trebuchet MS'];
   const audioInputRef = useRef<HTMLInputElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
+
+  const handleScroll = () => {
+    if (scrollRef.current) {
+      const scrollLeft = scrollRef.current.scrollLeft;
+      const width = scrollRef.current.offsetWidth;
+      const newIndex = Math.round(scrollLeft / width);
+      if (newIndex !== currentImageIndex) {
+        setCurrentImageIndex(newIndex);
+      }
+    }
+  };
 
   const handleAddMoreImages = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -508,7 +521,7 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
       <div className="basic-editor-content">
         {isMultiImage && images.length > 1 && (
           <>
-            <div className="multi-image-scroll" ref={scrollRef}>
+            <div className="multi-image-scroll" ref={scrollRef} onScroll={handleScroll}>
               {images.map((img, index) => (
                 <div key={index} className={`image-slide ${index === currentImageIndex ? 'active' : ''}`}>
                   <img src={img.url} alt={`Image ${index + 1}`} className="editor-media" />
@@ -569,25 +582,9 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
               </button>
             )}
 
-            {currentImageIndex > 0 && (
-              <button className="nav-btn nav-left" onClick={() => {
-                setCurrentImageIndex(currentImageIndex - 1);
-                scrollRef.current?.scrollTo({ left: (currentImageIndex - 1) * scrollRef.current.offsetWidth, behavior: 'smooth' });
-              }}>‹</button>
-            )}
-            {currentImageIndex < images.length - 1 && (
-              <button className="nav-btn nav-right" onClick={() => {
-                setCurrentImageIndex(currentImageIndex + 1);
-                scrollRef.current?.scrollTo({ left: (currentImageIndex + 1) * scrollRef.current.offsetWidth, behavior: 'smooth' });
-              }}>›</button>
-            )}
-
             <div className="image-indicators">
               {images.map((_, i) => (
-                <div key={i} className={`indicator ${i === currentImageIndex ? 'active' : ''}`} onClick={() => {
-                  setCurrentImageIndex(i);
-                  scrollRef.current?.scrollTo({ left: i * scrollRef.current.offsetWidth, behavior: 'smooth' });
-                }} />
+                <div key={i} className={`indicator ${i === currentImageIndex ? 'active' : ''}`} />
               ))}
             </div>
           </>

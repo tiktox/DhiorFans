@@ -230,6 +230,8 @@
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  scroll-behavior: smooth;
+  touch-action: pan-x;
 }
 
 .multi-image-scroll::-webkit-scrollbar {
@@ -241,42 +243,14 @@
   height: 100%;
   position: relative;
   scroll-snap-align: start;
+  scroll-snap-stop: always;
 }
 
 .image-slide img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-.nav-btn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.3);
-  border: none;
-  color: #fff;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  font-size: 24px;
-  cursor: pointer;
-  z-index: 60;
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
-}
-
-.nav-btn:hover {
-  background: rgba(255, 255, 255, 0.5);
-  transform: translateY(-50%) scale(1.1);
-}
-
-.nav-left {
-  left: 20px;
-}
-
-.nav-right {
-  right: 20px;
+  pointer-events: none;
 }
 
 .image-indicators {
@@ -287,6 +261,7 @@
   display: flex;
   gap: 8px;
   z-index: 70;
+  pointer-events: none;
 }
 
 .indicator {
@@ -294,7 +269,6 @@
   height: 8px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.5);
-  cursor: pointer;
   transition: all 0.3s ease;
 }
 
@@ -343,12 +317,6 @@
 
 /* Mobile Portrait */
 @media (max-width: 767px) and (orientation: portrait) {
-  .nav-btn {
-    width: 44px;
-    height: 44px;
-    font-size: 26px;
-  }
-
   .image-indicators {
     bottom: 260px;
   }
@@ -363,20 +331,6 @@
 
 /* Tablet */
 @media (min-width: 768px) and (max-width: 1024px) {
-  .nav-btn {
-    width: 25px;
-    height: 25px;
-    font-size: 22px;
-  }
-
-  .nav-left {
-    left: 15px;
-  }
-
-  .nav-right {
-    right: 15px;
-  }
-
   .image-indicators {
     bottom: 100px;
   }
@@ -391,20 +345,6 @@
 
 /* Desktop */
 @media (min-width: 1025px) {
-  .nav-btn {
-    width: 32px;
-    height: 32px;
-    font-size: 20px;
-  }
-
-  .nav-left {
-    left: 10px;
-  }
-
-  .nav-right {
-    right: 10px;
-  }
-
   .indicator {
     width: 6px;
     height: 6px;
