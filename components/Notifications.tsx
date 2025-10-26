@@ -30,7 +30,8 @@ export default function Notifications({ onNavigateBack, onViewProfile, onViewPos
         setNotifications(newNotifications);
         
         // Cargar datos de usuarios
-        const userIds = [...new Set(newNotifications.map(n => n.fromUserId))];
+        const userIdsSet = new Set(newNotifications.map(n => n.fromUserId));
+        const userIds = Array.from(userIdsSet);
         const usersDataMap: {[key: string]: UserData} = {};
         
         for (const userId of userIds) {
