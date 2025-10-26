@@ -48,6 +48,7 @@ export default function MultiImagePlayer({ post, isActive, onProfileClick, onPos
   }, [post.userId, post.id]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    if (!scrollRef.current) return;
     touchStartX.current = e.touches[0].clientX;
     isDragging.current = true;
     if (wrapperRef.current) {
@@ -56,32 +57,40 @@ export default function MultiImagePlayer({ post, isActive, onProfileClick, onPos
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging.current || !wrapperRef.current) return;
-    const diff = e.touches[0].clientX - touchStartX.current;
-    const offset = -currentImageIndex * 100 + (diff / wrapperRef.current.offsetWidth) * 100;
+    if (!isDragging.current || !wrapperRef.current || !scrollRef.current) return;
+    const currentX = e.touches[0].clientX;
+    const diff = currentX - touchStartX.current;
+    const containerWidth = scrollRef.current.offsetWidth;
+    const offset = -currentImageIndex * 100 + (diff / containerWidth) * 100;
     wrapperRef.current.style.transform = `translateX(${offset}%)`;
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!isDragging.current || !wrapperRef.current) return;
+    if (!isDragging.current || !wrapperRef.current || !scrollRef.current) return;
     isDragging.current = false;
     
-    const diff = e.changedTouches[0].clientX - touchStartX.current;
-    const threshold = wrapperRef.current.offsetWidth * 0.25;
+    const endX = e.changedTouches[0].clientX;
+    const diff = endX - touchStartX.current;
+    const containerWidth = scrollRef.current.offsetWidth;
+    const threshold = containerWidth * 0.2;
     
     wrapperRef.current.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
     
+    let newIndex = currentImageIndex;
+    
     if (diff < -threshold && currentImageIndex < imagesData.length - 1) {
-      setCurrentImageIndex(currentImageIndex + 1);
+      newIndex = currentImageIndex + 1;
     } else if (diff > threshold && currentImageIndex > 0) {
-      setCurrentImageIndex(currentImageIndex - 1);
-    } else {
-      wrapperRef.current.style.transform = `translateX(-${currentImageIndex * 100}%)`;
+      newIndex = currentImageIndex - 1;
     }
+    
+    setCurrentImageIndex(newIndex);
+    wrapperRef.current.style.transform = `translateX(-${newIndex * 100}%)`;
   };
 
   useEffect(() => {
     if (wrapperRef.current) {
+      wrapperRef.current.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
       wrapperRef.current.style.transform = `translateX(-${currentImageIndex * 100}%)`;
     }
   }, [currentImageIndex]);
