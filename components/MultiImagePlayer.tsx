@@ -27,7 +27,7 @@ export default function MultiImagePlayer({ post, isActive, onProfileClick, onPos
   const wrapperRef = useRef<HTMLDivElement>(null);
   const lastTapRef = useRef<number>(0);
   const touchStartX = useRef<number>(0);
-  const isDragging = useRef<boolean>(false);
+  const isDraggingImage = useRef<boolean>(false);
 
   const isOwner = auth.currentUser && auth.currentUser.uid === post.userId;
   const imagesData = post.imagesData || [];
@@ -47,17 +47,17 @@ export default function MultiImagePlayer({ post, isActive, onProfileClick, onPos
     fetchCommentsCount();
   }, [post.userId, post.id]);
 
-  const handleTouchStart = (e: React.TouchEvent) => {
+  const handleImageTouchStart = (e: React.TouchEvent) => {
     if (!scrollRef.current) return;
     touchStartX.current = e.touches[0].clientX;
-    isDragging.current = true;
+    isDraggingImage.current = true;
     if (wrapperRef.current) {
       wrapperRef.current.style.transition = 'none';
     }
   };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging.current || !wrapperRef.current || !scrollRef.current) return;
+  const handleImageTouchMove = (e: React.TouchEvent) => {
+    if (!isDraggingImage.current || !wrapperRef.current || !scrollRef.current) return;
     const currentX = e.touches[0].clientX;
     const diff = currentX - touchStartX.current;
     const containerWidth = scrollRef.current.offsetWidth;
@@ -65,9 +65,9 @@ export default function MultiImagePlayer({ post, isActive, onProfileClick, onPos
     wrapperRef.current.style.transform = `translateX(${offset}%)`;
   };
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!isDragging.current || !wrapperRef.current || !scrollRef.current) return;
-    isDragging.current = false;
+  const handleImageTouchEnd = (e: React.TouchEvent) => {
+    if (!isDraggingImage.current || !wrapperRef.current || !scrollRef.current) return;
+    isDraggingImage.current = false;
     
     const endX = e.changedTouches[0].clientX;
     const diff = endX - touchStartX.current;
@@ -148,9 +148,9 @@ export default function MultiImagePlayer({ post, isActive, onProfileClick, onPos
       <div 
         className="multi-images-scroll" 
         ref={scrollRef}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+        onTouchStart={handleImageTouchStart}
+        onTouchMove={handleImageTouchMove}
+        onTouchEnd={handleImageTouchEnd}
       >
         <div className="multi-image-wrapper" ref={wrapperRef}>
         {imagesData.map((imageData: any, index: number) => (
