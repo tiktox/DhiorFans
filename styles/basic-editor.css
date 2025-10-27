@@ -284,23 +284,21 @@
 
 .add-gallery-btn {
   position: absolute;
-  bottom:30px;
-  border-radius: 100px;
+  top: 23px;
+  right: 50px;
   width: 30px;
   height: 30px;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.6);
   border: 2px solid rgba(255, 255, 255, 0.8);
-  border-radius: 12px;
+  border-radius: 50%;
   color: #fff;
   cursor: pointer;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(20px);
   transition: all 0.3s ease;
-  z-index: 80;
-  gap: 2px;
+  z-index: 100;
 }
 
 .add-gallery-btn:hover {
@@ -322,15 +320,12 @@
 /* Mobile Portrait */
 @media (max-width: 767px) and (orientation: portrait) {
   .image-indicators {
-    bottom: 260px;
+    bottom:300px;
   }
 
   .add-gallery-btn {
-    border-radius: 100px;
-    top: 23px;
-    right: 85px;
-    width: 30px;
-    height: 30px;
+    top: 53px;
+    right: 160px;
   }
 }
 
@@ -341,11 +336,8 @@
   }
 
   .add-gallery-btn {
-    border-radius: 100px;
     top: 23px;
-    right: 85px;
-    width: 30px;
-    height: 30px;
+    right: 55px;
   }
 }
 
@@ -365,20 +357,17 @@
   }
 
   .add-gallery-btn {
-    border-radius: 100px;
-    top: 23px;
-    right: 10px;
-    width: 30px;
-    height: 30px;
+    top: 54px;
+    right: 87px;
   }
 
   .add-gallery-btn svg {
-    width: 18px;
-    height: 18px;
+    width: 14px;
+    height: 14px;
   }
 
   .add-gallery-btn .plus-icon {
-    font-size: 16px;
+    font-size: 14px;
   }
 }
 
@@ -763,6 +752,9 @@
 }
 
 .music-btn {
+  position: relative;
+  bottom:-30px;
+  right:79px;
   width: 30px;
   height: 30px;
   background: rgba(0, 0, 0, 0.6);
