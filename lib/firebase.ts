@@ -1,13 +1,7 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
-import { getFirestore, connectFirestoreEmulator, enableNetwork, disableNetwork } from 'firebase/firestore';
-
-// Configurar idioma para emails
-if (typeof window !== 'undefined') {
-  const auth = getAuth();
-  auth.languageCode = 'es';
-}
+import { getFirestore, enableNetwork } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -20,14 +14,8 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-// Verificar configuración
-if (!firebaseConfig.apiKey) {
-  console.error('Firebase API Key no encontrada');
-}
-
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 export const auth = getAuth(app);
-auth.languageCode = 'es'; // Configurar idioma español
 export const storage = getStorage(app);
 export const db = getFirestore(app);
 
