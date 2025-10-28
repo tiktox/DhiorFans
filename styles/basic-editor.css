@@ -316,12 +316,12 @@
 /* Mobile Portrait */
 @media (max-width: 767px) and (orientation: portrait) {
   .image-indicators {
-    bottom:98%;
+    bottom:95%;
   }
 
   .add-gallery-btn {
-    bottom:98%;
-    right: 10%;
+    bottom:92.8%;
+    right: 20%;
   }
 }
 
