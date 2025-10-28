@@ -4,6 +4,7 @@ import { getUserData, saveUserData } from '../lib/userService';
 import { createPost } from '../lib/postService';
 import { uploadFile } from '../lib/uploadService';
 import { AudioService } from '../lib/audioService';
+import { VideoAudioMerger } from '../lib/videoAudioMerger';
 import AudioGallery from './AudioGallery';
 import FullscreenButton from './FullscreenButton';
 import AudioWaveSelector from './AudioWaveSelector';
@@ -69,6 +70,7 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
   const [showWaveSelector, setShowWaveSelector] = useState(false);
   const [selectedTimeRange, setSelectedTimeRange] = useState({ start: 0, end: 60 });
   const [isVideoMuted, setIsVideoMuted] = useState(false);
+  const [isMergingVideo, setIsMergingVideo] = useState(false);
   
   const colors = ['#ffffff', '#0066ff', '#000000', '#ff0000', '#ffff00', '#00ff00', '#ff00ff', '#00ffff'];
   const fonts = ['Arial', 'Georgia', 'Times New Roman', 'Courier New', 'Verdana', 'Comic Sans MS', 'Impact', 'Trebuchet MS'];
@@ -379,7 +381,7 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
       const userData = await getUserData();
       if (!userData) throw new Error('No se pudo obtener los datos del usuario');
 
-      // Si es multi-imagen o si se agregaron imágenes
+      // Si es multi-imagen
       if (images.length > 1) {
         const uploadPromises = images.map(img => uploadFile(img.file, auth.currentUser!.uid));
         const mediaUrls = await Promise.all(uploadPromises);
@@ -406,7 +408,7 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
         return;
       }
 
-      // Publicación normal (una imagen o video)
+      // Publicación normal
       const postData: any = {
         userId: auth.currentUser.uid,
         title: title.trim(),
@@ -426,52 +428,35 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
         };
       }
       
-      // Subir archivos en paralelo
-      const uploadPromises: Promise<any>[] = [
-        getUserData(),
-        uploadFile(images[0].file, auth.currentUser.uid)
-      ];
-
-      // Agregar audio a las promesas si existe
-      if (audioFile) {
-        const audioBlob = new Blob([audioFile], { type: 'audio/wav' });
-        const audioDuration = selectedTimeRange.end - selectedTimeRange.start;
-        
-        uploadPromises.push(
-          AudioService.processAndUploadAudio(
-            audioBlob,
-            audioFile.name,
-            auth.currentUser.uid,
-            audioDuration,
+      let finalMediaFile = images[0].file;
+      
+      // Si es video con audio, fusionarlos
+      if (images[0].type === 'video' && audioFile) {
+        setIsMergingVideo(true);
+        try {
+          const mergedVideoBlob = await VideoAudioMerger.mergeVideoWithAudio(
+            images[0].file,
+            audioFile,
             selectedTimeRange.start,
-            selectedTimeRange.end,
-            true
-          )
-        );
+            selectedTimeRange.end
+          );
+          finalMediaFile = new File([mergedVideoBlob], `video_${Date.now()}.webm`, { type: 'video/webm' });
+          console.log('✅ Video fusionado con audio exitosamente');
+        } catch (mergeError) {
+          console.error('Error fusionando video:', mergeError);
+          alert('Error al fusionar video con audio. Se publicará sin audio.');
+        } finally {
+          setIsMergingVideo(false);
+        }
       }
-
-      const results = await Promise.all(uploadPromises);
-      const userDataResult = results[0];
-      const mediaUrl = results[1];
-      const audioMetadata = results[2];
       
-      if (!userDataResult) {
-        throw new Error('No se pudo obtener los datos del usuario');
-      }
-
+      // Subir archivo final
+      const mediaUrl = await uploadFile(finalMediaFile, auth.currentUser.uid);
       postData.mediaUrl = mediaUrl;
-      
-      if (audioMetadata?.url) {
-        postData.audioUrl = audioMetadata.url;
-        postData.audioTimeRange = selectedTimeRange;
-      } else if (selectedAudioUrl) {
-        postData.audioUrl = selectedAudioUrl;
-        postData.audioTimeRange = selectedTimeRange;
-      }
 
       await Promise.all([
         createPost(postData),
-        saveUserData({ posts: userDataResult.posts + 1 })
+        saveUserData({ posts: userData.posts + 1 })
       ]);
 
       onPublish();
@@ -480,8 +465,9 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
       alert(error instanceof Error ? error.message : 'Error del cliente. Verifica tu conexión.');
     } finally {
       setIsUploading(false);
+      setIsMergingVideo(false);
     }
-  }, [title, auth.currentUser, isUploading, mediaFile.file, audioFile, selectedAudioUrl, selectedTimeRange, textPosition, textSize, textColor, fontFamily, textStyle, textRotation, overlayText, mediaFile.type, onPublish, cleanupAudio, isMultiImage, images, imageTexts, imageTextStyles]);
+  }, [title, auth.currentUser, isUploading, audioFile, selectedTimeRange, textPosition, textSize, textColor, fontFamily, textStyle, textRotation, overlayText, onPublish, cleanupAudio, images, imageTexts, imageTextStyles]);
 
   // Actualizar audio cuando cambie mediaFile
   useEffect(() => {
@@ -740,7 +726,7 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
               onClick={handlePublish}
               disabled={!canPublish}
             >
-              {isUploading ? 'Publicando...' : 'Publicar'}
+              {isMergingVideo ? 'Fusionando...' : isUploading ? 'Publicando...' : 'Publicar'}
             </button>
           </div>
         </div>

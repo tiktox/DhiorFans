@@ -15,7 +15,7 @@ export default function WinnerModal({ isOpen, tokensWon, keyword, onClose }: Win
           <div className="winner-emoji">🎉</div>
           <h2 className="winner-title">¡Felicitaciones!</h2>
           <p className="winner-message">
-            ¡Adivinaste la palabra clave y ganaste tokens!
+            ¿Cómo adivinaste? ¡Ganaste tokens!
           </p>
           
           <div className="winner-tokens">
@@ -23,11 +23,11 @@ export default function WinnerModal({ isOpen, tokensWon, keyword, onClose }: Win
           </div>
           
           <div className="winner-keyword">
-            Palabra: "{keyword}"
+            Palabra clave: "{keyword}"
           </div>
           
           <button className="winner-close-btn" onClick={onClose}>
-            ¡Genial!
+            ¡Increíble!
           </button>
         </div>
       </div>
