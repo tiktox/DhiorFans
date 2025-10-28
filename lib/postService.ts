@@ -41,6 +41,9 @@ export interface Post {
   keywords?: string[];
   tokensReward?: number;
   isActive?: boolean;
+  winnerId?: string;
+  winnerKeyword?: string;
+  winnerTimestamp?: number;
 }
 
 const postsCollection = collection(db, 'posts');
