@@ -150,23 +150,20 @@ export default function CommentsModal({ postId, isOpen, postData, onClose, onPro
       // Verificar si ganó tokens en dinámica (solo si está activa)
       if (postData?.isDynamic && isDynamicActive && postData.isActive) {
         const result = await checkDynamicComment(postId, trimmedComment, auth.currentUser.uid, () => {
-          // Notificar que la dinámica se completó
           onDynamicCompleted?.();
         });
         
         if (result.isWinner) {
-          // Efectos de celebración
           if ('vibrate' in navigator) {
             navigator.vibrate([200, 100, 200, 100, 200]);
           }
           
-          // Mostrar modal de ganador
-          setWinnerData({ tokensWon: result.tokensWon, keyword: result.keyword || '' });
+          // Recargar comentarios inmediatamente para mostrar el estilo ganador
+          await loadComments(postId, 10, true);
           
-          // Notificar que la dinámica se completó para actualizar UI
+          setWinnerData({ tokensWon: result.tokensWon, keyword: result.keyword || '' });
           onDynamicCompleted?.();
         } else if (result.error) {
-          // Mostrar error si hay alguno
           setToast({message: result.error, type: 'error'});
         }
       }

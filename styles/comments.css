@@ -230,6 +230,7 @@
   border-radius: 8px;
   padding: 12px 20px;
   position: relative;
+  box-shadow: 0 0 15px rgba(0, 255, 85, 0.4);
   animation: winnerGlow 2s ease-in-out infinite;
 }
 
@@ -243,17 +244,18 @@
   height: 12px;
   background: #00ff55;
   border-radius: 50%;
+  box-shadow: 0 0 15px rgba(0, 255, 85, 0.8);
   animation: greenPulse 1.5s ease-in-out infinite;
 }
 
 .comment-item.winner-comment .comment-text {
   font-weight: 600;
-  color: #00ff55;
+  color: #00ff55 !important;
   text-shadow: 0 0 15px rgba(0, 255, 85, 0.5);
 }
 
 .comment-item.winner-comment .comment-username {
-  color: #00ff55;
+  color: #00ff55 !important;
   font-weight: 700;
   text-shadow: 0 0 10px rgba(0, 255, 85, 0.4);
 }
@@ -270,11 +272,11 @@
 @keyframes greenPulse {
   0%, 100% {
     transform: translateY(-50%) scale(1);
-    box-shadow: 0 0 15px rgba(0, 255, 85, 0.8);
+    box-shadow: 0 0 1px rgba(0, 255, 85, 0.8);
   }
   50% {
     transform: translateY(-50%) scale(1.2);
-    box-shadow: 0 0 25px rgba(0, 255, 85, 1);
+    box-shadow: 0 0 2px rgba(0, 255, 85, 1);
   }
 }
 
