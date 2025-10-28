@@ -316,24 +316,24 @@
 /* Mobile Portrait */
 @media (max-width: 767px) and (orientation: portrait) {
   .image-indicators {
-    bottom:635px;
+    bottom:90%;
   }
 
   .add-gallery-btn {
-    bottom:635px;
-    right: 80px;
+    bottom:92.5%;
+    right: 16.5%;
   }
 }
 
 /* Tablet */
 @media (min-width: 768px) and (max-width: 1024px) {
   .image-indicators {
-    bottom:635px;
+    bottom:92.5%;
   }
 
   .add-gallery-btn {
-    bottom: 635px;
-    right: 75px;
+    bottom: 92.5;
+    right: 16.5%;
   }
 }
 
