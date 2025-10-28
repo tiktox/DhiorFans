@@ -283,7 +283,7 @@
 }
 
 .add-gallery-btn {
-  position:fixed;
+  position:absolute;
   width: 30px;
   height: 30px;
   background: rgba(0, 0, 0, 0.6);
@@ -320,8 +320,8 @@
   }
 
   .add-gallery-btn {
-    bottom:553px;
-    right:92px;
+    bottom:635px;
+    right: 80px;
   }
 }
 
@@ -332,7 +332,7 @@
   }
 
   .add-gallery-btn {
-    top: 0;
+    top: 300px;
     right: 55px;
   }
 }
@@ -353,8 +353,8 @@
   }
 
   .add-gallery-btn {
-    bottom:554px;
-    right:508px;
+    bottom:567px;
+    right: 8px;
   }
 
   .add-gallery-btn svg {
