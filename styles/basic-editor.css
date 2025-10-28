@@ -316,7 +316,7 @@
 /* Mobile Portrait */
 @media (max-width: 767px) and (orientation: portrait) {
   .image-indicators {
-    bottom:300px;
+    bottom:635px;
   }
 
   .add-gallery-btn {
@@ -332,7 +332,7 @@
   }
 
   .add-gallery-btn {
-    bottom: 0;
+    bottom: 635px;
     right: 75px;
   }
 }
