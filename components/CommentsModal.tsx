@@ -37,10 +37,10 @@ export default function CommentsModal({ postId, isOpen, postData, onClose, onPro
   const isDynamicActive = useDynamicStatus(postId, postData?.isDynamic ? postData.isActive : undefined);
 
   useEffect(() => {
-    if (isOpen && flatComments.length === 0) {
+    if (isOpen) {
       loadComments(postId, 10, true);
     }
-  }, [isOpen, postId]);
+  }, [isOpen, postId, loadComments]);
 
   // Asegurarnos de que el código solo se ejecute en el cliente
   useEffect(() => {

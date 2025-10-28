@@ -166,7 +166,7 @@ export default function Editor({ mediaFile, onNavigateBack, userTokens = 90 }: E
                     }}
                     disabled={isPublishing || selectedTokens > userTokens}
                   >
-                    {isPublishing ? 'Descontando tokens...' : `Publicar (${selectedTokens} 💰)`}
+                    {isPublishing ? 'Descontando tokens...' : `Crear dinamica con ${selectedTokens} 💰`}
                   </button>
                 </div>
               ) : (
