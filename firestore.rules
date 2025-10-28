@@ -20,7 +20,8 @@ service cloud.firestore {
          (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'comments', 'commentsCount']) &&
           (!('commentsCount' in request.resource.data.diff(resource.data).changedKeys()) ||
            request.resource.data.commentsCount == resource.data.commentsCount + 1 ||
-           request.resource.data.commentsCount == resource.data.commentsCount - 1)));
+           request.resource.data.commentsCount == resource.data.commentsCount - 1)) ||
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isActive', 'winnerId', 'winnerKeyword', 'winnerTimestamp']));
       allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
     }
 
@@ -33,7 +34,8 @@ service cloud.firestore {
          (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'comments', 'commentsCount']) &&
           (!('commentsCount' in request.resource.data.diff(resource.data).changedKeys()) ||
            request.resource.data.commentsCount == resource.data.commentsCount + 1 ||
-           request.resource.data.commentsCount == resource.data.commentsCount - 1)));
+           request.resource.data.commentsCount == resource.data.commentsCount - 1)) ||
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isActive', 'winnerId', 'winnerKeyword', 'winnerTimestamp']));
       allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
     }
 

@@ -553,7 +553,10 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
           getPostCommentsCount(post.id).then(setCommentsCount);
         }}
         onProfileClick={onProfileClick}
-        onDynamicCompleted={post.isDynamic ? onDynamicCompleted : undefined}
+        onDynamicCompleted={post.isDynamic ? () => {
+          onDynamicCompleted?.();
+          getPostCommentsCount(post.id).then(setCommentsCount);
+        } : undefined}
       />
     </div>
   );
