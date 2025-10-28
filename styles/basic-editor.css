@@ -332,7 +332,7 @@
   }
 
   .add-gallery-btn {
-    top: 635px;
+    bottom: 635px;
     right: 75px;
   }
 }
