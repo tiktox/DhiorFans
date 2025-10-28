@@ -5080,7 +5080,6 @@ background-color: linear-gradient(135deg, #FF0000, #00BFFF);
   transform: translateY(-50%);
   width: 8px;
   height: 8px;
-  background: #2196f3;
   border-radius: 50%;
   animation: dotPulse 2s ease-in-out infinite;
 }
