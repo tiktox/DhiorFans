@@ -328,11 +328,11 @@
 /* Tablet */
 @media (min-width: 768px) and (max-width: 1024px) {
   .image-indicators {
-    bottom:0;
+    bottom:635px;
   }
 
   .add-gallery-btn {
-    bottom: 635px;
+    bottom: 0;
     right: 75px;
   }
 }
