@@ -121,23 +121,19 @@ export default function CommentsModal({ postId, isOpen, postData, onClose, onPro
 
     // Validaciones para dinámicas
     if (postData?.isDynamic) {
-      // Verificar si la dinámica sigue activa
-      if (!isDynamicActive) {
-        setToast({message: 'Esta dinámica ya finalizó', type: 'error'});
-        return;
-      }
-
       // El creador no puede comentar
       if (auth.currentUser.uid === postData.userId) {
         setToast({message: 'No puedes comentar tu propia dinámica', type: 'error'});
         return;
       }
 
-      // Máximo 2 comentarios por usuario
-      const commentCount = await getUserCommentCount(postId, auth.currentUser.uid);
-      if (commentCount >= 2) {
-        setToast({message: 'Máximo 2 comentarios por dinámica', type: 'error'});
-        return;
+      // Máximo 2 comentarios por usuario solo si la dinámica está activa
+      if (isDynamicActive) {
+        const commentCount = await getUserCommentCount(postId, auth.currentUser.uid);
+        if (commentCount >= 2) {
+          setToast({message: 'Máximo 2 comentarios por dinámica', type: 'error'});
+          return;
+        }
       }
     }
     
@@ -151,8 +147,8 @@ export default function CommentsModal({ postId, isOpen, postData, onClose, onPro
       const collection = postData?.isDynamic ? 'posts' : 'reels';
       await addComment(postId, trimmedComment, collection);
       
-      // Verificar si ganó tokens en dinámica
-      if (postData?.isDynamic && isDynamicActive) {
+      // Verificar si ganó tokens en dinámica (solo si está activa)
+      if (postData?.isDynamic && isDynamicActive && postData.isActive) {
         const result = await checkDynamicComment(postId, trimmedComment, auth.currentUser.uid, () => {
           // Notificar que la dinámica se completó
           onDynamicCompleted?.();
@@ -261,12 +257,12 @@ export default function CommentsModal({ postId, isOpen, postData, onClose, onPro
         <div className="comment-input">
           <input
             type="text"
-            placeholder={postData?.isDynamic && isDynamicActive ? "Adivina una palabra clave..." : postData?.isDynamic ? "Dinámica finalizada" : "Agregar un comentario"}
+            placeholder={postData?.isDynamic && isDynamicActive ? "Adivina una palabra clave..." : postData?.isDynamic ? "Agregar un comentario..." : "Agregar un comentario"}
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleAddComment()}
             maxLength={500}
-            disabled={(postData?.isDynamic && auth.currentUser?.uid === postData.userId) || (postData?.isDynamic && !isDynamicActive)}
+            disabled={postData?.isDynamic && auth.currentUser?.uid === postData.userId}
           />
           <div className="char-counter">{newComment.length}/500</div>
           {newComment.trim() && (

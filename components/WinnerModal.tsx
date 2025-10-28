@@ -19,7 +19,7 @@ export default function WinnerModal({ isOpen, tokensWon, keyword, onClose }: Win
           </p>
           
           <div className="winner-tokens">
-            <div className="winner-tokens-amount">+{tokensWon} 🪙</div>
+            <div className="winner-tokens-amount">+{tokensWon} </div>
           </div>
           
           <div className="winner-keyword">
@@ -27,7 +27,7 @@ export default function WinnerModal({ isOpen, tokensWon, keyword, onClose }: Win
           </div>
           
           <button className="winner-close-btn" onClick={onClose}>
-            ¡Increíble!
+            Recibir Tokens
           </button>
         </div>
       </div>

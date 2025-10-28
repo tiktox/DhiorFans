@@ -226,8 +226,7 @@
 }
 
 .comment-item.winner-comment {
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 165, 0, 0.1) 100%);
-  border-left: 3px solid #ffd700;
+  border-left: 3px solid #00ff55;
   border-radius: 8px;
   padding: 12px 20px;
   position: relative;
@@ -235,40 +234,47 @@
 }
 
 .comment-item.winner-comment::before {
-  content: '👑';
+  content: '';
   position: absolute;
-  top: 8px;
+  top: 50%;
   right: 15px;
-  font-size: 20px;
-  animation: crownBounce 1s ease-in-out infinite;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 12px;
+  background: #00ff55;
+  border-radius: 50%;
+  animation: greenPulse 1.5s ease-in-out infinite;
 }
 
 .comment-item.winner-comment .comment-text {
-  font-weight: 500;
-  color: #ffd700;
-  text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+  font-weight: 600;
+  color: #00ff55;
+  text-shadow: 0 0 15px rgba(0, 255, 85, 0.5);
 }
 
 .comment-item.winner-comment .comment-username {
-  color: #ffd700;
+  color: #00ff55;
   font-weight: 700;
+  text-shadow: 0 0 10px rgba(0, 255, 85, 0.4);
 }
 
 @keyframes winnerGlow {
   0%, 100% {
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+    box-shadow: 0 0 1px rgba(0, 255, 85, 0.4);
   }
   50% {
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+    box-shadow: 0 0 2px rgba(0, 255, 85, 0.6);
   }
 }
 
-@keyframes crownBounce {
+@keyframes greenPulse {
   0%, 100% {
-    transform: translateY(0);
+    transform: translateY(-50%) scale(1);
+    box-shadow: 0 0 15px rgba(0, 255, 85, 0.8);
   }
   50% {
-    transform: translateY(-5px);
+    transform: translateY(-50%) scale(1.2);
+    box-shadow: 0 0 25px rgba(0, 255, 85, 1);
   }
 }
 
@@ -538,14 +544,14 @@
 }
 
 .winner-modal {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #00ff55 0%, #00dd66 100%);
   border-radius: 20px;
   padding: 40px 30px;
   max-width: 90%;
   width: 350px;
   text-align: center;
   animation: bounceIn 0.5s ease-out;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 20px 60px rgba(0, 255, 85, 0.4);
 }
 
 .winner-content {
@@ -574,7 +580,7 @@
 }
 
 .winner-tokens {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.2);
   border-radius: 15px;
   padding: 15px 30px;
   margin: 10px 0;
@@ -583,8 +589,8 @@
 .winner-tokens-amount {
   font-size: 32px;
   font-weight: 700;
-  color: #ffd700;
-  text-shadow: 0 2px 10px rgba(255, 215, 0, 0.5);
+  color: #ffffff;
+  text-shadow: 0 2px 10px rgba(0, 255, 21, 0.5);
 }
 
 .winner-keyword {
@@ -595,7 +601,7 @@
 
 .winner-close-btn {
   background: white;
-  color: #667eea;
+  color: #000000;
   border: none;
   padding: 12px 30px;
   border-radius: 25px;
@@ -608,7 +614,8 @@
 
 .winner-close-btn:hover {
   transform: scale(1.05);
-  box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
+  background: black;
+  color:#ffffff;
 }
 
 @keyframes bounceIn {
