@@ -225,6 +225,53 @@
   word-wrap: break-word;
 }
 
+.comment-item.winner-comment {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 165, 0, 0.1) 100%);
+  border-left: 3px solid #ffd700;
+  border-radius: 8px;
+  padding: 12px 20px;
+  position: relative;
+  animation: winnerGlow 2s ease-in-out infinite;
+}
+
+.comment-item.winner-comment::before {
+  content: '👑';
+  position: absolute;
+  top: 8px;
+  right: 15px;
+  font-size: 20px;
+  animation: crownBounce 1s ease-in-out infinite;
+}
+
+.comment-item.winner-comment .comment-text {
+  font-weight: 500;
+  color: #ffd700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.comment-item.winner-comment .comment-username {
+  color: #ffd700;
+  font-weight: 700;
+}
+
+@keyframes winnerGlow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+  }
+}
+
+@keyframes crownBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
 .comment-actions {
   display: flex;
   gap: 20px;

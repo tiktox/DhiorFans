@@ -38,42 +38,45 @@ export interface Comment {
 export const createComment = async (
   postId: string,
   text: string,
-  postCollection: 'reels' | 'posts' = 'reels', // Parámetro opcional para especificar la colección
-  parentId?: string // ID del comentario padre para respuestas
+  postCollection: 'reels' | 'posts' = 'reels',
+  parentId?: string
 ): Promise<Comment> => {
   if (!auth.currentUser) throw new Error('Usuario no autenticado para comentar.');
   if (!text.trim()) throw new Error('El comentario no puede estar vacío.');
+  if (text.length > 500) throw new Error('El comentario excede el límite de 500 caracteres.');
 
   const userData = await getUserData();
 
   const commentData = {
-    postId,
+    postId: postId.trim(),
     userId: auth.currentUser.uid,
-    username: userData.username,
+    username: userData.username || 'Usuario',
     profilePicture: userData.profilePicture || '',
     text: text.trim(),
     timestamp: Timestamp.now(),
-    ...(parentId && { parentId }),
+    ...(parentId && { parentId: parentId.trim() }),
   };
 
   const docRef = await addDoc(collection(db, 'comments'), commentData);
+  console.log('✅ Comentario guardado exitosamente:', docRef.id);
 
-  // Incrementar el contador de comentarios en la colección correcta.
-  // Se envuelve en un try/catch para que la creación del comentario no falle si el post no se encuentra.
   try {
     const postRef = doc(db, postCollection, postId);
-    await updateDoc(postRef, { commentsCount: increment(1) });
-    
-    // Crear notificación para el dueño del post
     const postDoc = await getDoc(postRef);
+    
     if (postDoc.exists()) {
+      await updateDoc(postRef, { commentsCount: increment(1) });
+      
       const postOwnerId = postDoc.data().userId;
-      await notifyComment(postOwnerId, auth.currentUser.uid, postId, docRef.id);
+      if (postOwnerId !== auth.currentUser.uid) {
+        await notifyComment(postOwnerId, auth.currentUser.uid, postId, docRef.id);
+      }
+      console.log('✅ Contador de comentarios actualizado');
+    } else {
+      console.warn('⚠️ Post no encontrado, comentario guardado sin actualizar contador');
     }
   } catch (error) {
-    const sanitizedPostId = postId.replace(/[\r\n\t]/g, '');
-    const sanitizedCollection = postCollection.replace(/[\r\n\t]/g, '');
-    console.warn(`No se pudo actualizar el contador de comentarios para el post ${sanitizedPostId} en la colección ${sanitizedCollection}:`, error);
+    console.error('❌ Error actualizando contador de comentarios:', error);
   }
 
   return {

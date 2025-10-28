@@ -148,7 +148,8 @@ export default function CommentsModal({ postId, isOpen, postData, onClose, onPro
 
     setIsSubmitting(true);
     try {
-      await addComment(postId, trimmedComment);
+      const collection = postData?.isDynamic ? 'posts' : 'reels';
+      await addComment(postId, trimmedComment, collection);
       
       // Verificar si ganó tokens en dinámica
       if (postData?.isDynamic && isDynamicActive) {
@@ -206,7 +207,8 @@ export default function CommentsModal({ postId, isOpen, postData, onClose, onPro
 
     setIsSubmitting(true);
     try {
-      await addComment(postId, trimmedReply, 'reels', commentId);
+      const collection = postData?.isDynamic ? 'posts' : 'reels';
+      await addComment(postId, trimmedReply, collection, commentId);
       setReplyText('');
       setReplyingTo(null);
       setToast({message: 'Respuesta publicada', type: 'success'});
@@ -288,8 +290,10 @@ export default function CommentsModal({ postId, isOpen, postData, onClose, onPro
               <p>¡Sé el primero en comentar!</p>
             </div>
           ) : (
-            comments.map((comment) => (
-            <div key={comment.id} className="comment-item">
+            comments.map((comment) => {
+              const isWinnerComment = postData?.isDynamic && postData?.winnerId === comment.userId;
+              return (
+            <div key={comment.id} className={`comment-item ${isWinnerComment ? 'winner-comment' : ''}`}>
               <div className="comment-main">
                 <div className={`comment-avatar ${usersData[comment.userId]?.isAvatar ? 'avatar-format' : ''}`} data-is-avatar={usersData[comment.userId]?.isAvatar ? 'true' : 'false'} onClick={() => onProfileClick?.(comment.userId)} style={{ cursor: 'pointer' }}>
                   {usersData[comment.userId]?.profilePicture ? (
@@ -390,7 +394,8 @@ export default function CommentsModal({ postId, isOpen, postData, onClose, onPro
                 </div>
               )}
             </div>
-            ))
+              );
+            })
           )}
         </div>
         
