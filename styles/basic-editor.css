@@ -320,19 +320,19 @@
   }
 
   .add-gallery-btn {
-    bottom:92.5%;
-    right: 16.5%;
+    bottom:92%;
+    right: 10%;
   }
 }
 
 /* Tablet */
 @media (min-width: 768px) and (max-width: 1024px) {
   .image-indicators {
-    bottom:94.5%;
+    bottom:110%;
   }
 
   .add-gallery-btn {
-    bottom: 94.5;
+    bottom: 110%;
     right: 20%;
   }
 }
