@@ -283,9 +283,7 @@
 }
 
 .add-gallery-btn {
-  position: absolute;
-  top: 23px;
-  right: 50px;
+  position:absolute;
   width: 30px;
   height: 30px;
   background: rgba(0, 0, 0, 0.6);
@@ -293,9 +291,7 @@
   border-radius: 50%;
   color: #fff;
   cursor: pointer;
-  display: flex;
   align-items: center;
-  justify-content: center;
   backdrop-filter: blur(20px);
   transition: all 0.3s ease;
   z-index: 100;
@@ -324,19 +320,19 @@
   }
 
   .add-gallery-btn {
-    top: 53px;
-    right: 160px;
+    bottom:635px;
+    right: 80px;
   }
 }
 
 /* Tablet */
 @media (min-width: 768px) and (max-width: 1024px) {
   .image-indicators {
-    bottom: 100px;
+    bottom:0;
   }
 
   .add-gallery-btn {
-    top: 23px;
+    top: 0;
     right: 55px;
   }
 }
@@ -353,12 +349,12 @@
   }
 
   .image-indicators {
-    bottom: 90px;
+    bottom: 0;
   }
 
   .add-gallery-btn {
-    top: 54px;
-    right: 87px;
+    bottom:567px;
+    right: 8px;
   }
 
   .add-gallery-btn svg {
@@ -751,8 +747,8 @@
 
 .music-btn {
   position: relative;
-  bottom:-30px;
-  right:79px;
+  bottom:0px;
+  right:0px;
   width: 30px;
   height: 30px;
   background: rgba(0, 0, 0, 0.6);
