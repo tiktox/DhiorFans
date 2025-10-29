@@ -101,7 +101,7 @@ export default function ChatConversation({ user, currentUserId, onNavigateBack }
         </button>
         
         <div className="user-info-header">
-          <div className="user-avatar-header">
+          <div className="user-avatar-header" data-is-avatar={user.isAvatar ? 'true' : 'false'}>
             {user.profilePicture ? (
               <img src={user.profilePicture} alt={user.fullName} />
             ) : (
