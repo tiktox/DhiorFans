@@ -135,7 +135,7 @@ export default function Notifications({ onNavigateBack, onViewProfile, onViewPos
                   className={`notification-item ${!notification.read ? 'unread' : ''}`}
                   onClick={() => handleNotificationClick(notification)}
                 >
-                  <div className="notification-avatar">
+                  <div className="notification-avatar" data-is-avatar={userData?.isAvatar ? 'true' : 'false'}>
                     {userData?.profilePicture ? (
                       <img src={userData.profilePicture} alt={userData.username} />
                     ) : (
