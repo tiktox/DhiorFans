@@ -318,8 +318,8 @@
   }
 
   .add-gallery-btn {
-    bottom:95.5%;
-    right: 26%;
+    bottom:635px;
+    right: 80px;
   }
 }
 
@@ -334,17 +334,6 @@
     right: 20%;
   }
 }
-
-/* Mobile real*/
-@media (max-width:300px) and (min-height:600px) {
-  .add-gallery-btn { 
-    position:absolute;
-  bottom:3%;
-  
-    }
-}
-  
-
 
 /* Desktop */
 @media (min-width: 1025px) {
@@ -362,7 +351,7 @@
   }
 
   .add-gallery-btn {
-    bottom:575px;
+    bottom:568px;
     right: 8px;
   }
 
@@ -558,7 +547,7 @@
 @media (max-width: 767px) {
   .bottom-section {
     position: absolute;
-    bottom: 0;
+    bottom: 10%;
     padding: 15px 20px;
     gap: 8px;
     background: linear-gradient(transparent, rgba(0, 0, 0, 0));
