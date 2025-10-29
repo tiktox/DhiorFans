@@ -10,7 +10,7 @@
 
 .bottom-section {
   position: absolute;
-  bottom: 20px;
+  bottom: 0;
   left: 0;
   right: 0;
   padding: 20px;
@@ -38,7 +38,7 @@
    
   .bottom-section {
     position: absolute;
-    top: 80%;
+    bottom:0;
     left: 50%;
     transform: translate(-50%, -50%);
     width: 300px;
@@ -113,8 +113,6 @@
     border-radius: 24px;
     box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
   }
-  
-
 }
 
 .basic-editor-header {
@@ -316,7 +314,7 @@
 /* Mobile Portrait */
 @media (max-width: 767px) and (orientation: portrait) {
   .image-indicators {
-    bottom:95%;
+    bottom:0;
   }
 
   .add-gallery-btn {
@@ -337,6 +335,17 @@
   }
 }
 
+/* Mobile real*/
+@media (max-width:300px) and (min-height:600px) {
+  .add-gallery-btn { 
+    position:absolute;
+  bottom:3%;
+  
+    }
+}
+  
+
+
 /* Desktop */
 @media (min-width: 1025px) {
   .indicator {
@@ -353,7 +362,7 @@
   }
 
   .add-gallery-btn {
-    bottom:567px;
+    bottom:575px;
     right: 8px;
   }
 
@@ -525,7 +534,7 @@
 /* Responsive para móviles */
 @media (max-width: 767px) {
   .text-controls {
-    bottom: 100px;
+    bottom: 0;
     left: 10px;
     right: 10px;
     padding: 30px;
@@ -549,7 +558,7 @@
 @media (max-width: 767px) {
   .bottom-section {
     position: absolute;
-    bottom: 100px;
+    bottom: 0;
     padding: 15px 20px;
     gap: 8px;
     background: linear-gradient(transparent, rgba(0, 0, 0, 0));
@@ -580,7 +589,7 @@
 
 @media (max-width: 350px) {
   .bottom-section {
-    bottom: 20px;
+    bottom:0;
     padding: 12px 15px;
     gap: 10px;
   }
