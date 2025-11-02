@@ -55,7 +55,7 @@
 }
 
 .chat-header .back-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgb(44, 44, 44);
 }
 
 .chat-header h2 {

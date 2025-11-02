@@ -32,7 +32,12 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
   }
 
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('reelsMuted') === 'true';
+    }
+    return false;
+  });
   const [progress, setProgress] = useState(0);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [authorData, setAuthorData] = useState<UserData | null>(null);
@@ -41,9 +46,10 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
   const [showLikeAnimation, setShowLikeAnimation] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [commentsCount, setCommentsCount] = useState(0);
+
   const isDynamicActive = useDynamicStatus(post.id, post.isDynamic ? post.isActive : undefined);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const audioRef = useRef<HTMLAudioElement>(null);
+
   const lastTapRef = useRef<number>(0);
 
 
@@ -78,45 +84,54 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
 
   useEffect(() => {
     if (videoRef.current) {
+      videoRef.current.muted = isMuted;
       if (isActive) {
-        videoRef.current.play();
+        console.log('▶️ Reproduciendo video...');
+        videoRef.current.play().catch(e => {
+          if (e.name !== 'AbortError') {
+            console.error('Error reproduciendo video:', e);
+          }
+        });
         setIsPlaying(true);
       } else {
+        console.log('⏸️ Pausando video');
         videoRef.current.pause();
         setIsPlaying(false);
       }
     }
-    
-    // Manejar audio
-    if (post.audioUrl && audioRef.current) {
-      if (isActive) {
-        audioRef.current.play();
-      } else {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
+  }, [isActive, isMuted]);
+
+  useEffect(() => {
+    const handleMuteChange = (e: CustomEvent) => {
+      setIsMuted(e.detail.muted);
+      if (videoRef.current) {
+        videoRef.current.muted = e.detail.muted;
       }
-    }
-  }, [isActive, post.audioUrl]);
+    };
+    window.addEventListener('reelsMuteChanged', handleMuteChange as EventListener);
+    return () => window.removeEventListener('reelsMuteChanged', handleMuteChange as EventListener);
+  }, []);
 
   const togglePlayPause = () => {
     if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
-        if (audioRef.current) audioRef.current.pause();
         setIsPlaying(false);
       } else {
         videoRef.current.play();
-        if (audioRef.current) audioRef.current.play();
         setIsPlaying(true);
       }
     }
   };
 
   const toggleMute = () => {
+    const newMutedState = !isMuted;
+    setIsMuted(newMutedState);
+    localStorage.setItem('reelsMuted', String(newMutedState));
     if (videoRef.current) {
-      videoRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
+      videoRef.current.muted = newMutedState;
     }
+    window.dispatchEvent(new CustomEvent('reelsMuteChanged', { detail: { muted: newMutedState } }));
   };
 
   const handleTimeUpdate = () => {
@@ -228,6 +243,8 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
     document.addEventListener('dragstart', preventDrag);
     return () => document.removeEventListener('dragstart', preventDrag);
   }, []);
+
+
   
   const handleDeletePost = async () => {
     if (auth.currentUser && await deletePost(post.id, auth.currentUser.uid)) {
@@ -318,12 +335,16 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
             ref={videoRef}
             src={post.mediaUrl}
             loop
-            muted={isMuted}
+            muted={isMuted || !!post.audioUrl}
             onTimeUpdate={handleTimeUpdate}
             onLoadedMetadata={handleTimeUpdate}
             className="reel-video"
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
+            onError={(e) => {
+              console.error('❌ Error cargando video:', e);
+              console.log('Video URL:', post.mediaUrl);
+            }}
           />
           {/* Barra de progreso solo para videos */}
           <div 
@@ -349,14 +370,7 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
         </>
       )}
       
-      {/* Audio del post */}
-      {post.audioUrl && (
-        <audio
-          ref={audioRef}
-          src={post.audioUrl}
-          loop
-        />
-      )}
+
       
       {/* Texto con estilos personalizados */}
       {post.textStyles && post.overlayText && (
@@ -525,6 +539,7 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
               )}
             </button>
           )}
+
         </div>
       )}
       

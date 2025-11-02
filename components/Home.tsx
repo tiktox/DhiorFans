@@ -11,8 +11,7 @@ import Notifications from './Notifications';
 import CreatePost from './CreatePost';
 import CreateDynamicFlow from './CreateDynamicFlow';
 import BasicEditor from './BasicEditor';
-import AudioEditor from './AudioEditor';
-import AudioGallery from './AudioGallery';
+
 import Chat from './Chat';
 import ReelsFeed from './ReelsFeed';
 import ExternalProfile from './ExternalProfile';
@@ -28,9 +27,8 @@ export default function Home() {
   const [externalUserId, setExternalUserId] = useState<string | null>(null);
   const [externalUserData, setExternalUserData] = useState<UserData | null>(null);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
-  const [editorMediaFile, setEditorMediaFile] = useState<{url: string; file: File; type: 'image' | 'video'; audioFile?: File; audioUrl?: string} | null>(null);
-  const [audioFile, setAudioFile] = useState<File | null>(null);
-  const [showAudioGallery, setShowAudioGallery] = useState(false);
+  const [editorMediaFile, setEditorMediaFile] = useState<{url: string; file: File; type: 'image' | 'video'} | null>(null);
+
   const [unreadCount, setUnreadCount] = useState(0);
   
   // Usar hook de sincronización de perfil
@@ -257,69 +255,11 @@ export default function Home() {
         setRefreshFeed(prev => prev + 1);
         setCurrentView('home');
       }}
-      onOpenAudioEditor={(file) => {
-        setAudioFile(file);
-        setCurrentView('audio-editor');
-      }}
-      onOpenAudioGallery={() => {
-        setShowAudioGallery(true);
-        setCurrentView('audio-gallery');
-      }}
+
     />;
   }
 
-  if (currentView === 'audio-editor' && audioFile) {
-    return <AudioEditor 
-      audioFile={audioFile}
-      onNavigateBack={() => {
-        setAudioFile(null);
-        setCurrentView('editor');
-      }}
-      onUseAudio={(audioBlob, name, audioUrl) => {
-        console.log('Audio para usar:', name, audioBlob);
-        // Crear archivo temporal para el editor
-        const audioFile = new File([audioBlob], `${name}.wav`, { type: 'audio/wav' });
-        // Pasar el audio al editor básico
-        if (editorMediaFile) {
-          setEditorMediaFile({
-            ...editorMediaFile,
-            audioFile,
-            audioUrl
-          });
-        }
-        setAudioFile(null);
-        setCurrentView('editor');
-      }}
-      onPublishAudio={(audioBlob, name) => {
-        console.log('Audio publicado:', name, audioBlob);
-        setAudioFile(null);
-        setCurrentView('editor');
-      }}
-    />;
-  }
 
-  if (currentView === 'audio-gallery') {
-    return <AudioGallery 
-      onNavigateBack={() => {
-        setShowAudioGallery(false);
-        setCurrentView('editor');
-      }}
-      onUseAudio={(audioUrl, audioName, audioBlob) => {
-        console.log('Audio seleccionado de galería:', audioName, audioUrl);
-        // Crear archivo de audio para el editor
-        if (audioBlob && editorMediaFile) {
-          const audioFile = new File([audioBlob], audioName, { type: 'audio/wav' });
-          setEditorMediaFile({
-            ...editorMediaFile,
-            audioFile,
-            audioUrl
-          });
-        }
-        setShowAudioGallery(false);
-        setCurrentView('editor');
-      }}
-    />;
-  }
 
   if (currentView === 'external-profile' && externalUserId && externalUserData) {
     return <ExternalProfile 

@@ -4292,7 +4292,7 @@ input, textarea, [contenteditable="true"] {
 @import url('./camera-interface.css');
 @import url('./publish-interface.css');
 @import url('./store.css');
-@import url('./audio-editor.css');
+
 @import url('./progress-bar-fix.css');
 /* ========================================
    AUDIO EDITOR STYLES - ORGANIZED SECTION
@@ -4804,7 +4804,7 @@ background-color: linear-gradient(135deg, #FF0000, #00BFFF);
   border-radius: 8px;
   z-index: 5;
 }
-@import url('./audio-wave-selector.css');
+
 @import url('./multi-image.css');
 @import url('./google-auth.css');
 
@@ -4931,7 +4931,7 @@ background-color: linear-gradient(135deg, #FF0000, #00BFFF);
 }
 
 .notifications-header .back-btn {
-  background: none;
+  background: rgba(255, 255, 255, 0.1);
   border: none;
   color: white;
   cursor: pointer;
@@ -4944,7 +4944,8 @@ background-color: linear-gradient(135deg, #FF0000, #00BFFF);
 }
 
 .notifications-header .back-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.2);
+  color:white;
 }
 
 .notifications-header h2 {

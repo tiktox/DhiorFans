@@ -31,8 +31,8 @@
   justify-content: center;
   transition: background 0.3s;
   font-size: 18px;
-  width: 40px;
-  height: 40px;
+  width: 30px;
+  height: 30px;
 }
 
 .store-header .back-btn:hover {

@@ -3,18 +3,13 @@ import { auth } from '../lib/firebase';
 import { getUserData, saveUserData } from '../lib/userService';
 import { createPost } from '../lib/postService';
 import { uploadFile } from '../lib/uploadService';
-import { AudioService } from '../lib/audioService';
-import { VideoAudioMerger } from '../lib/videoAudioMerger';
-import AudioGallery from './AudioGallery';
 import FullscreenButton from './FullscreenButton';
-import AudioWaveSelector from './AudioWaveSelector';
 
 interface MediaFile {
   url: string;
   file: File;
   type: 'image' | 'video';
-  audioFile?: File;
-  audioUrl?: string;
+
 }
 
 interface BasicEditorProps {
@@ -22,12 +17,11 @@ interface BasicEditorProps {
   multipleImages?: MediaFile[];
   onNavigateBack: () => void;
   onPublish: () => void;
-  onOpenAudioEditor?: (audioFile: File) => void;
-  onOpenAudioGallery?: () => void;
+
   isTextMode?: boolean;
 }
 
-export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack, onPublish, onOpenAudioEditor, onOpenAudioGallery, isTextMode }: BasicEditorProps) {
+export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack, onPublish, isTextMode }: BasicEditorProps) {
   const [images, setImages] = useState<MediaFile[]>(multipleImages || [mediaFile]);
   const isMultiImage = images.length > 1;
   const [currentImageIndex, setCurrentImageIndex] = useState(images.length - 1);
@@ -49,13 +43,7 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
     style: 'normal',
     rotation: 0
   })) : []);
-  const [audioFile, setAudioFile] = useState<File | null>(mediaFile.audioFile || null);
-  const [selectedAudioUrl, setSelectedAudioUrl] = useState<string>(mediaFile.audioUrl || '');
-  const [selectedAudioName, setSelectedAudioName] = useState<string>(mediaFile.audioFile?.name || '');
   const [isUploading, setIsUploading] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [showAudioGallery, setShowAudioGallery] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [textPosition, setTextPosition] = useState({ x: 50, y: 50 });
@@ -67,14 +55,11 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
   const [fontIndex, setFontIndex] = useState(0);
   const [showTextControls, setShowTextControls] = useState(false);
   const [textRotation, setTextRotation] = useState(0);
-  const [showWaveSelector, setShowWaveSelector] = useState(false);
-  const [selectedTimeRange, setSelectedTimeRange] = useState({ start: 0, end: 60 });
-  const [isVideoMuted, setIsVideoMuted] = useState(false);
-  const [isMergingVideo, setIsMergingVideo] = useState(false);
+
   
   const colors = ['#ffffff', '#0066ff', '#000000', '#ff0000', '#ffff00', '#00ff00', '#ff00ff', '#00ffff'];
   const fonts = ['Arial', 'Georgia', 'Times New Roman', 'Courier New', 'Verdana', 'Comic Sans MS', 'Impact', 'Trebuchet MS'];
-  const audioInputRef = useRef<HTMLInputElement>(null);
+
   const textRef = useRef<HTMLDivElement>(null);
 
   const handleImageTouchStart = (e: React.TouchEvent) => {
@@ -207,96 +192,7 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
     document.addEventListener('touchend', handleEnd);
   };
 
-  const handleAudioSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // Validar que sea un archivo de audio por extensión si el tipo MIME no está disponible
-      const audioExtensions = ['.mp3', '.wav', '.ogg', '.m4a', '.aac', '.flac', '.wma', '.opus'];
-      const isAudio = file.type.startsWith('audio/') || 
-                     audioExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
-      
-      if (!isAudio) {
-        alert('Por favor selecciona un archivo de audio válido.');
-        return;
-      }
-      
-      if (file.size > 10 * 1024 * 1024) {
-        alert('El audio es muy grande. Máximo 10MB.');
-        return;
-      }
-      
-      setAudioFile(file);
-      setSelectedAudioName(file.name);
-      setShowWaveSelector(true);
-      setIsVideoMuted(true);
-    }
-  };
 
-  const handleTimeSelect = (startTime: number, endTime: number) => {
-    setSelectedTimeRange({ start: startTime, end: endTime });
-  };
-
-  const handleUseAudioSelection = (audioBlob: Blob, startTime: number, endTime: number) => {
-    const processedAudioFile = new File([audioBlob], `selected_${selectedAudioName}`, { type: 'audio/wav' });
-    setAudioFile(processedAudioFile);
-    setSelectedTimeRange({ start: startTime, end: endTime });
-    setShowWaveSelector(false);
-    setIsVideoMuted(true);
-    
-    // Limpiar audio anterior
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = '';
-      audioRef.current = null;
-      setIsPlaying(false);
-    }
-  };
-
-  const handleUseGalleryAudio = (audioUrl: string, audioName: string, audioBlob?: Blob) => {
-    setSelectedAudioUrl(audioUrl);
-    setSelectedAudioName(audioName);
-    if (audioBlob) {
-      const audioFile = new File([audioBlob], audioName, { type: 'audio/wav' });
-      setAudioFile(audioFile);
-    } else {
-      setAudioFile(null);
-    }
-    setIsVideoMuted(true);
-    setShowAudioGallery(false);
-  };
-
-  const toggleAudioPreview = () => {
-    const audioSource = audioFile ? URL.createObjectURL(audioFile) : selectedAudioUrl;
-    if (!audioSource) return;
-    
-    if (!audioRef.current) {
-      audioRef.current = new Audio();
-      audioRef.current.preload = 'metadata';
-      audioRef.current.src = audioSource;
-      audioRef.current.addEventListener('ended', () => setIsPlaying(false));
-      
-      audioRef.current.addEventListener('timeupdate', () => {
-        if (audioRef.current && selectedTimeRange.end > 0) {
-          if (audioRef.current.currentTime >= selectedTimeRange.end) {
-            audioRef.current.pause();
-            setIsPlaying(false);
-          }
-        }
-      });
-    }
-    
-    if (isPlaying) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      audioRef.current.currentTime = selectedTimeRange.start;
-      audioRef.current.play().catch(() => {
-        alert('Error al reproducir audio');
-        setIsPlaying(false);
-      });
-      setIsPlaying(true);
-    }
-  };
 
   const handleColorChange = () => {
     const nextIndex = (colorIndex + 1) % colors.length;
@@ -361,30 +257,28 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
     }
   };
 
-  const cleanupAudio = useCallback(() => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      URL.revokeObjectURL(audioRef.current.src);
-      audioRef.current = null;
-      setIsPlaying(false);
-    }
-  }, []);
+
 
   const handlePublish = useCallback(async () => {
     if (!title.trim() || !auth.currentUser || isUploading) return;
 
-    cleanupAudio();
+    console.log('🚀 Iniciando publicación...');
     setIsUploading(true);
     
     try {
       const userData = await getUserData();
       if (!userData) throw new Error('No se pudo obtener los datos del usuario');
+      console.log('✅ Datos de usuario obtenidos');
 
       // Si es multi-imagen
       if (images.length > 1) {
-        const uploadPromises = images.map(img => uploadFile(img.file, auth.currentUser!.uid));
+        console.log(`📸 Subiendo ${images.length} imágenes...`);
+        const uploadPromises = images.map((img, i) => {
+          if (!img.file) throw new Error(`Imagen ${i + 1} no válida`);
+          return uploadFile(img.file, auth.currentUser!.uid);
+        });
         const mediaUrls = await Promise.all(uploadPromises);
+        console.log('✅ Imágenes subidas');
 
         const postData: any = {
           userId: auth.currentUser.uid,
@@ -403,10 +297,18 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
           createPost(postData),
           saveUserData({ posts: userData.posts + 1 })
         ]);
+        console.log('✅ Post multi-imagen creado');
 
         onPublish();
         return;
       }
+
+      // Validar archivo
+      if (!images[0] || !images[0].file) throw new Error('Archivo no válido');
+
+      let fileToUpload = images[0].file;
+
+
 
       // Publicación normal
       const postData: any = {
@@ -426,71 +328,36 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
           style: textStyle,
           rotation: textRotation
         };
+        console.log('✅ Texto overlay agregado');
       }
       
-      let finalMediaFile = images[0].file;
-      
-      // Si es video con audio, fusionarlos
-      if (images[0].type === 'video' && audioFile) {
-        setIsMergingVideo(true);
-        try {
-          const mergedVideoBlob = await VideoAudioMerger.mergeVideoWithAudio(
-            images[0].file,
-            audioFile,
-            selectedTimeRange.start,
-            selectedTimeRange.end
-          );
-          finalMediaFile = new File([mergedVideoBlob], `video_${Date.now()}.webm`, { type: 'video/webm' });
-          console.log('✅ Video fusionado con audio exitosamente');
-        } catch (mergeError) {
-          console.error('Error fusionando video:', mergeError);
-          alert('Error al fusionar video con audio. Se publicará sin audio.');
-        } finally {
-          setIsMergingVideo(false);
-        }
-      }
-      
-      // Subir archivo final
-      const mediaUrl = await uploadFile(finalMediaFile, auth.currentUser.uid);
+      // Subir media (ya fusionada si era video+audio)
+      console.log(`📤 Subiendo ${images[0].type}...`);
+      const mediaUrl = await uploadFile(fileToUpload, auth.currentUser.uid);
+      if (!mediaUrl) throw new Error('Error al subir media');
       postData.mediaUrl = mediaUrl;
+      console.log('✅ Media subido');
+      
 
+
+      console.log('💾 Creando post...');
       await Promise.all([
         createPost(postData),
         saveUserData({ posts: userData.posts + 1 })
       ]);
+      console.log('✅ Post creado exitosamente');
 
       onPublish();
     } catch (error) {
-      console.error('Error al publicar:', error);
-      alert(error instanceof Error ? error.message : 'Error del cliente. Verifica tu conexión.');
+      console.error('❌ Error al publicar:', error);
+      alert(error instanceof Error ? error.message : 'Error al publicar. Verifica tu conexión.');
     } finally {
       setIsUploading(false);
-      setIsMergingVideo(false);
+      console.log('🏁 Proceso finalizado');
     }
-  }, [title, auth.currentUser, isUploading, audioFile, selectedTimeRange, textPosition, textSize, textColor, fontFamily, textStyle, textRotation, overlayText, onPublish, cleanupAudio, images, imageTexts, imageTextStyles]);
+  }, [title, auth.currentUser, isUploading, textPosition, textSize, textColor, fontFamily, textStyle, textRotation, overlayText, onPublish, images, imageTexts, imageTextStyles]);
 
-  // Actualizar audio cuando cambie mediaFile
-  useEffect(() => {
-    if (mediaFile.audioFile && mediaFile.audioUrl) {
-      setAudioFile(mediaFile.audioFile);
-      setSelectedAudioUrl(mediaFile.audioUrl);
-      setSelectedAudioName(mediaFile.audioFile.name);
-    }
-  }, [mediaFile]);
 
-  // Cleanup al desmontar componente
-  useEffect(() => {
-    return () => {
-      cleanupAudio();
-    };
-  }, [cleanupAudio]);
-
-  // Actualizar reproductor cuando cambie el rango de tiempo
-  useEffect(() => {
-    if (audioRef.current && selectedTimeRange.start !== 0) {
-      audioRef.current.currentTime = selectedTimeRange.start;
-    }
-  }, [selectedTimeRange]);
 
   const canPublish = title.trim() && !isUploading && auth.currentUser;
 
@@ -500,23 +367,12 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
       
       <div className="basic-editor-header">
         <div className="header-content">
-        <button className="back-btn" onClick={() => { cleanupAudio(); onNavigateBack(); }}>
-          ←
+        <button className="back-btn" onClick={onNavigateBack}>
+        <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="m15 18-6-6 6-6"/>
+          </svg>
         </button>
-        <div className="audio-section">
-          <button 
-            className="audio-btn"
-            onClick={() => audioInputRef.current?.click()}
-          >
-            <svg className="music-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M9 18V5l12-2v13"/>
-              <circle cx="6" cy="18" r="3"/>
-              <circle cx="18" cy="16" r="3"/>
-            </svg>
-            <span className="scrolling-text">
-              Asegurate de leer nuestra condicciones d...
-            </span>
-          </button>
+        <div className="controls-section">
           <button 
             className="color-circle-btn"
             onClick={handleColorChange}
@@ -528,17 +384,6 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
             title="tipos de fuentes"
           >
             A
-          </button>
-          <button 
-            className="music-btn"
-            onClick={() => onOpenAudioGallery ? onOpenAudioGallery() : setShowAudioGallery(true)}
-            title="Galería de audio"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M9 18V5l12-2v13"/>
-              <circle cx="6" cy="18" r="3"/>
-              <circle cx="18" cy="16" r="3"/>
-            </svg>
           </button>
         </div>
         </div>
@@ -640,26 +485,7 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
         {!isMultiImage && (
         <div className="media-container">
           {mediaFile.type === 'video' ? (
-            <>
-              <video ref={videoRef} src={mediaFile.url} className="editor-media" autoPlay loop muted={isVideoMuted} />
-              {(audioFile || selectedAudioUrl) && (
-                <button 
-                  className="video-mute-toggle"
-                  onClick={() => setIsVideoMuted(!isVideoMuted)}
-                  title={isVideoMuted ? "Activar audio del video" : "Silenciar video"}
-                >
-                  {isVideoMuted ? (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M11 5 6 9H2v6h4l5 4V5ZM22 9l-6 6M16 9l6 6"/>
-                    </svg>
-                  ) : (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M11 5 6 9H2v6h4l5 4V5ZM19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
-                    </svg>
-                  )}
-                </button>
-              )}
-            </>
+            <video ref={videoRef} src={mediaFile.url} className="editor-media" autoPlay loop />
           ) : (
             <img src={mediaFile.url} alt="Media" className="editor-media" />
           )}
@@ -726,19 +552,13 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
               onClick={handlePublish}
               disabled={!canPublish}
             >
-              {isMergingVideo ? 'Fusionando...' : isUploading ? 'Publicando...' : 'Publicar'}
+              {isUploading ? 'Publicando...' : 'Publicar'}
             </button>
           </div>
         </div>
       </div>
 
-      <input
-        ref={audioInputRef}
-        type="file"
-        accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac,.flac,.wma,.opus"
-        onChange={handleAudioSelect}
-        style={{ display: 'none' }}
-      />
+
 
       <input
         ref={galleryInputRef}
@@ -749,48 +569,9 @@ export default function BasicEditor({ mediaFile, multipleImages, onNavigateBack,
         style={{ display: 'none' }}
       />
 
-      {(audioFile || selectedAudioUrl) && (
-        <div className="audio-preview">
-          <span>🎵 {audioFile ? audioFile.name : selectedAudioName}</span>
-          <button onClick={toggleAudioPreview} title={isPlaying ? "Pausar" : "Reproducir (máx. 1 min)"}>
-            {isPlaying ? '⏸️' : '▶️'}
-          </button>
-          <button onClick={() => {
-            if (audioRef.current) {
-              audioRef.current.pause();
-              setIsPlaying(false);
-            }
-            setAudioFile(null);
-            setSelectedAudioUrl('');
-            setSelectedAudioName('');
-            setIsVideoMuted(false);
-          }}>×</button>
-        </div>
-      )}
 
-      {showAudioGallery && (
-        <AudioGallery
-          onNavigateBack={() => setShowAudioGallery(false)}
-          onUseAudio={handleUseGalleryAudio}
-        />
-      )}
 
-      {!isMultiImage && showWaveSelector && audioFile && (
-        <AudioWaveSelector
-          audioFile={audioFile}
-          onTimeSelect={handleTimeSelect}
-          onClose={() => {
-            setShowWaveSelector(false);
-            // Mantener el audio original si el usuario cancela
-            if (!selectedAudioUrl) {
-              setAudioFile(null);
-              setSelectedAudioName('');
-              setIsVideoMuted(false);
-            }
-          }}
-          onUseSelection={handleUseAudioSelection}
-        />
-      )}
+
     </div>
   );
 }
