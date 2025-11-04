@@ -16,7 +16,7 @@ export default function AdComponent({ adId }: AdComponentProps) {
     if (container.querySelector('script')) {
       return;
     }
-
+ 
     const script = document.createElement('script');
     script.type = 'text/javascript';
     script.src = '//pl27776605.revenuecpmgate.com/46/51/b5/4651b52f04f98ac4a95e848e440e9025.js';
