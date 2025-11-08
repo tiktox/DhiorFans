@@ -515,8 +515,8 @@ body {
 
 /* Avatar display - formato rectangular con proporciones originales */
 .avatar-display {
-  max-width: 140px;
-  max-height: 250px;
+  max-width: 500px;
+  max-height: 500px;
   border-radius: 8px;
   border: 2px solid #2195f300;
   overflow: visible;
@@ -1674,8 +1674,8 @@ body {
 
 /* Avatar Display - Rectangular format for avatars con proporciones originales */
 .avatar-display {
-  max-width: 140px;
-  max-height: 250px;
+  max-width: 500px;
+  max-height: 500px;
   border-radius: 12px;
   background: transparent;
   border: none;
