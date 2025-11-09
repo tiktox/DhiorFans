@@ -131,11 +131,11 @@
 
 
  .back-btn {
+  width: 30px;
   height:30px;
-  width:30px;
+ background: rgba(255, 255, 255, 0.1);
   border: none;
-  color: rgb(255, 255, 255);
-  border-color: 2px solid rgba(0, 217, 255, 0.8);
+  color: white;
   cursor: pointer;
   padding: 8px;
   border-radius: 50%;
