@@ -119,7 +119,7 @@ export const createComment = async (
     }
   } catch (error) {
     console.error('❌ Error actualizando contador de comentarios:', error);
-    console.error('❌ Stack trace:', error.stack);
+    console.error('❌ Stack trace:', (error as Error).stack);
   }
 
   return {
