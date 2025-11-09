@@ -18,11 +18,9 @@ export const getUserTokens = async (userId: string): Promise<TokenData> => {
     const tokenDoc = await getDoc(doc(db, 'tokens', userId));
     
     if (!tokenDoc.exists()) {
-      return {
-        tokens: 0,
-        lastClaim: 0,
-        followersCount: 0
-      };
+      // ✅ AUTO-MIGRACIÓN: Crear documento automáticamente
+      console.log('🔄 Auto-creando tokens para usuario:', userId);
+      return await ensureUserTokensExist(userId, 0);
     }
     
     return tokenDoc.data() as TokenData;
@@ -65,8 +63,16 @@ export const claimDailyTokens = async (userId: string, followersCount: number): 
   const now = Date.now();
   const oneDayMs = 24 * 60 * 60 * 1000;
   
-  const tokenData = await getUserTokens(userId);
+  let tokenData = await getUserTokens(userId);
   
+  // ✅ MIGRACIÓN AUTOMÁTICA: Si el usuario no tiene documento de tokens, crearlo
+  if (tokenData.tokens === 0 && tokenData.lastClaim === 0) {
+    console.log('🔄 Migrando usuario antiguo:', userId);
+    await ensureUserTokensExist(userId, followersCount);
+    tokenData = await getUserTokens(userId);
+  }
+  
+  // ✅ VERIFICAR SI PUEDE RECLAMAR (24 horas)
   if (now - tokenData.lastClaim < oneDayMs) {
     return { success: false, tokensEarned: 0, totalTokens: tokenData.tokens };
   }
@@ -74,16 +80,27 @@ export const claimDailyTokens = async (userId: string, followersCount: number): 
   const dailyTokens = calculateDailyTokens(followersCount);
   const newTotal = tokenData.tokens + dailyTokens;
   
-  await updateDoc(doc(db, 'tokens', userId), {
-    tokens: newTotal,
-    lastClaim: now,
-    followersCount
-  });
-  
-  return { success: true, tokensEarned: dailyTokens, totalTokens: newTotal };
+  try {
+    await updateDoc(doc(db, 'tokens', userId), {
+      tokens: newTotal,
+      lastClaim: now,
+      followersCount
+    });
+    
+    console.log(`🪙 Tokens diarios otorgados: ${dailyTokens} (Total: ${newTotal})`);
+    return { success: true, tokensEarned: dailyTokens, totalTokens: newTotal };
+  } catch (error) {
+    console.error('Error actualizando tokens:', error);
+    return { success: false, tokensEarned: 0, totalTokens: tokenData.tokens };
+  }
 };
 
 export const canClaimTokens = (lastClaim: number): boolean => {
+  // ✅ Si nunca ha reclamado (lastClaim = 0), puede reclamar inmediatamente
+  if (lastClaim === 0) {
+    return true;
+  }
+  
   const now = Date.now();
   const oneDayMs = 24 * 60 * 60 * 1000;
   return now - lastClaim >= oneDayMs;
@@ -182,34 +199,36 @@ export const grantFollowerBonus = async (userId: string, newFollowersCount: numb
   }
 };
 
-// Migración para usuarios antiguos
-export const migrateUserTokens = async (userId: string, currentFollowers: number = 0): Promise<void> => {
+// ✅ FUNCIÓN MEJORADA: Asegurar que el usuario tenga documento de tokens
+export const ensureUserTokensExist = async (userId: string, currentFollowers: number = 0): Promise<TokenData> => {
   try {
     const tokenDoc = await getDoc(doc(db, 'tokens', userId));
     
     if (!tokenDoc.exists()) {
-      // Si el usuario tiene 1+ seguidores, darle tokens iniciales
-      const initialTokens = currentFollowers >= 1 ? 60 : 0;
+      // ✅ USUARIOS ANTIGUOS: Dar tokens iniciales generosos
+      const initialTokens = 50; // Bonus para usuarios antiguos
       
       const initialData: TokenData = {
         tokens: initialTokens,
-        lastClaim: 0,
+        lastClaim: 0, // Permitir reclamar inmediatamente
         followersCount: currentFollowers
       };
+      
       await setDoc(doc(db, 'tokens', userId), initialData);
-      console.log(`✅ Tokens migrados para usuario: ${userId} con ${initialTokens} tokens`);
-    } else {
-      // Usuario existente, solo actualizar seguidores si es necesario
-      const data = tokenDoc.data() as TokenData;
-      if (data.followersCount !== currentFollowers) {
-        await updateDoc(doc(db, 'tokens', userId), {
-          followersCount: currentFollowers
-        });
-      }
+      console.log(`🎉 Usuario migrado: ${userId} recibió ${initialTokens} tokens iniciales`);
+      return initialData;
     }
+    
+    return tokenDoc.data() as TokenData;
   } catch (error) {
-    console.error('Error en migración de tokens:', error);
+    console.error('Error asegurando tokens del usuario:', error);
+    return { tokens: 0, lastClaim: 0, followersCount: currentFollowers };
   }
+};
+
+// Migración para usuarios antiguos (mantener compatibilidad)
+export const migrateUserTokens = async (userId: string, currentFollowers: number = 0): Promise<void> => {
+  await ensureUserTokensExist(userId, currentFollowers);
 };
 
 // Inicializar tokens para nuevos usuarios

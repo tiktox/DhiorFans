@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { auth } from '../lib/firebase';
 import { getUserData, getUserDataById, UserData } from '../lib/userService';
 import { useProfileSync } from '../hooks/useProfileSync';
-import { claimDailyTokens, canClaimTokens, getUserTokens } from '../lib/tokenService';
+import { claimDailyTokens, canClaimTokens, getUserTokens, ensureUserTokensExist } from '../lib/tokenService';
 import { getUnreadNotificationsCount } from '../lib/notificationService';
 import Profile from './Profile';
 import Search from './Search';
@@ -84,17 +84,30 @@ export default function Home() {
           const count = await getUnreadNotificationsCount(auth.currentUser.uid);
           setUnreadCount(count);
           
-          // Intentar reclamar tokens diarios automáticamente
+          // ✅ MIGRACIÓN AUTOMÁTICA + TOKENS DIARIOS
           try {
+            // Asegurar que el usuario tenga sistema de tokens
             const tokenData = await getUserTokens(auth.currentUser.uid);
+            console.log('🔍 Estado actual de tokens:', tokenData);
+            
+            // Intentar reclamar tokens diarios
             if (canClaimTokens(tokenData.lastClaim)) {
               const result = await claimDailyTokens(auth.currentUser.uid, data.followers || 0);
               if (result.success) {
                 console.log(`🪙 Tokens diarios reclamados: +${result.tokensEarned} (Total: ${result.totalTokens})`);
+                
+                // Mostrar notificación al usuario
+                if (result.tokensEarned > 0) {
+                  setTimeout(() => {
+                    alert(`🎉 ¡Recibiste ${result.tokensEarned} tokens diarios! Total: ${result.totalTokens}`);
+                  }, 2000);
+                }
               }
+            } else {
+              console.log('⏰ Tokens ya reclamados hoy');
             }
           } catch (tokenError) {
-            console.error('Error reclamando tokens diarios:', tokenError);
+            console.error('Error con sistema de tokens:', tokenError);
           }
         } catch (error) {
           console.error('Error loading initial user data:', error);
