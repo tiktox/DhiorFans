@@ -38,7 +38,7 @@
    
   .bottom-section {
     position: absolute;
-    bottom: 140%;
+    top:10%;
     left: 50px;
     transform: translate(-50%, -50%);
     width: 300px;
