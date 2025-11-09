@@ -500,7 +500,7 @@
 @media (max-width: 767px) {
   .bottom-section {
     position: absolute;
-    bottom: 35%;
+    bottom: 25%;
     padding: 15px 20px;
     gap: 8px;
     background: linear-gradient(transparent, rgba(0, 0, 0, 0));
