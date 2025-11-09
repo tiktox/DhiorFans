@@ -10,6 +10,7 @@
 
 .bottom-section {
   position: absolute;
+  bottom: 5%;
   left: 0;
   right: 0;
   padding: 20px;
@@ -36,7 +37,7 @@
   }
    
   .bottom-section {
-    bottom:25%;
+    bottom:5%;
     left: 50px;
     transform: translate(-50%, -50%);
     width: 300px;
