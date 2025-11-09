@@ -38,7 +38,7 @@
    
   .bottom-section {
     position: absolute;
-    bottom:10px;
+    bottom:50px;
     left: 50%;
     transform: translate(-50%, -50%);
     width: 300px;
@@ -231,7 +231,9 @@
 
 .add-gallery-btn {
   display: flex;
-  position:absolute;
+  position: absolute;
+  top: 20px;
+  right: 20px;
   width: 30px;
   height: 30px;
   background: rgba(0, 0, 0, 0.6);
@@ -240,6 +242,7 @@
   color: #fff;
   cursor: pointer;
   align-items: center;
+  justify-content: center;
   backdrop-filter: blur(20px);
   transition: all 0.3s ease;
   z-index: 100;
@@ -264,24 +267,24 @@
 /* Mobile Portrait */
 @media (max-width: 767px) and (orientation: portrait) {
   .image-indicators {
-    bottom:0;
+    bottom: 0;
   }
 
   .add-gallery-btn {
-    bottom:880px;
-    right: 156px;
+    top: 02;
+    right: 160px;
   }
 }
 
 /* Tablet */
 @media (min-width: 768px) and (max-width: 1024px) {
   .image-indicators {
-    bottom:0;
+    bottom: 0;
   }
 
   .add-gallery-btn {
-    bottom: 0;
-    right: 20%;
+    top: 70px;
+    right: 20px;
   }
 }
 
@@ -301,8 +304,8 @@
   }
 
   .add-gallery-btn {
-    bottom:570px;
-    right:84px;
+    top: 02;
+    right: 85px;
   }
 
   .add-gallery-btn svg {
@@ -497,7 +500,7 @@
 @media (max-width: 767px) {
   .bottom-section {
     position: absolute;
-    bottom: 10%;
+    bottom: 35%;
     padding: 15px 20px;
     gap: 8px;
     background: linear-gradient(transparent, rgba(0, 0, 0, 0));
