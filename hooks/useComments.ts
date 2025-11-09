@@ -65,7 +65,7 @@ export const useComments = () => {
       return newComment;
     } catch (error) {
       console.error('❌ Error en useComments.addComment:', error);
-      console.error('❌ Stack trace:', error.stack);
+      console.error('❌ Stack trace:', (error as Error).stack);
       throw error;
     }
   }, [updateComments]);
