@@ -817,8 +817,8 @@ body {
 .form-group select {
   width: 100%;
   padding: var(--space-md) var(--space-lg);
-  background: var(--color-border-primary);
-  border: 1px solid var(--color-border-tertiary);
+  background: #000000;
+  border: 1px solid #ffffff;
   border-radius: var(--radius-sm);
   color: white;
   font-size: 14px;
@@ -847,7 +847,7 @@ body {
 }
 
 .form-group select option {
-  background: #333;
+  background: #000000;
   color: white;
 }
 
@@ -954,7 +954,7 @@ body {
   margin-top: 5px;
   padding: 5px 8px;
   background: rgba(244, 67, 54, 0.1);
-  border-radius: 4px;
+  border-radius: 10px;
   border-left: 3px solid #f44336;
 }
 
@@ -1941,27 +1941,178 @@ body {
 }
 
 .edit-btn {
-  background: #333;
-  border: 1px solid #555;
-  color: white;
-  padding: 8px 20px;
+    /* Propiedades originales del botón */
+    background: #000000;
+    color: white;
+    padding: 8px 20px;
+    border-radius: 100px; /* Bordes muy redondeados */
+    
+    /* Propiedades necesarias para la animación */
+    border: none; /* Importante: Eliminamos el borde sólido original */
+    position: relative; /* Clave para posicionar el pseudo-elemento */
+    overflow: hidden; /* Oculta el degradado que sobresale */
+    z-index: 10;
 }
 
-.edit-btn:hover {
-  background: #444;
+/* 1. Pseudo-elemento para el borde animado */
+.edit-btn::before {
+    content: '';
+    position: absolute;
+    /* Esto lo hace ligeramente más grande que el botón (el grosor del borde) */
+    top: -200%;
+    left: -200%;
+    right: -200%;
+    bottom: -200%;
+    
+    /* Degradado cónico con los colores */
+    /* Usamos #ffffff (Blanco) y #ff0000 (Rojo) */
+    background: conic-gradient(
+        from 0deg, 
+        #ff0000, 
+        #00fff2, 
+        #ff0000
+    );
+    z-index: -1; /* Lo colocamos detrás del contenido */
+    border-radius: 100px; /* Mismo radio de borde que el botón */
+    
+    /* Animación: Rotación infinita */
+    animation: rotacion-borde 3s linear infinite;
 }
+
+/* 2. Pseudo-elemento para restaurar el fondo negro dentro del borde */
+.edit-btn::after {
+    content: '';
+    position: absolute;
+    /* Crea un hueco que permite ver el fondo negro del botón */
+    top: 1px; /* Ajusta este valor para controlar el grosor visible del borde */
+    left: 1px;
+    right: 1px;
+    bottom: 1px;
+    background: #000000; /* Fondo del botón */
+    border-radius: 100px;
+    z-index: -1; /* Lo colocamos detrás del texto, pero delante de ::before */
+}
+
+/* 3. Definición de la animación */
+@keyframes rotacion-borde {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Mantenemos el efecto hover, pero solo cambiamos el color de fondo */
+.edit-btn:hover {
+    background: #000000;
+}
+
+/* Además, para que el efecto hover funcione bien, animaremos el color del after */
+.edit-btn:hover::after {
+    background: #000000; /* Cambia el color interior para que coincida con el hover */
+}
+
+
+.posts-btn::before {
+    content: '';
+    position: absolute;
+    /* Ajusta el tamaño para crear el grosor del borde */
+    top: -200%;
+    left: -200%;
+    right: -200%;
+    bottom: -200%;
+    
+    /* Degradado cónico con tus colores */
+    background: conic-gradient(
+        from 0deg, 
+        #ff0000, 
+        #00fff2, 
+        #ff0000
+    );
+    z-index: -1;
+    border-radius: 100px; /* Igual al borde del botón */
+    
+    /* Animación de rotación */
+    animation: rotacion-infinita 3s linear infinite;
+}
+
+/* Para que el contenido (texto/icono) se vea */
+.posts-btn::after {
+    content: '';
+    position: absolute;
+    /* Esto crea el hueco negro dentro del borde animado */
+    top: 2px;
+    left: 2px;
+    right: 2px;
+    bottom: 2px;
+    background: #000000; /* Color de fondo del botón */
+    border-radius: 100px;
+    z-index: -1; 
+}
+
+@keyframes rotacion-infinita {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+
+
 
 .posts-btn {
-  background: #333;
-  border: 1px solid #555;
-  color: white;
-  padding: 8px 12px;
-  width: 40px;
-  height: 32px;
+    width: 40px;
+    height: 32px;
+    padding: 8px 12px;
+    background: #000000;
+    color: white;
+    font-family: sans-serif;
+    border: none; /* Quitamos el borde sólido */
+    border-radius: 100px;
+    position: relative;
+    z-index: 10;
+    overflow: hidden; /* Oculta el exceso del pseudo-elemento */
 }
 
-.posts-btn:hover {
-  background: #444;
+.posts-btn::before {
+    content: '';
+    position: absolute;
+    /* Ajusta el tamaño para crear el grosor del borde */
+    top: -200%;
+    left: -200%;
+    right: -200%;
+    bottom: -200%;
+    
+    /* Degradado cónico con tus colores */
+    background: conic-gradient(
+        from 0deg, 
+        #ff0000, 
+        #00fff2, 
+        #ff0000
+    );
+    z-index: -1;
+    border-radius: 100px; /* Igual al borde del botón */
+    
+    /* Animación de rotación */
+    animation: rotacion-infinita 3s linear infinite;
+}
+
+/* Para que el contenido (texto/icono) se vea */
+.posts-btn::after {
+    content: '';
+    position: absolute;
+    /* Esto crea el hueco negro dentro del borde animado */
+    top: 2px;
+    left: 2px;
+    right: 2px;
+    bottom: 2px;
+    background: #000000; /* Color de fondo del botón */
+    border-radius: 100px;
+    z-index: -1; 
+}
+
+@keyframes rotacion-infinita {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* CSS Variables for versatility and easy customization */
