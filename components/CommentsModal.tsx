@@ -108,16 +108,25 @@ export default function CommentsModal({ postId, isOpen, postData, onClose, onPro
   }, [flatComments]);
 
   const handleAddComment = useCallback(async () => {
+    console.log('🔍 CommentsModal.handleAddComment iniciado');
+    console.log('🔍 newComment:', newComment);
+    console.log('🔍 isSubmitting:', isSubmitting);
+    console.log('🔍 postData:', postData);
+    
     const trimmedComment = newComment.trim();
     
     if (!trimmedComment || isSubmitting) {
+      console.log('⚠️ Comentario vacío o ya enviando, saliendo...');
       return;
     }
     
     if (!auth.currentUser) {
+      console.error('❌ Usuario no autenticado');
       setToast({message: 'Debes iniciar sesión para comentar', type: 'error'});
       return;
     }
+    
+    console.log('✅ Validaciones iniciales pasadas');
 
     // Validaciones para dinámicas
     if (postData?.isDynamic) {
@@ -142,10 +151,25 @@ export default function CommentsModal({ postId, isOpen, postData, onClose, onPro
       return;
     }
 
+    console.log('🔍 Iniciando envío de comentario...');
     setIsSubmitting(true);
+    
     try {
-      const collection = postData?.isDynamic ? 'posts' : 'reels';
+      // ✅ DETECCIÓN INTELIGENTE DE COLECCIÓN
+      let collection: 'posts' | 'reels';
+      if (postData?.isDynamic !== undefined) {
+        // Si tenemos datos del post, usar la lógica basada en isDynamic
+        collection = postData.isDynamic ? 'posts' : 'reels';
+      } else {
+        // Si no tenemos datos del post, intentar 'posts' primero (más común para comentarios)
+        collection = 'posts';
+      }
+      
+      console.log('🔍 Colección determinada:', collection, '(isDynamic:', postData?.isDynamic, ')');
+      console.log('🔍 Llamando a addComment con:', { postId, trimmedComment, collection });
+      
       await addComment(postId, trimmedComment, collection);
+      console.log('✅ addComment completado exitosamente');
       
       // Verificar si ganó tokens en dinámica (solo si está activa)
       if (postData?.isDynamic && isDynamicActive && postData.isActive) {
@@ -200,7 +224,15 @@ export default function CommentsModal({ postId, isOpen, postData, onClose, onPro
 
     setIsSubmitting(true);
     try {
-      const collection = postData?.isDynamic ? 'posts' : 'reels';
+      // ✅ USAR LA MISMA LÓGICA DE DETECCIÓN PARA RESPUESTAS
+      let collection: 'posts' | 'reels';
+      if (postData?.isDynamic !== undefined) {
+        collection = postData.isDynamic ? 'posts' : 'reels';
+      } else {
+        collection = 'posts';
+      }
+      
+      console.log('🔍 Enviando respuesta a colección:', collection);
       await addComment(postId, trimmedReply, collection, commentId);
       setReplyText('');
       setReplyingTo(null);

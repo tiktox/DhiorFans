@@ -46,17 +46,26 @@ export const useComments = () => {
     postCollection: 'reels' | 'posts' = 'reels',
     parentId?: string
   ) => {
+    console.log('🔍 useComments.addComment iniciado:', { postId, text: text.substring(0, 30), postCollection, parentId });
+    
     try {
+      console.log('🔍 Llamando a createComment...');
       const newComment = await createComment(postId, text, postCollection, parentId);
+      console.log('✅ createComment exitoso, actualizando estado local...');
       
-      updateComments(postId, prev => ({
-        ...prev,
-        comments: [...prev.comments, newComment],
-      }));
+      updateComments(postId, prev => {
+        const updatedState = {
+          ...prev,
+          comments: [...prev.comments, newComment],
+        };
+        console.log('✅ Estado local actualizado, total comentarios:', updatedState.comments.length);
+        return updatedState;
+      });
       
       return newComment;
     } catch (error) {
-      console.error('Error adding comment:', error);
+      console.error('❌ Error en useComments.addComment:', error);
+      console.error('❌ Stack trace:', error.stack);
       throw error;
     }
   }, [updateComments]);
