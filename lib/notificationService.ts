@@ -4,23 +4,25 @@ import { collection, addDoc, query, where, orderBy, getDocs, updateDoc, doc, get
 export interface Notification {
   id: string;
   userId: string;
-  type: 'like' | 'comment' | 'follow';
+  type: 'like' | 'comment' | 'follow' | 'tokens';
   fromUserId: string;
   postId?: string;
   commentId?: string;
   message: string;
   read: boolean;
   createdAt: number;
+  tokensAmount?: number;
 }
 
 // Crear notificación
 export const createNotification = async (
   userId: string,
-  type: 'like' | 'comment' | 'follow',
+  type: 'like' | 'comment' | 'follow' | 'tokens',
   fromUserId: string,
   message: string,
   postId?: string,
-  commentId?: string
+  commentId?: string,
+  tokensAmount?: number
 ): Promise<void> => {
   try {
     // No crear notificación si el usuario se interactúa consigo mismo
@@ -34,7 +36,8 @@ export const createNotification = async (
       commentId: commentId || null,
       message,
       read: false,
-      createdAt: Timestamp.now()
+      createdAt: Timestamp.now(),
+      tokensAmount: tokensAmount || null
     });
   } catch (error) {
     console.error('Error creating notification:', error);
@@ -188,5 +191,17 @@ export const notifyFollow = async (followedUserId: string, followerUserId: strin
     'follow',
     followerUserId,
     'comenzó a seguirte'
+  );
+};
+
+export const notifyTokens = async (userId: string, tokensAmount: number) => {
+  await createNotification(
+    userId,
+    'tokens',
+    'system',
+    `¡Has recibido ${tokensAmount} tokens hoy!`,
+    undefined,
+    undefined,
+    tokensAmount
   );
 };

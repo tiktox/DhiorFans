@@ -5229,6 +5229,19 @@ background-color: linear-gradient(135deg, #FF0000, #00BFFF);
   color: #ccc;
 }
 
+.tokens-message {
+  color: #ffc107 !important;
+  font-weight: 600 !important;
+}
+
+.tokens-avatar {
+  background: linear-gradient(135deg, #ffc107, #ff9800) !important;
+  color: #000 !important;
+  font-size: 24px !important;
+  font-weight: bold !important;
+  border: 2px solid #ffc107 !important;
+}
+
 .notification-time {
   font-size: 12px;
   color: #666;

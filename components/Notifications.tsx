@@ -82,6 +82,13 @@ export default function Notifications({ onNavigateBack, onViewProfile, onViewPos
             <line x1="23" y1="11" x2="17" y2="11"/>
           </svg>
         );
+      case 'tokens':
+        return (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#ffc107" stroke="none">
+            <circle cx="12" cy="12" r="10" fill="#ffc107"/>
+            <text x="12" y="16" textAnchor="middle" fontSize="12" fill="#000">🪙</text>
+          </svg>
+        );
       default:
         return null;
     }
@@ -96,6 +103,9 @@ export default function Notifications({ onNavigateBack, onViewProfile, onViewPos
     // Navegar según el tipo
     if (notification.type === 'follow') {
       onViewProfile?.(notification.fromUserId);
+    } else if (notification.type === 'tokens') {
+      // No navegar, solo marcar como leída
+      return;
     } else if (notification.postId) {
       onViewPost?.(notification.postId);
     }
@@ -136,7 +146,9 @@ export default function Notifications({ onNavigateBack, onViewProfile, onViewPos
                   onClick={() => handleNotificationClick(notification)}
                 >
                   <div className="notification-avatar" data-is-avatar={userData?.isAvatar ? 'true' : 'false'}>
-                    {userData?.profilePicture ? (
+                    {notification.type === 'tokens' ? (
+                      <div className="tokens-avatar">🪙</div>
+                    ) : userData?.profilePicture ? (
                       <img src={userData.profilePicture} alt={userData.username} />
                     ) : (
                       <div className="default-avatar">
@@ -147,11 +159,17 @@ export default function Notifications({ onNavigateBack, onViewProfile, onViewPos
 
                   <div className="notification-content">
                     <div className="notification-text">
-                      <span className="notification-username">
-                        {userData?.username || 'Usuario'}
-                      </span>
-                      {' '}
-                      <span className="notification-message">{notification.message}</span>
+                      {notification.type === 'tokens' ? (
+                        <span className="notification-message tokens-message">{notification.message}</span>
+                      ) : (
+                        <>
+                          <span className="notification-username">
+                            {userData?.username || 'Usuario'}
+                          </span>
+                          {' '}
+                          <span className="notification-message">{notification.message}</span>
+                        </>
+                      )}
                     </div>
                     <div className="notification-time">
                       {getTimeAgo(notification.createdAt)}

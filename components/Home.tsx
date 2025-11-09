@@ -3,6 +3,7 @@ import { auth } from '../lib/firebase';
 import { getUserData, getUserDataById, UserData } from '../lib/userService';
 import { useProfileSync } from '../hooks/useProfileSync';
 import { claimDailyTokens, canClaimTokens, getUserTokens, ensureUserTokensExist } from '../lib/tokenService';
+import { notifyTokens } from '../lib/notificationService';
 import { getUnreadNotificationsCount } from '../lib/notificationService';
 import Profile from './Profile';
 import Search from './Search';
@@ -96,11 +97,15 @@ export default function Home() {
               if (result.success) {
                 console.log(`🪙 Tokens diarios reclamados: +${result.tokensEarned} (Total: ${result.totalTokens})`);
                 
-                // Mostrar notificación al usuario
+                // Crear notificación de tokens
                 if (result.tokensEarned > 0) {
-                  setTimeout(() => {
-                    alert(`🎉 ¡Recibiste ${result.tokensEarned} tokens diarios! Total: ${result.totalTokens}`);
-                  }, 2000);
+                  try {
+                    await notifyTokens(auth.currentUser.uid, result.tokensEarned);
+                    setUnreadCount(prev => prev + 1);
+                    console.log(`🔔 Notificación de tokens creada: ${result.tokensEarned} tokens`);
+                  } catch (notifError) {
+                    console.error('Error creando notificación de tokens:', notifError);
+                  }
                 }
               }
             } else {
