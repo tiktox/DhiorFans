@@ -1,0 +1,28 @@
+/* Prevenir pantalla completa en videos de iOS */
+video {
+  -webkit-playsinline: true;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}
+
+video::-webkit-media-controls-fullscreen-button {
+  display: none !important;
+}
+
+video::-webkit-media-controls-start-playback-button {
+  display: none !important;
+}
+
+/* Específico para iPhone y iPad */
+@supports (-webkit-touch-callout: none) {
+  video {
+    -webkit-playsinline: true !important;
+    playsinline: true !important;
+  }
+}
+
+/* Forzar inline en todos los dispositivos iOS */
+video[playsinline] {
+  -webkit-playsinline: true;
+  object-fit: cover;
+}

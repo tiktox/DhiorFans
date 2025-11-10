@@ -4,6 +4,7 @@ import { getUserData, UserData } from '../lib/userService';
 import { getUserPosts, Post } from '../lib/postService';
 import { initializeUserTokens, claimDailyTokens, canClaimTokens, migrateUserTokens, TokenData } from '../lib/tokenService';
 import { formatLargeNumber } from '../lib/numberFormatter';
+import { useIOSVideoFix } from '../hooks/useIOSVideoFix';
 
 import EditProfile from './EditProfile';
 import Settings from './Settings';
@@ -36,6 +37,9 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
   // Sistema de carga optimizado con debounce
   const [isLoading, setIsLoading] = useState(false);
   const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Aplicar fix para videos en iOS
+  useIOSVideoFix();
   
   const reloadUserData = useCallback(async () => {
     if (!auth.currentUser || isLoading) return;
