@@ -49,7 +49,18 @@ try {
 }
 
 // Servicios Firebase con configuración optimizada
-export const auth = app ? getAuth(app) : null;
+export const auth = (() => {
+  if (!app) {
+    console.warn('⚠️ Firebase app no inicializada');
+    throw new Error('Firebase not initialized');
+  }
+  try {
+    return getAuth(app);
+  } catch (error) {
+    console.error('❌ Error inicializando Auth:', error);
+    throw error;
+  }
+})();
 export const storage = app ? getStorage(app) : null;
 
 // Firestore con configuración de persistencia mejorada
