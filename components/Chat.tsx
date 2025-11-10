@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { auth } from '../lib/firebase';
+import { auth, useFirebaseConnection } from '../lib/firebase';
 import { getUserData, UserData, UserWithId } from '../lib/userService';
-import { getChatUsers, getConversations, Conversation } from '../lib/chatService';
+import { getChatUsers, getConversations, Conversation, clearChatCache } from '../lib/chatService';
 import ChatConversation from './ChatConversation';
 
 interface ChatProps {
@@ -17,8 +17,11 @@ export default function Chat({ onNavigateHome }: ChatProps) {
   const [selectedUser, setSelectedUser] = useState<UserWithId | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const touchStartY = useRef(0);
   const conversationsRef = useRef<HTMLDivElement>(null);
+  const connectionState = useFirebaseConnection();
 
   useEffect(() => {
     loadData();
@@ -31,11 +34,16 @@ export default function Chat({ onNavigateHome }: ChatProps) {
     return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
-  const loadData = async () => {
+  const loadData = async (isRetry = false) => {
     if (!auth.currentUser) return;
     
     try {
-      setLoading(true);
+      if (!isRetry) {
+        setLoading(true);
+      }
+      setError(null);
+      
+      console.log('💬 Cargando datos de chat...');
       
       // Cargar datos de usuario primero
       const userDataResult = await getUserData();
@@ -50,6 +58,7 @@ export default function Chat({ onNavigateHome }: ChatProps) {
       // Manejar resultados de chat users
       if (chatUsersResult.status === 'fulfilled') {
         setChatUsers(chatUsersResult.value);
+        console.log(`✅ ${chatUsersResult.value.length} usuarios de chat cargados`);
       } else {
         console.error('Error loading chat users:', chatUsersResult.reason);
         setChatUsers([]);
@@ -58,16 +67,30 @@ export default function Chat({ onNavigateHome }: ChatProps) {
       // Manejar resultados de conversaciones
       if (conversationsResult.status === 'fulfilled') {
         setConversations(conversationsResult.value);
+        console.log(`✅ ${conversationsResult.value.length} conversaciones cargadas`);
       } else {
         console.error('Error loading conversations:', conversationsResult.reason);
         setConversations([]);
       }
       
+      setRetryCount(0); // Reset en caso de éxito
+      
     } catch (error) {
-      console.error('Error loading chat data:', error);
+      console.error('Error crítico cargando datos de chat:', error);
+      setError('Error cargando el chat');
+      
       // Asegurar que los estados se reseteen en caso de error
       setChatUsers([]);
       setConversations([]);
+      
+      // Reintentar si no se ha excedido el límite
+      if (retryCount < 3 && !isRetry) {
+        setTimeout(() => {
+          setRetryCount(prev => prev + 1);
+          loadData(true);
+        }, Math.pow(2, retryCount) * 1000);
+      }
+      
     } finally {
       setLoading(false);
       setIsRefreshing(false);
@@ -95,10 +118,25 @@ export default function Chat({ onNavigateHome }: ChatProps) {
   const handleTouchEnd = () => {
     if (pullDistance > 60 && !isRefreshing) {
       setIsRefreshing(true);
+      clearChatCache(); // Limpiar cache antes de recargar
       loadData();
     }
     setPullDistance(0);
   };
+  
+  const handleRetry = () => {
+    setError(null);
+    setRetryCount(0);
+    clearChatCache();
+    loadData();
+  };
+  
+  // Reintentar cuando la conexión se restaure
+  useEffect(() => {
+    if (connectionState === 'connected' && error) {
+      handleRetry();
+    }
+  }, [connectionState, error]);
 
   const filteredUsers = chatUsers.filter(user => 
     user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -195,6 +233,15 @@ export default function Chat({ onNavigateHome }: ChatProps) {
         </div>
       )}
 
+      {/* Indicador de estado de conexión */}
+      {connectionState !== 'connected' && (
+        <div className={`connection-status ${connectionState}`}>
+          {connectionState === 'reconnecting' && '🔄 Reconectando chat...'}
+          {connectionState === 'disconnected' && '🚫 Chat sin conexión'}
+          {connectionState === 'error' && '❌ Error en el chat'}
+        </div>
+      )}
+
       {/* Conversations */}
       <div 
         className="conversations"
@@ -207,6 +254,16 @@ export default function Chat({ onNavigateHome }: ChatProps) {
         {loading ? (
           <div className="chat-loading">
             <p>Cargando chats...</p>
+            {retryCount > 0 && <p>Reintento {retryCount}/3...</p>}
+          </div>
+        ) : error ? (
+          <div className="chat-error">
+            <div className="error-icon">❌</div>
+            <p>Error cargando el chat</p>
+            <span>{error}</span>
+            <button onClick={handleRetry} className="retry-btn">
+              Reintentar
+            </button>
           </div>
         ) : conversations.length > 0 ? (
           conversations.map((conversation) => (

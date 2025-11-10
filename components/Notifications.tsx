@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { auth } from '../lib/firebase';
+import { auth, useFirebaseConnection } from '../lib/firebase';
 import { getUserDataById, UserData } from '../lib/userService';
 import { 
   subscribeToNotifications, 
@@ -17,37 +17,104 @@ export default function Notifications({ onNavigateBack, onViewProfile, onViewPos
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [usersData, setUsersData] = useState<{[key: string]: UserData}>({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const connectionState = useFirebaseConnection();
 
   useEffect(() => {
     if (!auth.currentUser) return;
 
-    setLoading(true);
+    let unsubscribe: (() => void) | null = null;
+    let isMounted = true;
 
-    // Suscribirse a notificaciones en tiempo real
-    const unsubscribe = subscribeToNotifications(
-      auth.currentUser.uid,
-      async (newNotifications) => {
-        setNotifications(newNotifications);
+    const setupNotifications = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Suscribirse a notificaciones en tiempo real
+        unsubscribe = subscribeToNotifications(
+          auth.currentUser!.uid,
+          async (newNotifications) => {
+            if (!isMounted) return;
+            
+            try {
+              setNotifications(newNotifications);
+              
+              // Cargar datos de usuarios con manejo de errores individual
+              const userIdsSet = new Set(
+                newNotifications
+                  .map(n => n.fromUserId)
+                  .filter(id => id && id !== 'system')
+              );
+              const userIds = Array.from(userIdsSet);
+              const usersDataMap: {[key: string]: UserData} = {};
+              
+              // Cargar usuarios en paralelo con manejo de errores
+              const userPromises = userIds.map(async (userId) => {
+                try {
+                  const userData = await getUserDataById(userId);
+                  if (userData && isMounted) {
+                    usersDataMap[userId] = userData;
+                  }
+                } catch (userError) {
+                  console.warn(`Error cargando usuario ${userId}:`, userError);
+                }
+              });
+              
+              await Promise.allSettled(userPromises);
+              
+              if (isMounted) {
+                setUsersData(usersDataMap);
+                setLoading(false);
+                setRetryCount(0);
+              }
+              
+            } catch (callbackError) {
+              console.error('Error procesando notificaciones:', callbackError);
+              if (isMounted) {
+                setError('Error procesando notificaciones');
+                setLoading(false);
+              }
+            }
+          }
+        );
         
-        // Cargar datos de usuarios
-        const userIdsSet = new Set(newNotifications.map(n => n.fromUserId));
-        const userIds = Array.from(userIdsSet);
-        const usersDataMap: {[key: string]: UserData} = {};
-        
-        for (const userId of userIds) {
-          const userData = await getUserDataById(userId);
-          if (userData) {
-            usersDataMap[userId] = userData;
+      } catch (setupError) {
+        console.error('Error configurando notificaciones:', setupError);
+        if (isMounted) {
+          setError('Error conectando con las notificaciones');
+          setLoading(false);
+          
+          // Reintentar si no se ha excedido el límite
+          if (retryCount < 3) {
+            setTimeout(() => {
+              if (isMounted) {
+                setRetryCount(prev => prev + 1);
+                setupNotifications();
+              }
+            }, Math.pow(2, retryCount) * 1000);
           }
         }
-        
-        setUsersData(usersDataMap);
-        setLoading(false);
       }
-    );
+    };
 
-    return () => unsubscribe();
-  }, []);
+    setupNotifications();
+
+    return () => {
+      isMounted = false;
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [retryCount]);
+  
+  // Reintentar cuando la conexión se restaure
+  useEffect(() => {
+    if (connectionState === 'connected' && error) {
+      setRetryCount(0);
+    }
+  }, [connectionState, error]);
 
   const getTimeAgo = (timestamp: number) => {
     const seconds = Math.floor((Date.now() - timestamp) / 1000);
@@ -95,20 +162,35 @@ export default function Notifications({ onNavigateBack, onViewProfile, onViewPos
   };
 
   const handleNotificationClick = async (notification: Notification) => {
-    // Marcar como leída
-    if (!notification.read) {
-      await markNotificationAsRead(notification.id);
-    }
+    try {
+      // Marcar como leída
+      if (!notification.read) {
+        await markNotificationAsRead(notification.id);
+      }
 
-    // Navegar según el tipo
-    if (notification.type === 'follow') {
-      onViewProfile?.(notification.fromUserId);
-    } else if (notification.type === 'tokens') {
-      // No navegar, solo marcar como leída
-      return;
-    } else if (notification.postId) {
-      onViewPost?.(notification.postId);
+      // Navegar según el tipo
+      if (notification.type === 'follow') {
+        onViewProfile?.(notification.fromUserId);
+      } else if (notification.type === 'tokens') {
+        // No navegar, solo marcar como leída
+        return;
+      } else if (notification.postId) {
+        onViewPost?.(notification.postId);
+      }
+    } catch (error) {
+      console.error('Error manejando click de notificación:', error);
+      // Continuar con la navegación aunque falle marcar como leída
+      if (notification.type === 'follow') {
+        onViewProfile?.(notification.fromUserId);
+      } else if (notification.postId && notification.type !== 'tokens') {
+        onViewPost?.(notification.postId);
+      }
     }
+  };
+  
+  const handleRetry = () => {
+    setError(null);
+    setRetryCount(0);
   };
 
   return (
@@ -124,9 +206,28 @@ export default function Notifications({ onNavigateBack, onViewProfile, onViewPos
       </div>
 
       <div className="notifications-content">
+        {/* Indicador de estado de conexión */}
+        {connectionState !== 'connected' && (
+          <div className={`connection-status ${connectionState}`}>
+            {connectionState === 'reconnecting' && '🔄 Reconectando...'}
+            {connectionState === 'disconnected' && '🚫 Sin conexión'}
+            {connectionState === 'error' && '❌ Error de conexión'}
+          </div>
+        )}
+        
         {loading ? (
           <div className="notifications-loading">
             <p>Cargando notificaciones...</p>
+            {retryCount > 0 && <p>Reintento {retryCount}/3...</p>}
+          </div>
+        ) : error ? (
+          <div className="notifications-error">
+            <div className="error-icon">❌</div>
+            <p>Error cargando notificaciones</p>
+            <span>{error}</span>
+            <button onClick={handleRetry} className="retry-btn">
+              Reintentar
+            </button>
           </div>
         ) : notifications.length === 0 ? (
           <div className="no-notifications">

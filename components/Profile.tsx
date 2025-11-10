@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { auth } from '../lib/firebase';
 import { getUserData, UserData } from '../lib/userService';
 import { getUserPosts, Post } from '../lib/postService';
-import { getUserTokens, initializeUserTokens, claimDailyTokens, canClaimTokens, migrateUserTokens, TokenData } from '../lib/tokenService';
+import { initializeUserTokens, claimDailyTokens, canClaimTokens, migrateUserTokens, TokenData } from '../lib/tokenService';
 import { formatLargeNumber } from '../lib/numberFormatter';
 
 import EditProfile from './EditProfile';
@@ -20,7 +20,7 @@ interface ProfileProps {
   onViewPost?: (postId: string) => void;
 }
 
-export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateSearch, onNavigateChat, onViewPost }: ProfileProps = {}) {
+export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateSearch, onNavigateChat, onViewPost }: ProfileProps) {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [currentView, setCurrentView] = useState('profile');
@@ -33,76 +33,90 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
   const [showStore, setShowStore] = useState(false);
   const taskbarRef = useRef<HTMLDivElement>(null);
 
-  // Función para recargar datos del usuario
-  const reloadUserData = async () => {
-    if (auth.currentUser) {
-      try {
-        console.log('🔄 Cargando datos del perfil para usuario:', auth.currentUser.uid);
-        const data = await getUserData();
-        setUserData(data);
-        console.log('👤 Datos del usuario cargados:', data);
-        
-        // Cargar posts del usuario
-        console.log('📄 Cargando posts del usuario...');
-        const posts = await getUserPosts(auth.currentUser.uid);
-        console.log('📄 Posts encontrados:', posts.length, posts);
-        setUserPosts(posts);
-        
-        // Migrar tokens para usuarios antiguos
-        await migrateUserTokens(auth.currentUser.uid, data.followers || 0);
-        
-        // Cargar tokens del usuario (inicializar si no existen)
-        const tokens = await initializeUserTokens(auth.currentUser.uid);
-        setTokenData(tokens);
-        console.log('🪙 Tokens cargados para perfil propio:', tokens);
-        
-        // Intentar reclamar tokens automáticamente si es posible
-        if (canClaimTokens(tokens.lastClaim)) {
-          const result = await claimDailyTokens(auth.currentUser.uid, data.followers || 0);
-          if (result.success) {
-            const updatedTokens = { ...tokens, tokens: result.totalTokens, lastClaim: Date.now() };
-            setTokenData(updatedTokens);
-            console.log(`✅ Tokens reclamados automáticamente: +${result.tokensEarned} (Total: ${result.totalTokens})`);
-          }
-        }
-      } catch (error) {
-        console.error('❌ Error al cargar datos del usuario:', error);
-      }
-    }
-  };
+  // Sistema de carga optimizado con debounce
+  const [isLoading, setIsLoading] = useState(false);
+  const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Exponer la función de recarga para uso externo
-  useEffect(() => {
-    // Recargar posts cuando el componente se monta
-    reloadUserData();
-  }, []);
-
-  // Recargar datos cuando el usuario regrese al perfil
-  useEffect(() => {
-    const handleFocus = () => {
-      reloadUserData();
-    };
+  const reloadUserData = useCallback(async () => {
+    if (!auth.currentUser || isLoading) return;
     
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
-  }, []);
+    if (loadingTimeoutRef.current) {
+      clearTimeout(loadingTimeoutRef.current);
+    }
+    
+    loadingTimeoutRef.current = setTimeout(async () => {
+      setIsLoading(true);
+      try {
+        const data = await getUserData(true);
+        setUserData(data);
+        
+        const [posts, tokens] = await Promise.allSettled([
+          getUserPosts(auth.currentUser!.uid),
+          initializeUserTokens(auth.currentUser!.uid)
+        ]);
+        
+        if (posts.status === 'fulfilled') {
+          setUserPosts(posts.value);
+        } else {
+          setUserPosts([]);
+        }
+        
+        if (tokens.status === 'fulfilled') {
+          setTokenData(tokens.value);
+          
+          if (canClaimTokens(tokens.value.lastClaim)) {
+            claimDailyTokens(auth.currentUser!.uid, data.followers || 0)
+              .then(result => {
+                if (result.success) {
+                  setTokenData(prev => prev ? { ...prev, tokens: result.totalTokens, lastClaim: Date.now() } : null);
+                }
+              })
+              .catch(() => {});
+          }
+        } else {
+          setTokenData({ tokens: 0, lastClaim: 0, followersCount: 0 });
+        }
+        
+        migrateUserTokens(auth.currentUser!.uid, data.followers || 0).catch(() => {});
+        
+      } catch (error) {
+        console.error('Error al cargar datos del usuario:', error);
+        setUserData(null);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 300);
+  }, [isLoading]);
+  
+  useEffect(() => {
+    if (auth.currentUser) {
+      reloadUserData();
+    }
+  }, [reloadUserData]);
 
-  // Exponer función de recarga para uso externo
   useEffect(() => {
     (window as any).reloadProfileData = reloadUserData;
     
-    // Escuchar cambios de avatar
     const handleAvatarChange = () => {
-      reloadUserData();
+      if (auth.currentUser) reloadUserData();
+    };
+    
+    const handleVisibilityChange = () => {
+      if (!document.hidden && auth.currentUser) reloadUserData();
     };
     
     window.addEventListener('avatarChanged', handleAvatarChange);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     
     return () => {
       delete (window as any).reloadProfileData;
       window.removeEventListener('avatarChanged', handleAvatarChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+      }
     };
-  }, []);
+  }, [reloadUserData]);
 
   // Cerrar barra de tareas al hacer clic fuera
   useEffect(() => {
@@ -121,24 +135,23 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
     };
   }, [showTokensTaskbar]);
 
-  const autoClaimTokens = async () => {
-    if (!auth.currentUser || !userData || !tokenData) return;
-    
-    if (canClaimTokens(tokenData.lastClaim)) {
-      try {
-        const result = await claimDailyTokens(auth.currentUser.uid, userData.followers || 0);
-        if (result.success) {
-          setTokenData(prev => prev ? { ...prev, tokens: result.totalTokens, lastClaim: Date.now() } : null);
-          console.log(`✅ Tokens reclamados automáticamente: +${result.tokensEarned} (Total: ${result.totalTokens})`);
-        }
-      } catch (error) {
-        console.error('Error al reclamar tokens automáticamente:', error);
-      }
-    }
-  };
+
 
   if (!userData) {
-    return <div className="profile-container">Cargando...</div>;
+    return (
+      <div className="profile-container">
+        <div style={{ textAlign: 'center', padding: '20px' }}>
+          {isLoading ? 'Cargando...' : (
+            <div>
+              <p>Error de conexión</p>
+              <button onClick={() => reloadUserData()} style={{ marginTop: '10px', padding: '8px 16px' }}>
+                Reintentar
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
   }
 
   if (currentView === 'settings') {

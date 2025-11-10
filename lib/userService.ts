@@ -1,6 +1,7 @@
 import { auth, db } from './firebase';
 import { doc, getDoc, setDoc, getDocs, collection, query, where } from 'firebase/firestore';
-import { initializeNewUserTokens, migrateUserTokens } from './tokenService';
+import { initializeNewUserTokens } from './tokenService';
+import { errorHandler } from './errorHandler';
 
 export interface UserData {
   fullName: string;
@@ -11,7 +12,7 @@ export interface UserData {
   gender?: 'Hombre' | 'Mujer';
   profilePicture?: string;
   originalProfilePicture?: string;
-  lastRealProfilePicture?: string; // Nueva: última foto real (no avatar)
+  lastRealProfilePicture?: string;
   avatar?: string;
   avatars?: string[];
   purchasedAvatars?: string[];
@@ -24,11 +25,53 @@ export interface UserData {
   microphonePermission?: 'granted' | 'denied' | 'prompt';
 }
 
-// Removed usersCollection constant to use direct references
+class UserStateManager {
+  private static instance: UserStateManager;
+  private authListener: (() => void) | null = null;
+  
+  static getInstance(): UserStateManager {
+    if (!UserStateManager.instance) {
+      UserStateManager.instance = new UserStateManager();
+    }
+    return UserStateManager.instance;
+  }
+  
+  initialize() {
+    if (this.authListener) return;
+    
+    this.authListener = auth.onAuthStateChanged(() => {
+      this.clearCache();
+    });
+  }
+  
+  clearCache() {
+    getUserDataCache = null;
+    getUserDataPromise = null;
+  }
+  
+  cleanup() {
+    if (this.authListener) {
+      this.authListener();
+      this.authListener = null;
+    }
+  }
+}
+
+const stateManager = UserStateManager.getInstance();
+if (typeof window !== 'undefined') {
+  stateManager.initialize();
+}
 
 const formatUsername = (username: string): string => {
   return username.replace(/\s+/g, '_').toLowerCase();
 };
+
+let getUserDataCache: { data: UserData; timestamp: number } | null = null;
+let getUserDataPromise: Promise<UserData> | null = null;
+const CACHE_DURATION = 5000;
+
+let bypassMode = false;
+let bypassData: UserData | null = null;
 
 export const saveUserData = async (userData: Partial<UserData>) => {
   if (!auth.currentUser) {
@@ -36,36 +79,28 @@ export const saveUserData = async (userData: Partial<UserData>) => {
   }
   
   try {
-    // Filtrar valores undefined
     const cleanData = Object.fromEntries(
       Object.entries(userData).filter(([_, value]) => value !== undefined)
     );
     
-    console.log('🔄 Guardando datos:', cleanData);
-    console.log('👤 Usuario ID:', auth.currentUser.uid);
-    
     const userRef = doc(db, 'users', auth.currentUser.uid);
     await setDoc(userRef, cleanData, { merge: true });
     
-    console.log('✅ Datos guardados correctamente en Firebase');
-    
-    // Verificar que se guardó
-    const savedDoc = await getDoc(userRef);
-    if (savedDoc.exists()) {
-      console.log('✅ Verificación: Datos encontrados en Firebase:', savedDoc.data());
-    } else {
-      console.log('❌ Verificación: No se encontraron datos en Firebase');
+    if (bypassData) {
+      bypassData = { ...bypassData, ...cleanData };
     }
+    
+    getUserDataCache = null;
     
   } catch (error: any) {
-    console.error('❌ Error en saveUserData:', error);
-    if (error.code === 'permission-denied') {
-      throw new Error('No tienes permisos para guardar estos datos');
-    } else if (error.code === 'unavailable') {
-      throw new Error('Servicio no disponible. Inténtalo más tarde');
-    } else {
-      throw new Error('Error al guardar: ' + (error.message || 'Error desconocido'));
+    errorHandler.logError(error, 'saveUserData');
+    if (error.message?.includes('INTERNAL ASSERTION FAILED')) {
+      if (bypassData) {
+        bypassData = { ...bypassData, ...userData };
+        return;
+      }
     }
+    throw new Error('Error al guardar datos del usuario');
   }
 };
 
@@ -76,19 +111,23 @@ const canChangeUsername = (lastChange?: number): boolean => {
 };
 
 const isUsernameAvailable = async (username: string, currentUserId?: string): Promise<boolean> => {
-  const formattedUsername = formatUsername(username);
-  const q = query(collection(db, 'users'), where('username', '==', formattedUsername));
-  const querySnapshot = await getDocs(q);
-  
-  if (querySnapshot.empty) return true;
-  
-  // Si hay un usuario con ese username, verificar si es el usuario actual
-  if (currentUserId) {
-    const docs = querySnapshot.docs;
-    return docs.length === 1 && docs[0].id === currentUserId;
+  try {
+    const formattedUsername = formatUsername(username);
+    const q = query(collection(db, 'users'), where('username', '==', formattedUsername));
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) return true;
+    
+    if (currentUserId) {
+      const docs = querySnapshot.docs;
+      return docs.length === 1 && docs[0].id === currentUserId;
+    }
+    
+    return false;
+  } catch (error) {
+    errorHandler.logError(error, 'isUsernameAvailable');
+    return false;
   }
-  
-  return false;
 };
 
 export const checkUsernameAvailability = async (username: string): Promise<boolean> => {
@@ -96,95 +135,163 @@ export const checkUsernameAvailability = async (username: string): Promise<boole
 };
 
 export const validateUsername = async (username: string, currentUsername: string, lastChange?: number): Promise<{ valid: boolean; error?: string }> => {
-  const formattedUsername = formatUsername(username);
-  
-  if (formattedUsername === currentUsername) {
+  try {
+    const formattedUsername = formatUsername(username);
+    
+    if (formattedUsername === currentUsername) {
+      return { valid: true };
+    }
+    
+    if (!canChangeUsername(lastChange)) {
+      return { valid: false, error: 'Solo puedes cambiar tu nombre de usuario una vez al mes' };
+    }
+    
+    if (!await isUsernameAvailable(username)) {
+      return { valid: false, error: 'Este nombre de usuario no está disponible' };
+    }
+    
     return { valid: true };
+  } catch (error) {
+    errorHandler.logError(error, 'validateUsername');
+    return { valid: false, error: 'Error al validar nombre de usuario' };
   }
-  
-  if (!canChangeUsername(lastChange)) {
-    return { valid: false, error: 'Solo puedes cambiar tu nombre de usuario una vez al mes' };
-  }
-  
-  if (!await isUsernameAvailable(username)) {
-    return { valid: false, error: 'Este nombre de usuario no está disponible' };
-  }
-  
-  return { valid: true };
 };
 
 export const getAllUsers = async (): Promise<UserData[]> => {
-  const querySnapshot = await getDocs(collection(db, 'users'));
-  const users: UserData[] = [];
-  querySnapshot.forEach((doc) => {
-    users.push(doc.data() as UserData);
-  });
-  return users;
+  try {
+    const querySnapshot = await getDocs(collection(db, 'users'));
+    const users: UserData[] = [];
+    querySnapshot.forEach((doc) => {
+      users.push(doc.data() as UserData);
+    });
+    return users;
+  } catch (error) {
+    errorHandler.logError(error, 'getAllUsers');
+    return [];
+  }
 };
 
-export const getUserData = async (): Promise<UserData> => {
-  if (auth.currentUser) {
-    const userRef = doc(db, 'users', auth.currentUser.uid);
+export const getUserData = async (forceRefresh = false): Promise<UserData> => {
+  if (!auth.currentUser) {
+    throw new Error('Usuario no autenticado');
+  }
+
+  if (!forceRefresh && getUserDataCache && (Date.now() - getUserDataCache.timestamp) < CACHE_DURATION) {
+    return getUserDataCache.data;
+  }
+
+  if (bypassMode && bypassData) {
+    return bypassData;
+  }
+
+  if (getUserDataPromise) {
+    return getUserDataPromise;
+  }
+
+  getUserDataPromise = (async () => {
+    try {
+      const userRef = doc(db, 'users', auth.currentUser!.uid);
+      const docSnap = await getDoc(userRef);
+
+      let userData: UserData;
+
+      if (docSnap.exists()) {
+        userData = docSnap.data() as UserData;
+      } else {
+        const defaultUsername = auth.currentUser?.email?.split('@')[0] || '';
+        const formattedUsername = formatUsername(defaultUsername);
+        
+        userData = {
+          fullName: auth.currentUser?.displayName || defaultUsername,
+          username: formattedUsername,
+          email: auth.currentUser?.email || '',
+          bio: '',
+          link: '',
+          profilePicture: '',
+          followers: 0,
+          following: 0,
+          posts: 0
+        };
+        
+        await setDoc(userRef, userData);
+        try {
+          await initializeNewUserTokens(auth.currentUser!.uid);
+        } catch (tokenError) {
+          errorHandler.logError(tokenError, 'initializeNewUserTokens');
+        }
+      }
+      
+      getUserDataCache = { data: userData, timestamp: Date.now() };
+      bypassData = userData;
+      bypassMode = false;
+      return userData;
+      
+    } catch (error: any) {
+      errorHandler.logError(error, 'getUserData');
+      
+      if (error.message?.includes('INTERNAL ASSERTION FAILED')) {
+        bypassMode = true;
+        const emergencyData: UserData = {
+          fullName: auth.currentUser?.displayName || 'Usuario',
+          username: auth.currentUser?.email?.split('@')[0] || 'usuario',
+          email: auth.currentUser?.email || '',
+          bio: '',
+          link: '',
+          profilePicture: '',
+          followers: 0,
+          following: 0,
+          posts: 0
+        };
+        bypassData = emergencyData;
+        return emergencyData;
+      }
+      
+      throw new Error('Error al cargar datos del usuario');
+    }
+  })();
+
+  getUserDataPromise.finally(() => {
+    getUserDataPromise = null;
+  });
+
+  return getUserDataPromise;
+};
+
+export const getUserDataById = async (userId: string): Promise<UserData | null> => {
+  if (!userId) return null;
+  
+  try {
+    const userRef = doc(db, 'users', userId);
     const docSnap = await getDoc(userRef);
 
     if (docSnap.exists()) {
       return docSnap.data() as UserData;
     }
-    
-    // Si no existe, crear datos por defecto y guardarlos
-    const defaultUsername = auth.currentUser?.email?.split('@')[0] || '';
-    const formattedUsername = formatUsername(defaultUsername);
-    
-    const defaultData: UserData = {
-      fullName: auth.currentUser?.displayName || defaultUsername,
-      username: formattedUsername,
-      email: auth.currentUser?.email || '',
-      bio: '',
-      link: '',
-      profilePicture: '',
-      followers: 0,
-      following: 0,
-      posts: 0
-    };
-    
-    // Guardar los datos por defecto
-    console.log('🆕 Creando usuario nuevo con datos:', defaultData);
-    await setDoc(userRef, defaultData);
-    
-    // Inicializar tokens para nuevo usuario
-    await initializeNewUserTokens(auth.currentUser.uid);
-    
-    console.log('✅ Usuario nuevo creado en Firebase con tokens inicializados');
-    return defaultData;
+    return null;
+  } catch (error) {
+    errorHandler.logError(error, 'getUserDataById');
+    return null;
   }
-  
-  throw new Error('Usuario no autenticado');
-};
-
-export const getUserDataById = async (userId: string): Promise<UserData | null> => {
-  if (!userId) return null;
-  const userRef = doc(db, 'users', userId);
-  const docSnap = await getDoc(userRef);
-
-  if (docSnap.exists()) {
-    return docSnap.data() as UserData;
-  }
-  return null;
 };
 
 export const getUsersDataByIds = async (userIds: string[]): Promise<{[key: string]: UserData}> => {
   const userData: {[key: string]: UserData} = {};
   
-  const promises = userIds.map(async (userId) => {
-    if (!userId) return;
-    const data = await getUserDataById(userId);
-    if (data) {
-      userData[userId] = data;
-    }
-  });
-  
-  await Promise.all(promises);
-  return userData;
+  try {
+    const promises = userIds.map(async (userId) => {
+      if (!userId) return;
+      const data = await getUserDataById(userId);
+      if (data) {
+        userData[userId] = data;
+      }
+    });
+    
+    await Promise.all(promises);
+    return userData;
+  } catch (error) {
+    errorHandler.logError(error, 'getUsersDataByIds');
+    return {};
+  }
 };
 
 export interface UserWithId extends UserData {
@@ -195,7 +302,6 @@ export const searchUsers = async (searchQuery: string): Promise<UserWithId[]> =>
   if (!searchQuery.trim()) return [];
   
   try {
-    // Obtener todos los usuarios y filtrar en cliente
     const querySnapshot = await getDocs(collection(db, 'users'));
     const users: UserWithId[] = [];
     const lowerQuery = searchQuery.toLowerCase();
@@ -209,7 +315,6 @@ export const searchUsers = async (searchQuery: string): Promise<UserWithId[]> =>
         users.push({
           ...userData,
           id: doc.id,
-          // Asegurar que isAvatar esté incluido
           isAvatar: userData.isAvatar || false,
           profilePicture: userData.profilePicture || '',
           bio: userData.bio || ''
@@ -217,15 +322,7 @@ export const searchUsers = async (searchQuery: string): Promise<UserWithId[]> =>
       }
     });
     
-    console.log('🔍 Usuarios encontrados en búsqueda:', users.map(u => ({ 
-      id: u.id, 
-      username: u.username, 
-      isAvatar: u.isAvatar,
-      profilePicture: !!u.profilePicture 
-    })));
-    
     return users.sort((a, b) => {
-      // Priorizar coincidencias exactas en username
       const aExact = a.username.toLowerCase() === lowerQuery;
       const bExact = b.username.toLowerCase() === lowerQuery;
       if (aExact && !bExact) return -1;
@@ -234,7 +331,7 @@ export const searchUsers = async (searchQuery: string): Promise<UserWithId[]> =>
     });
     
   } catch (error) {
-    console.error('Error searching users:', error);
+    errorHandler.logError(error, 'searchUsers');
     return [];
   }
 };
