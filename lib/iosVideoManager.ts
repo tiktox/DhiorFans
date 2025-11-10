@@ -106,17 +106,17 @@ class IOSVideoManager {
 
   private preventFullscreenGlobally() {
     // Interceptar API de pantalla completa
-    if (document.requestFullscreen) {
-      const originalRequestFullscreen = document.requestFullscreen;
-      document.requestFullscreen = function() {
+    const doc = document as any;
+    if (doc.requestFullscreen) {
+      doc.requestFullscreen = function() {
         console.warn('Pantalla completa bloqueada en iOS');
         return Promise.reject('Fullscreen blocked');
       };
     }
 
     // Interceptar webkit fullscreen
-    if ((document as any).webkitRequestFullscreen) {
-      (document as any).webkitRequestFullscreen = function() {
+    if (doc.webkitRequestFullscreen) {
+      doc.webkitRequestFullscreen = function() {
         console.warn('Webkit pantalla completa bloqueada en iOS');
         return Promise.reject('Webkit fullscreen blocked');
       };
