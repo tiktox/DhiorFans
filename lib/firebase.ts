@@ -188,16 +188,15 @@ class FirebaseConnectionManager {
       try {
         const result = await Promise.race([
           operation(),
-          this.createTimeoutPromise(15000) // Timeout de 15 segundos
+          this.createTimeoutPromise<T>(15000)
         ]);
         
-        // Operación exitosa
         this.retryCount = 0;
         this.connectionState = 'connected';
         this.lastSuccessfulOperation = Date.now();
         this.notifyListeners();
         
-        return result;
+        return result as T;
         
       } catch (error: any) {
         console.error(`❌ Error en operación [${context}] intento ${attempt + 1}:`, error);
