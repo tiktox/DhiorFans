@@ -123,8 +123,7 @@ export default function VideoPlayer({
           height: '100%', 
           objectFit: 'cover',
           WebkitTransform: 'translateZ(0)',
-          transform: 'translateZ(0)',
-          WebkitPlaysinline: true
+          transform: 'translateZ(0)'
         }}
       />
     </div>
