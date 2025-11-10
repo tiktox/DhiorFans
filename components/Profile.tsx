@@ -41,6 +41,13 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
   // Aplicar fix para videos en iOS
   useIOSVideoFix();
   
+  // Inicializar manager de videos iOS
+  useEffect(() => {
+    import('../lib/iosVideoManager').then(({ iosVideoManager }) => {
+      iosVideoManager.forceInlinePlayback();
+    });
+  }, []);
+  
   const reloadUserData = useCallback(async () => {
     if (!auth.currentUser || isLoading) return;
     
