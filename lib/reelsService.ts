@@ -19,11 +19,11 @@ export interface Reel {
 
 export const saveReel = async (videoFile: File, description: string, title?: string): Promise<Reel> => {
   if (!auth.currentUser) throw new Error('Usuario no autenticado');
+  if (!storage) throw new Error('Storage no disponible');
   
-  // 3. Subir el video a Firebase Storage
   const storageRef = ref(storage, `reels/${auth.currentUser.uid}/${Date.now()}-${videoFile.name}`);
   await uploadBytes(storageRef, videoFile);
-  const videoUrl = await getDownloadURL(storageRef); // 4. Obtener la URL pública
+  const videoUrl = await getDownloadURL(storageRef);
 
   const userData = await getUserData();
   

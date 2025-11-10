@@ -61,7 +61,18 @@ export const auth = (() => {
     throw error;
   }
 })();
-export const storage = app ? getStorage(app) : null;
+export const storage = (() => {
+  if (!app) {
+    console.warn('⚠️ Firebase app no inicializada');
+    throw new Error('Firebase not initialized');
+  }
+  try {
+    return getStorage(app);
+  } catch (error) {
+    console.error('❌ Error inicializando Storage:', error);
+    throw error;
+  }
+})();
 
 // Firestore con configuración de persistencia mejorada
 export const db = (() => {
