@@ -66,8 +66,8 @@ export const storage = app ? getStorage(app) : null;
 // Firestore con configuración de persistencia mejorada
 export const db = (() => {
   if (!app) {
-    console.warn('⚠️ Firebase app no inicializada, Firestore no disponible');
-    return null;
+    console.warn('⚠️ Firebase app no inicializada');
+    throw new Error('Firebase not initialized');
   }
   
   try {
@@ -75,14 +75,13 @@ export const db = (() => {
   } catch (error) {
     console.error('❌ Error inicializando Firestore:', error);
     try {
-      // Fallback con configuración personalizada
       return initializeFirestore(app, {
         experimentalForceLongPolling: true,
         ignoreUndefinedProperties: true
       });
     } catch (fallbackError) {
       console.error('❌ Error en fallback de Firestore:', fallbackError);
-      return null;
+      throw fallbackError;
     }
   }
 })();

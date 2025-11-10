@@ -335,3 +335,40 @@ export const searchUsers = async (searchQuery: string): Promise<UserWithId[]> =>
     return [];
   }
 };
+
+export const searchUsersByUsername = async (usernameQuery: string): Promise<UserWithId[]> => {
+  if (!usernameQuery.trim()) return [];
+  
+  try {
+    const querySnapshot = await getDocs(collection(db, 'users'));
+    const users: UserWithId[] = [];
+    const lowerQuery = usernameQuery.toLowerCase();
+    
+    querySnapshot.forEach((doc) => {
+      const userData = doc.data() as UserData;
+      const matchesUsername = userData.username?.toLowerCase().includes(lowerQuery);
+      
+      if (matchesUsername) {
+        users.push({
+          ...userData,
+          id: doc.id,
+          isAvatar: userData.isAvatar || false,
+          profilePicture: userData.profilePicture || '',
+          bio: userData.bio || ''
+        });
+      }
+    });
+    
+    return users.sort((a, b) => {
+      const aExact = a.username.toLowerCase() === lowerQuery;
+      const bExact = b.username.toLowerCase() === lowerQuery;
+      if (aExact && !bExact) return -1;
+      if (!aExact && bExact) return 1;
+      return a.fullName.localeCompare(b.fullName);
+    });
+    
+  } catch (error) {
+    errorHandler.logError(error, 'searchUsers');
+    return [];
+  }
+};
