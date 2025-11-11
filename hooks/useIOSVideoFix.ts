@@ -1,10 +1,13 @@
 import { useEffect } from 'react';
+import { IOSFullscreenBlocker } from '../lib/iosEmergencyBlocker';
 
 export const useIOSVideoFix = () => {
   useEffect(() => {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     
     if (isIOS) {
+      // Activar sistema de emergencia
+      IOSFullscreenBlocker.getInstance();
       // Aplicar configuraciones globales para iOS
       const videos = document.querySelectorAll('video');
       
@@ -45,7 +48,9 @@ export const useIOSVideoFix = () => {
         subtree: true
       });
       
-      return () => observer.disconnect();
+      return () => {
+        observer.disconnect();
+      };
     }
   }, []);
   

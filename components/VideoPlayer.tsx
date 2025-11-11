@@ -28,29 +28,48 @@ export default function VideoPlayer({
     const video = videoRef.current;
     if (!video) return;
 
-    // CONFIGURACIÓN CRÍTICA PARA iOS
-    video.setAttribute('playsinline', '');
-    video.setAttribute('webkit-playsinline', '');
-    video.playsInline = true;
+    // CONFIGURACIÓN CRÍTICA INMEDIATA
+    const forceInlineConfig = () => {
+      video.setAttribute('playsinline', '');
+      video.setAttribute('webkit-playsinline', '');
+      video.playsInline = true;
+      video.removeAttribute('controls');
+      
+      // Bloquear métodos de fullscreen del video
+      if (video.webkitEnterFullscreen) {
+        video.webkitEnterFullscreen = () => {
+          console.warn('webkitEnterFullscreen bloqueado');
+          return Promise.reject('Fullscreen blocked');
+        };
+      }
+      
+      if (video.requestFullscreen) {
+        video.requestFullscreen = () => {
+          console.warn('requestFullscreen bloqueado');
+          return Promise.reject('Fullscreen blocked');
+        };
+      }
+    };
     
-    // REMOVER controles nativos que pueden activar pantalla completa
-    video.removeAttribute('controls');
+    // Ejecutar inmediatamente
+    forceInlineConfig();
     
-    // INTERCEPTAR todos los eventos de pantalla completa
+    // INTERCEPTAR TODOS los eventos de fullscreen
     const fullscreenEvents = [
       'webkitbeginfullscreen',
       'webkitendfullscreen', 
       'fullscreenchange',
       'webkitfullscreenchange',
       'mozfullscreenchange',
-      'msfullscreenchange'
+      'msfullscreenchange',
+      'webkitpresentationmodechanged'
     ];
 
     const preventFullscreen = (e: Event) => {
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
-      console.warn('Pantalla completa bloqueada');
+      console.warn('🚫 Pantalla completa bloqueada:', e.type);
       return false;
     };
 
@@ -74,17 +93,30 @@ export default function VideoPlayer({
 
     video.addEventListener('click', handleClick, { capture: true });
     
-    // FORZAR configuración cada 100ms (agresivo pero necesario)
-    const forceConfig = setInterval(() => {
-      if (video.getAttribute('playsinline') !== '') {
-        video.setAttribute('playsinline', '');
-        video.setAttribute('webkit-playsinline', '');
-        video.playsInline = true;
-      }
-    }, 100);
+    // INTERCEPTAR doble click que puede activar fullscreen
+    video.addEventListener('dblclick', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      return false;
+    }, { capture: true, passive: false });
+    
+    // FORZAR configuración cada 50ms (MÁS AGRESIVO)
+    const forceConfig = setInterval(forceInlineConfig, 50);
+    
+    // Observer para cambios de atributos
+    const attributeObserver = new MutationObserver(() => {
+      forceInlineConfig();
+    });
+    
+    attributeObserver.observe(video, {
+      attributes: true,
+      attributeFilter: ['controls', 'playsinline', 'webkit-playsinline']
+    });
 
     return () => {
       clearInterval(forceConfig);
+      attributeObserver.disconnect();
       fullscreenEvents.forEach(event => {
         video.removeEventListener(event, preventFullscreen, { capture: true });
       });

@@ -7,6 +7,10 @@
   "background_color": "#000000",
   "theme_color": "#000000",
   "orientation": "portrait",
+  "prefer_related_applications": false,
+  "scope": "/",
+  "lang": "es",
+  "dir": "ltr",
   "icons": [
     {
       "src": "/icon-192.png",
@@ -20,12 +24,26 @@
     }
   ],
   "categories": ["social", "entertainment"],
+  "display_override": ["standalone", "minimal-ui"],
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
   "screenshots": [
     {
       "src": "/screenshot1.png",
       "sizes": "1170x2532",
       "type": "image/png",
-      "platform": "ios"
+      "platform": "ios",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Home",
+      "short_name": "Home",
+      "description": "Ir al inicio",
+      "url": "/",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

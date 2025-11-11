@@ -84,10 +84,27 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
 
   useEffect(() => {
     if (videoRef.current) {
-      videoRef.current.muted = isMuted;
+      const video = videoRef.current;
+      
+      // CONFIGURACIÓN CRÍTICA PARA iOS
+      video.setAttribute('playsinline', '');
+      video.setAttribute('webkit-playsinline', '');
+      video.playsInline = true;
+      video.removeAttribute('controls');
+      
+      // Bloquear métodos de fullscreen
+      if (video.webkitEnterFullscreen) {
+        video.webkitEnterFullscreen = () => Promise.reject('Blocked');
+      }
+      if (video.requestFullscreen) {
+        video.requestFullscreen = () => Promise.reject('Blocked');
+      }
+      
+      video.muted = isMuted;
+      
       if (isActive) {
         console.log('▶️ Reproduciendo video...');
-        videoRef.current.play().catch(e => {
+        video.play().catch(e => {
           if (e.name !== 'AbortError') {
             console.error('Error reproduciendo video:', e);
           }
@@ -95,7 +112,7 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
         setIsPlaying(true);
       } else {
         console.log('⏸️ Pausando video');
-        videoRef.current.pause();
+        video.pause();
         setIsPlaying(false);
       }
     }
@@ -344,6 +361,17 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
             onError={(e) => {
               console.error('❌ Error cargando video:', e);
               console.log('Video URL:', post.mediaUrl);
+            }}
+            playsInline
+            webkit-playsinline=""
+            x-webkit-airplay="deny"
+            disablePictureInPicture
+            controlsList="nodownload nofullscreen noremoteplayback"
+            onContextMenu={(e) => e.preventDefault()}
+            onDoubleClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              return false;
             }}
           />
           {/* Barra de progreso solo para videos */}
