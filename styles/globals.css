@@ -6,80 +6,151 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  overflow-x: hidden;
+  overflow: hidden;
   margin: 0;
   padding: 0;
+  position: fixed;
+  width: 100%;
+  height: 100%;
 }
 
-
-
 .auth-container {
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100vw;
   height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
 .background-video {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  z-index: -1;
+  z-index: 1;
 }
 
 .auth-content {
+  position: relative;
   background: rgba(255, 255, 255, 0.95);
   padding: 40px;
-  border-radius: var(--radius-xl);
+  border-radius: 20px;
   width: 400px;
+  max-width: 90vw;
   text-align: center;
+  z-index: 10;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 .logo {
-  font-size: 48px;
-  font-weight: 30;
+  font-size: 36px;
+  font-weight: 400;
   font-style: italic;
   color: #333;
-  margin-bottom: 40px;
+  margin-bottom: 30px;
   font-family: 'Brush Script MT', cursive;
+  text-align: center;
 }
 
 .auth-form {
-  display: flex;
   flex-direction: column;
   gap: 15px;
   margin-bottom: 20px;
+  display: flex;
 }
 
 .auth-form input {
-  padding: var(--space-lg) var(--space-xl);
-  border: none;
-  border-radius: var(--radius-xl);
-  background: var(--color-bg-tertiary);
-  color: var(--color-text-secondary);
-  font-size: 16px;
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ccc;
+  border-radius: 25px;
+  font-size: 14px;
   outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.auth-form input:focus {
+  border-color: #00bcd4;
 }
 
 .auth-form input::placeholder {
-  color: #666;
+  color: #999;
 }
 
 .submit-btn {
-  padding: var(--space-lg);
+  padding: 15px;
   border: none;
-  border-radius: var(--radius-xl);
-  background: linear-gradient(45deg, #00bcd4, var(--color-accent));
+  border-radius: 25px;
+  background: #00bcd4;
   color: white;
   font-size: 16px;
   font-weight: 500;
   cursor: pointer;
-  margin-top: var(--space-sm);
+  margin-top: 15px;
+  width: 100%;
+  transition: background 0.3s ease;
+}
+
+.submit-btn:hover {
+  background: #00acc1;
+}
+
+.google-btn {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 25px;
+  background: white;
+  color: #333;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 15px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: background 0.3s ease;
+}
+
+.google-btn:hover {
+  background: #f5f5f5;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .auth-content {
+    width: 350px;
+    padding: 35px 30px;
+  }
+  
+  .background-video {
+    object-fit: cover;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-content {
+    width: 90%;
+    max-width: 320px;
+    padding: 30px 25px;
+  }
+  
+  .logo {
+    font-size: 32px;
+    margin-bottom: 25px;
+  }
+  
+  .background-video {
+    object-fit: cover;
+  }
 }
 
 .forgot-password {
@@ -93,6 +164,65 @@ body {
 .switch-mode {
   color: #333;
   font-size: 14px;
+  margin-top: 15px;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 20px 0;
+  color: #999;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #ddd;
+}
+
+.divider span {
+  padding: 0 10px;
+  font-size: 14px;
+}
+
+.username-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.username-input-wrapper input {
+  width: 100%;
+}
+
+.checking-text,
+.success-text,
+.error-text {
+  display: block;
+  font-size: 12px;
+  margin-top: 5px;
+  text-align: left;
+}
+
+.checking-text {
+  color: #999;
+}
+
+.success-text {
+  color: #4caf50;
+}
+
+.error-text {
+  color: #f44336;
+}
+
+.input-error {
+  border-color: #f44336 !important;
+}
+
+.input-success {
+  border-color: #4caf50 !important;
 }
 
 .switch-btn {
@@ -3063,25 +3193,18 @@ body {
 }
 
 .back-btn-editor {
+  position:absolute;
+  top:5px;
   background: rgb(0, 0, 0);
-  border-radius: 100px;
-  color: white;
-  cursor: pointer;
-  padding: 12px;
-  border-radius: 100px;
+  color: rgb(255, 255, 255);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
-  width: 30px;
-  height: 30px;
-  transition: background 0.3s;
-}
-
-.back-btn-editor:hover {
-  background: rgba(0, 0, 0, 0.8);
-  border-color: 1px solid rgb(255, 255, 255);
-
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 .editor-content {
@@ -3201,7 +3324,7 @@ body {
   border-radius: 8px;
   padding: 12px;
   font-size: 16px;
-  color: #ffffff;
+  color: #000000;
   outline: none;
   margin-bottom: 10px;
 }

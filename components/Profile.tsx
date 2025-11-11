@@ -38,8 +38,8 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
   const [isLoading, setIsLoading] = useState(false);
   const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Aplicar fix para videos en iOS
-  useIOSVideoFix();
+  // Aplicar fix para videos en iOS - DESACTIVADO TEMPORALMENTE
+  // useIOSVideoFix();
   
   // Inicializar manager de videos iOS
   useEffect(() => {

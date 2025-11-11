@@ -158,12 +158,51 @@ export default function AuthForm() {
   }
 
   return (
-    <div className="auth-container">
-      <video className="background-video" autoPlay loop muted>
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      overflow: 'hidden'
+    }}>
+      <video 
+        autoPlay 
+        loop 
+        muted 
+        playsInline
+        webkit-playsinline="true"
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          minWidth: '100%',
+          minHeight: '100%',
+          width: 'auto',
+          height: 'auto',
+          objectFit: 'cover',
+          zIndex: 0
+        }}
+      >
         <source src="https://ik.imagekit.io/lics6cm47/11039880-hd_1920_1080_24fps.mp4?updatedAt=1758496774361" type="video/mp4" />
       </video>
       
-      <div className="auth-content">
+      <div style={{
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        zIndex: 999,
+        background: 'rgba(255, 255, 255, 0.95)',
+        padding: '40px',
+        borderRadius: '20px',
+        width: '400px',
+        maxWidth: '90vw',
+        maxHeight: '90vh',
+        overflowY: 'auto',
+        WebkitOverflowScrolling: 'touch'
+      }}>
         <h1 className="logo">Dhiorfans</h1>
         
         <form className="auth-form" onSubmit={handleSubmit}>
