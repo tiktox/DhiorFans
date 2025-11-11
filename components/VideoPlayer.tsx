@@ -36,8 +36,9 @@ export default function VideoPlayer({
       video.removeAttribute('controls');
       
       // Bloquear métodos de fullscreen del video
-      if (video.webkitEnterFullscreen) {
-        video.webkitEnterFullscreen = () => {
+      const videoAny = video as any;
+      if (videoAny.webkitEnterFullscreen) {
+        videoAny.webkitEnterFullscreen = () => {
           console.warn('webkitEnterFullscreen bloqueado');
           return Promise.reject('Fullscreen blocked');
         };

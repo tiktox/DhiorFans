@@ -93,8 +93,9 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
       video.removeAttribute('controls');
       
       // Bloquear métodos de fullscreen
-      if (video.webkitEnterFullscreen) {
-        video.webkitEnterFullscreen = () => Promise.reject('Blocked');
+      const videoAny = video as any;
+      if (videoAny.webkitEnterFullscreen) {
+        videoAny.webkitEnterFullscreen = () => Promise.reject('Blocked');
       }
       if (video.requestFullscreen) {
         video.requestFullscreen = () => Promise.reject('Blocked');

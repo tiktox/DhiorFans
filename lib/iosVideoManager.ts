@@ -64,6 +64,12 @@ class IOSVideoManager {
       }, { capture: true, passive: false });
     });
 
+    // Bloquear métodos webkit
+    const videoAny = video as any;
+    if (videoAny.webkitEnterFullscreen) {
+      videoAny.webkitEnterFullscreen = () => Promise.reject('Blocked');
+    }
+
     // Interceptar clicks que puedan activar pantalla completa
     video.addEventListener('click', (e) => {
       e.preventDefault();

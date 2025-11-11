@@ -48,11 +48,12 @@ class IOSFullscreenBlocker {
 
     // Bloquear en todos los videos existentes y futuros
     const blockVideoFullscreen = (video: HTMLVideoElement) => {
-      if ((video as any).webkitEnterFullscreen) {
-        (video as any).webkitEnterFullscreen = blockFunction;
+      const videoAny = video as any;
+      if (videoAny.webkitEnterFullscreen) {
+        videoAny.webkitEnterFullscreen = blockFunction;
       }
       if (video.requestFullscreen) {
-        video.requestFullscreen = blockFunction;
+        video.requestFullscreen = blockFunction as any;
       }
     };
 
