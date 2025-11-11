@@ -23,14 +23,26 @@ export const getUserTokens = async (userId: string): Promise<TokenData> => {
       return await ensureUserTokensExist(userId, 0);
     }
     
-    return tokenDoc.data() as TokenData;
-  } catch (error) {
-    console.log('Error accediendo a tokens, usando valores por defecto:', error);
+    const data = tokenDoc.data() as TokenData;
+    // ✅ VALIDAR DATOS: Asegurar que los datos son válidos
     return {
-      tokens: 0,
-      lastClaim: 0,
-      followersCount: 0
+      tokens: typeof data.tokens === 'number' ? data.tokens : 0,
+      lastClaim: typeof data.lastClaim === 'number' ? data.lastClaim : 0,
+      followersCount: typeof data.followersCount === 'number' ? data.followersCount : 0
     };
+  } catch (error) {
+    console.error('❌ ERROR CRÍTICO accediendo a tokens para usuario:', userId, error);
+    // ✅ CREAR DOCUMENTO EN CASO DE ERROR
+    try {
+      return await ensureUserTokensExist(userId, 0);
+    } catch (fallbackError) {
+      console.error('❌ ERROR CRÍTICO en fallback de tokens:', fallbackError);
+      return {
+        tokens: 0,
+        lastClaim: 0,
+        followersCount: 0
+      };
+    }
   }
 };
 
@@ -63,35 +75,44 @@ export const claimDailyTokens = async (userId: string, followersCount: number): 
   const now = Date.now();
   const oneDayMs = 24 * 60 * 60 * 1000;
   
-  let tokenData = await getUserTokens(userId);
-  
-  // ✅ MIGRACIÓN AUTOMÁTICA: Si el usuario no tiene documento de tokens, crearlo
-  if (tokenData.tokens === 0 && tokenData.lastClaim === 0) {
-    console.log('🔄 Migrando usuario antiguo:', userId);
-    await ensureUserTokensExist(userId, followersCount);
-    tokenData = await getUserTokens(userId);
-  }
-  
-  // ✅ VERIFICAR SI PUEDE RECLAMAR (24 horas)
-  if (now - tokenData.lastClaim < oneDayMs) {
-    return { success: false, tokensEarned: 0, totalTokens: tokenData.tokens };
-  }
-  
-  const dailyTokens = calculateDailyTokens(followersCount);
-  const newTotal = tokenData.tokens + dailyTokens;
-  
   try {
-    await updateDoc(doc(db, 'tokens', userId), {
+    let tokenData = await getUserTokens(userId);
+    
+    // ✅ MIGRACIÓN AUTOMÁTICA: Si el usuario no tiene documento de tokens, crearlo
+    if (tokenData.tokens === 0 && tokenData.lastClaim === 0) {
+      console.log('🔄 Migrando usuario antiguo:', userId);
+      await ensureUserTokensExist(userId, followersCount);
+      tokenData = await getUserTokens(userId);
+    }
+    
+    // ✅ VERIFICAR SI PUEDE RECLAMAR (24 horas)
+    if (now - tokenData.lastClaim < oneDayMs) {
+      console.log(`⏰ Usuario ${userId} ya reclamó tokens hoy. Próximo reclamo en ${Math.ceil((oneDayMs - (now - tokenData.lastClaim)) / (1000 * 60 * 60))} horas`);
+      return { success: false, tokensEarned: 0, totalTokens: tokenData.tokens };
+    }
+    
+    const dailyTokens = calculateDailyTokens(followersCount);
+    const newTotal = tokenData.tokens + dailyTokens;
+    
+    // ✅ USAR setDoc PARA EVITAR CONDICIONES DE CARRERA
+    await setDoc(doc(db, 'tokens', userId), {
       tokens: newTotal,
       lastClaim: now,
       followersCount
     });
     
-    console.log(`🪙 Tokens diarios otorgados: ${dailyTokens} (Total: ${newTotal})`);
+    console.log(`🪙 Tokens diarios otorgados a ${userId}: +${dailyTokens} (Total: ${newTotal})`);
     return { success: true, tokensEarned: dailyTokens, totalTokens: newTotal };
   } catch (error) {
-    console.error('Error actualizando tokens:', error);
-    return { success: false, tokensEarned: 0, totalTokens: tokenData.tokens };
+    console.error('❌ ERROR CRÍTICO reclamando tokens diarios para usuario:', userId, error);
+    // ✅ INTENTAR OBTENER TOKENS ACTUALES PARA RESPUESTA
+    try {
+      const currentTokens = await getUserTokens(userId);
+      return { success: false, tokensEarned: 0, totalTokens: currentTokens.tokens };
+    } catch (fallbackError) {
+      console.error('❌ ERROR CRÍTICO en fallback de reclamo:', fallbackError);
+      return { success: false, tokensEarned: 0, totalTokens: 0 };
+    }
   }
 };
 
@@ -206,7 +227,7 @@ export const ensureUserTokensExist = async (userId: string, currentFollowers: nu
     
     if (!tokenDoc.exists()) {
       // ✅ USUARIOS ANTIGUOS: Dar tokens iniciales generosos
-      const initialTokens = 50; // Bonus para usuarios antiguos
+      const initialTokens = 100; // Bonus aumentado para usuarios antiguos
       
       const initialData: TokenData = {
         tokens: initialTokens,
@@ -219,10 +240,34 @@ export const ensureUserTokensExist = async (userId: string, currentFollowers: nu
       return initialData;
     }
     
-    return tokenDoc.data() as TokenData;
+    const data = tokenDoc.data() as TokenData;
+    // ✅ VALIDAR Y CORREGIR DATOS CORRUPTOS
+    const validatedData: TokenData = {
+      tokens: typeof data.tokens === 'number' && data.tokens >= 0 ? data.tokens : 0,
+      lastClaim: typeof data.lastClaim === 'number' && data.lastClaim >= 0 ? data.lastClaim : 0,
+      followersCount: typeof data.followersCount === 'number' && data.followersCount >= 0 ? data.followersCount : currentFollowers
+    };
+    
+    // ✅ SI LOS DATOS ESTABAN CORRUPTOS, CORREGIRLOS
+    if (JSON.stringify(data) !== JSON.stringify(validatedData)) {
+      console.log(`🔧 Corrigiendo datos corruptos para usuario: ${userId}`);
+      await setDoc(doc(db, 'tokens', userId), validatedData);
+    }
+    
+    return validatedData;
   } catch (error) {
-    console.error('Error asegurando tokens del usuario:', error);
-    return { tokens: 0, lastClaim: 0, followersCount: currentFollowers };
+    console.error('❌ ERROR CRÍTICO asegurando tokens del usuario:', userId, error);
+    const fallbackData: TokenData = { tokens: 0, lastClaim: 0, followersCount: currentFollowers };
+    
+    // ✅ INTENTAR CREAR DOCUMENTO BÁSICO
+    try {
+      await setDoc(doc(db, 'tokens', userId), fallbackData);
+      console.log(`🆘 Documento de tokens de emergencia creado para: ${userId}`);
+    } catch (emergencyError) {
+      console.error('❌ ERROR CRÍTICO creando documento de emergencia:', emergencyError);
+    }
+    
+    return fallbackData;
   }
 };
 
@@ -278,3 +323,4 @@ export const syncTokensWithFollowers = async (userId: string, currentFollowers: 
     console.error('Error sincronizando tokens con seguidores:', error);
   }
 };
+

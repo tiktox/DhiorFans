@@ -131,22 +131,15 @@ export const getAllPosts = async (): Promise<Post[]> => {
 
 
 export const getUserPosts = async (userId: string): Promise<Post[]> => {
-  console.log('🔍 getUserPosts() - Buscando posts para usuario:', userId);
-  
   try {
-    // Intentar con query optimizada (requiere índice)
+    // Intentar query con índice primero
     const q = query(postsCollection, where('userId', '==', userId), orderBy('timestamp', 'desc'));
-    console.log('🔍 Query creada, ejecutando...');
-    
     const querySnapshot = await getDocs(q);
-    console.log('🔍 Query ejecutada, documentos encontrados:', querySnapshot.size);
     
-    // ✅ OPTIMIZACIÓN: Cargar likes en paralelo
     const postsPromises = querySnapshot.docs.map(async (docSnap) => {
       const data = docSnap.data();
       const postId = docSnap.id;
       
-      // Ejecutar ambas queries en paralelo
       const [likesCount, isLikedByUser] = await Promise.all([
         getPostLikesCount(postId),
         auth.currentUser ? 
@@ -163,66 +156,40 @@ export const getUserPosts = async (userId: string): Promise<Post[]> => {
       } as Post;
     });
     
-    const posts = await Promise.all(postsPromises);
-    console.log('✅ getUserPosts() - Total posts procesados:', posts.length);
-    return posts;
+    return await Promise.all(postsPromises);
     
   } catch (error: any) {
-    console.error('❌ Error en getUserPosts:', error);
-    
-    // Si el error es por falta de índice, usar método alternativo
+    // Si falla por índice, usar método simple
     if (handleIndexError(error)) {
-      showIndexMessage();
-      console.log('🔄 Usando método alternativo sin índice...');
       return await getUserPostsFallback(userId);
     }
     
+    console.error('Error en getUserPosts:', error);
     return [];
   }
 };
 
-// Método alternativo que no requiere índice compuesto
 const getUserPostsFallback = async (userId: string): Promise<Post[]> => {
   try {
-    // Obtener todos los posts y filtrar en cliente
-    const q = query(postsCollection);
+    const q = query(postsCollection, where('userId', '==', userId));
     const querySnapshot = await getDocs(q);
     
-    // Filtrar posts del usuario
-    const userDocs = querySnapshot.docs.filter(doc => doc.data().userId === userId);
+    const posts: Post[] = [];
     
-    // ✅ OPTIMIZACIÓN: Cargar likes en paralelo
-    const postsPromises = userDocs.map(async (docSnap) => {
+    querySnapshot.forEach((docSnap) => {
       const data = docSnap.data();
-      const postId = docSnap.id;
-      
-      // Ejecutar ambas queries en paralelo
-      const [likesCount, isLikedByUser] = await Promise.all([
-        getPostLikesCount(postId),
-        auth.currentUser ? 
-          checkUserLike(postId, auth.currentUser.uid).then(r => r !== null) : 
-          Promise.resolve(false)
-      ]);
-      
-      return {
-        id: postId,
+      posts.push({
+        id: docSnap.id,
         ...data,
         timestamp: (data.timestamp as Timestamp).toMillis(),
-        likesCount,
-        isLikedByUser
-      } as Post;
+        likesCount: data.likes || 0,
+        isLikedByUser: false
+      } as Post);
     });
     
-    const posts = await Promise.all(postsPromises);
-    
-    // Ordenar por timestamp descendente
-    posts.sort((a, b) => b.timestamp - a.timestamp);
-    
-    console.log('✅ getUserPostsFallback() - Posts encontrados:', posts.length);
-    return posts;
+    return posts.sort((a, b) => b.timestamp - a.timestamp);
     
   } catch (error) {
-    console.error('❌ Error en getUserPostsFallback:', error);
     return [];
   }
 };

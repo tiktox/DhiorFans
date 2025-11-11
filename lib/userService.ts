@@ -180,10 +180,6 @@ export const getUserData = async (forceRefresh = false): Promise<UserData> => {
     return getUserDataCache.data;
   }
 
-  if (bypassMode && bypassData) {
-    return bypassData;
-  }
-
   if (getUserDataPromise) {
     return getUserDataPromise;
   }
@@ -222,15 +218,13 @@ export const getUserData = async (forceRefresh = false): Promise<UserData> => {
       }
       
       getUserDataCache = { data: userData, timestamp: Date.now() };
-      bypassData = userData;
-      bypassMode = false;
       return userData;
       
     } catch (error: any) {
       errorHandler.logError(error, 'getUserData');
       
-      if (error.message?.includes('INTERNAL ASSERTION FAILED')) {
-        bypassMode = true;
+      // Si es error offline, usar datos de emergencia
+      if (error.code === 'failed-precondition' || error.message?.includes('offline')) {
         const emergencyData: UserData = {
           fullName: auth.currentUser?.displayName || 'Usuario',
           username: auth.currentUser?.email?.split('@')[0] || 'usuario',
@@ -242,7 +236,7 @@ export const getUserData = async (forceRefresh = false): Promise<UserData> => {
           following: 0,
           posts: 0
         };
-        bypassData = emergencyData;
+        getUserDataCache = { data: emergencyData, timestamp: Date.now() };
         return emergencyData;
       }
       

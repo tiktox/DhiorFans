@@ -598,10 +598,17 @@ body {
 .profile-container {
   position: relative;
   min-height: 100vh;
+  max-height: 100vh;
   background: #000;
   color: white;
   padding: 20px;
   padding-bottom: 100px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  contain: none;
 }
 
 /* Asegurar que las fotos de perfil principales mantengan formato correcto */
@@ -1637,10 +1644,14 @@ body {
 .search-container,
 .settings-container {
   min-height: 100vh;
+  max-height: 100vh;
   padding-bottom: 100px;
   overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  scroll-behavior: smooth;
 }
 
 .profile-container::-webkit-scrollbar,
@@ -1693,6 +1704,7 @@ body {
 .profile-container {
   position: relative;
   min-height: 100vh;
+  max-height: 100vh;
   background: #000;
   color: white;
   padding: 20px;
@@ -1701,6 +1713,12 @@ body {
   flex-direction: column;
   align-items: center;
   text-align: center;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-behavior: smooth;
 }
 
 /* Header with username and settings */
@@ -2599,6 +2617,44 @@ body {
   font-size: 14px;
 }
 
+/* Mobile Portrait - Optimización de scroll */
+@media (max-width: 767px) and (orientation: portrait) {
+  .profile-container {
+    width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+    padding: 15px;
+    padding-bottom: 120px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+  
+  .posts-grid {
+    max-width: 100%;
+    margin: 20px 0;
+  }
+  
+  .centered-stats {
+    gap: 30px;
+  }
+}
+
+/* Mobile Landscape */
+@media (max-width: 767px) and (orientation: landscape) {
+  .profile-container {
+    width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+    padding: 10px;
+    padding-bottom: 80px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 /* Tablet */
 @media (min-width: 768px) {
   .home-container,
@@ -2611,6 +2667,7 @@ body {
     border: 1px solid var(--color-border-primary);
     border-radius: var(--radius-md);
     max-height: 700px;
+    height: 700px;
   }
   
   .tokens-taskbar {
@@ -2622,8 +2679,10 @@ body {
   .search-container,
   .settings-container,
   .edit-profile-container {
-    height: 700px;
     overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
   }
   
   .edit-profile-form {
@@ -2646,6 +2705,7 @@ body {
   .edit-profile-container {
     width: 350px;
     max-height: 620px;
+    height: 620px;
   }
   
   .tokens-taskbar {
@@ -2657,7 +2717,10 @@ body {
   .search-container,
   .settings-container,
   .edit-profile-container {
-    height: 620px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
   }
   
   .edit-profile-form {
@@ -2670,30 +2733,84 @@ body {
   }
 }
 
-/* External Profile Styles */
-.external-profile-header {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  z-index: 10;
+
+
+/* Profile Styles */
+.profile-header-with-settings {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #333;
 }
 
-.external-profile-header .back-btn {
-  background: rgba(0, 0, 0, 0.7);
+.settings-btn-header {
+  background: none;
   border: none;
-  color: white;
+  color: #999;
+  font-size: 18px;
   cursor: pointer;
-  padding: 10px;
+  padding: 8px;
   border-radius: 50%;
+  transition: all 0.3s;
+}
+
+.settings-btn-header:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.avatar-display {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.avatar-display img {
+  width: 80px;
+  height: 140px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.default-avatar-profile {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: #333;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.3s;
+  font-size: 40px;
+  color: #999;
 }
 
-.external-profile-header .back-btn:hover {
-  background: rgba(0, 0, 0, 0.9);
+/* External Profile Styles */
+.external-profile-header {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  padding: 15px 20px;
+  display: flex;
+  align-items: center;
 }
+
+.external-profile-header .back-btn {
+   position:absolute;
+   right:140px;
+  top:5px;
+  background: rgb(0, 0, 0);
+  color: rgb(255, 255, 255);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
 
 /* Centered Header for External Profile */
 .profile-centered-header {
@@ -2702,7 +2819,7 @@ body {
   justify-content: center;
   align-items: center;
   margin-bottom: 20px;
-  padding-top: 60px;
+  padding-top: 20px;
 }
 
 .centered-username {
@@ -2866,10 +2983,6 @@ body {
   animation: taskbarSlideUp 0.5s ease forwards;
   z-index: 140;
 }
-
-
-
-
 
 /* Delete Confirmation Modal */
 .delete-confirm-overlay {
@@ -3633,7 +3746,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 16px;
+  color: #999;
 }
 
 .username-dynamic {
@@ -4197,11 +4311,13 @@ body {
   width: 100%;
   max-width: 300px;
   gap: 4px;
+  flex-shrink: 0;
 }
 
 .posts-grid .post-thumbnail {
   /* Fallback: 2 columns with flex */
   width: calc(50% - 2px);
+  flex-shrink: 0;
 }
 
 /* Modern grid for supported browsers */
@@ -4209,6 +4325,7 @@ body {
   .posts-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: minmax(200px, auto);
   }
   
   .posts-grid .post-thumbnail {
@@ -4450,7 +4567,7 @@ body {
   }
 }
 
-/* Asegurar que la barra esté siempre visible */
+/* Barra de navegación siempre fija */
 .bottom-nav {
   position: fixed !important;
   z-index: 9999 !important;
@@ -4506,6 +4623,83 @@ body {
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
+}
+
+/* Scroll suave sin optimizaciones problemáticas */
+.profile-container {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Asegurar que los botones sean accesibles en móviles */
+@media (max-width: 767px) {
+  .action-btn,
+  .settings-btn-header,
+  .back-btn {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px;
+  }
+  
+  .post-thumbnail {
+    min-height: 180px;
+  }
+  
+  /* Mejorar espaciado para scroll más cómodo */
+  .centered-stats {
+    margin-bottom: 30px;
+  }
+  
+  .centered-actions {
+    margin-bottom: 40px;
+  }
+  
+  .posts-grid {
+    margin-top: 30px;
+    margin-bottom: 40px;
+  }
+}
+
+/* Animaciones para entrada de perfil */
+.profile-container.entering {
+  animation: profileFadeIn 0.3s ease-out;
+}
+
+@keyframes profileFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mejorar feedback visual en elementos interactivos */
+.post-thumbnail {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.post-thumbnail:active {
+  transform: scale(0.98);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.action-btn {
+  transition: all 0.2s ease;
+}
+
+.action-btn:active {
+  transform: scale(0.95);
+}
+
+/* Optimizaciones para scroll suave en Safari */
+@supports (-webkit-overflow-scrolling: touch) {
+  .profile-container {
+    -webkit-overflow-scrolling: touch;
+    -webkit-transform: translate3d(0, 0, 0);
+  }
 }
 
 /* Estilos para mejorar la experiencia de scroll en reels */
@@ -5591,12 +5785,39 @@ background-color: linear-gradient(135deg, #FF0000, #00BFFF);
   }
 
   .notifications-header .back-btn {
-    min-width: 30px;
-    min-height: 30px;
+    min-width: 44px;
+    min-height: 44px;
   }
 
   .notification-item:active {
     background: rgba(33, 150, 243, 0.1);
+  }
+  
+  /* Optimizaciones específicas para perfiles en dispositivos táctiles */
+  .profile-container {
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .posts-grid {
+    touch-action: pan-y;
+  }
+  
+  .post-thumbnail {
+    min-height: 200px;
+    touch-action: manipulation;
+  }
+  
+  .action-btn {
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+  }
+  
+  .settings-btn-header {
+    min-width: 44px;
+    min-height: 44px;
+    touch-action: manipulation;
   }
 }
 

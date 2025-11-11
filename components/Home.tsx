@@ -56,6 +56,8 @@ export default function Home() {
 
 
 
+
+
   useEffect(() => {
     const loadData = async () => {
       if (auth.currentUser) {
@@ -85,38 +87,71 @@ export default function Home() {
           const count = await getUnreadNotificationsCount(auth.currentUser.uid);
           setUnreadCount(count);
           
-          // ✅ MIGRACIÓN AUTOMÁTICA + TOKENS DIARIOS
+          // ✅ MIGRACIÓN AUTOMÁTICA + TOKENS DIARIOS - SISTEMA ROBUSTO
           try {
-            // Asegurar que el usuario tenga sistema de tokens
-            const tokenData = await getUserTokens(auth.currentUser.uid);
-            console.log('🔍 Estado actual de tokens:', tokenData);
+            console.log('🔄 Iniciando verificación de tokens para usuario:', auth.currentUser.uid);
             
-            // Intentar reclamar tokens diarios
+            // ✅ PASO 1: Asegurar que el usuario tenga sistema de tokens
+            const tokenData = await getUserTokens(auth.currentUser.uid);
+            console.log('🔍 Estado actual de tokens:', {
+              tokens: tokenData.tokens,
+              lastClaim: tokenData.lastClaim,
+              followersCount: tokenData.followersCount,
+              canClaim: canClaimTokens(tokenData.lastClaim)
+            });
+            
+            // ✅ PASO 2: Intentar reclamar tokens diarios
             if (canClaimTokens(tokenData.lastClaim)) {
+              console.log('🎯 Intentando reclamar tokens diarios...');
               const result = await claimDailyTokens(auth.currentUser.uid, data.followers || 0);
-              if (result.success) {
-                console.log(`🪙 Tokens diarios reclamados: +${result.tokensEarned} (Total: ${result.totalTokens})`);
+              
+              if (result.success && result.tokensEarned > 0) {
+                console.log(`✅ ÉXITO: Tokens diarios reclamados: +${result.tokensEarned} (Total: ${result.totalTokens})`);
                 
-                // Crear notificación de tokens
-                if (result.tokensEarned > 0) {
-                  try {
-                    await notifyTokens(auth.currentUser.uid, result.tokensEarned);
-                    setUnreadCount(prev => prev + 1);
-                    console.log(`🔔 Notificación de tokens creada: ${result.tokensEarned} tokens`);
-                  } catch (notifError) {
-                    console.error('Error creando notificación de tokens:', notifError);
-                  }
+                // ✅ PASO 3: Crear notificación de tokens
+                try {
+                  await notifyTokens(auth.currentUser.uid, result.tokensEarned);
+                  setUnreadCount(prev => prev + 1);
+                  console.log(`🔔 Notificación de tokens creada: ${result.tokensEarned} tokens`);
+                } catch (notifError) {
+                  console.error('⚠️ Error creando notificación de tokens (no crítico):', notifError);
                 }
+              } else if (!result.success) {
+                console.log('⏰ Tokens ya reclamados hoy o error en reclamo');
               }
             } else {
-              console.log('⏰ Tokens ya reclamados hoy');
+              const nextClaimTime = new Date(tokenData.lastClaim + (24 * 60 * 60 * 1000));
+              console.log('⏰ Tokens ya reclamados hoy. Próximo reclamo:', nextClaimTime.toLocaleString());
             }
+            
+            // ✅ PASO 4: Verificar integridad del sistema de tokens
+            const finalTokenData = await getUserTokens(auth.currentUser.uid);
+            console.log('📊 Estado final de tokens:', finalTokenData);
+            
           } catch (tokenError) {
-            console.error('Error con sistema de tokens:', tokenError);
+            console.error('❌ ERROR CRÍTICO con sistema de tokens:', tokenError);
+            // ✅ INTENTAR RECUPERACIÓN DE EMERGENCIA
+            try {
+              console.log('🆘 Intentando recuperación de emergencia...');
+              await ensureUserTokensExist(auth.currentUser.uid, data.followers || 0);
+              console.log('✅ Recuperación de emergencia completada');
+            } catch (emergencyError) {
+              console.error('❌ ERROR CRÍTICO en recuperación de emergencia:', emergencyError);
+            }
           }
         } catch (error) {
-          console.error('Error loading initial user data:', error);
+          console.error('❌ ERROR CRÍTICO cargando datos iniciales del usuario:', error);
           setIsLoadingUser(false);
+          
+          // ✅ INTENTAR RECUPERACIÓN BÁSICA
+          if (auth.currentUser) {
+            try {
+              console.log('🆘 Intentando recuperación básica de usuario...');
+              await ensureUserTokensExist(auth.currentUser.uid, 0);
+            } catch (recoveryError) {
+              console.error('❌ Error en recuperación básica:', recoveryError);
+            }
+          }
         }
       }
     };
@@ -160,7 +195,7 @@ export default function Home() {
 
   if (currentView === 'profile') {
     return <Profile 
-      key={`profile-${refreshFeed}`} // Forzar re-render cuando se actualice refreshFeed
+      key={`profile-${refreshFeed}`}
       onNavigateHome={() => {
         setSelectedPostId(null);
         setCurrentView('home');

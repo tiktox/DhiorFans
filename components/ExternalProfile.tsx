@@ -3,6 +3,7 @@ import { getUserPosts, Post } from '../lib/postService';
 import { UserData } from '../lib/userService';
 import { followUser, unfollowUser, isFollowing } from '../lib/followService';
 import { getUserTokens, TokenData } from '../lib/tokenService';
+
 import PostModal from './PostModal';
 
 interface ExternalProfileProps {
@@ -20,6 +21,14 @@ export default function ExternalProfile({ userId, userData, onNavigateBack, onVi
   const [followersCount, setFollowersCount] = useState(userData.followers || 0);
   const [toast, setToast] = useState<{message: string; type: 'error' | 'success'} | null>(null);
   const [tokenData, setTokenData] = useState<TokenData | null>(null);
+
+  // Resetear scroll cuando cambie el userId
+  useEffect(() => {
+    const container = document.querySelector('.profile-container');
+    if (container) {
+      container.scrollTop = 0;
+    }
+  }, [userId]);
 
   useEffect(() => {
     const loadData = async () => {

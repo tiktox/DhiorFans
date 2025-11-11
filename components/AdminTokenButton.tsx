@@ -12,7 +12,7 @@ export default function AdminTokenButton({ userId, onTokensAdded }: AdminTokenBu
   const handleAddTokens = async () => {
     if (isUsed) return;
     
-    const result = await addTokens(userId, 100000000); // 100M tokens
+    const result = await addTokens(userId, 1000); // 1K tokens normales
     if (result.success) {
       setIsUsed(true);
       onTokensAdded?.(result.totalTokens);
@@ -21,5 +21,5 @@ export default function AdminTokenButton({ userId, onTokensAdded }: AdminTokenBu
 
   if (isUsed) return null;
 
-  
+  return null; // Botón deshabilitado
 }

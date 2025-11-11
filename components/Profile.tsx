@@ -6,6 +6,7 @@ import { initializeUserTokens, claimDailyTokens, canClaimTokens, migrateUserToke
 import { formatLargeNumber } from '../lib/numberFormatter';
 import { useIOSVideoFix } from '../hooks/useIOSVideoFix';
 
+
 import EditProfile from './EditProfile';
 import Settings from './Settings';
 import CreateDynamic from './CreateDynamic';
@@ -40,6 +41,14 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
   
   // Aplicar fix para videos en iOS - DESACTIVADO TEMPORALMENTE
   // useIOSVideoFix();
+  
+  // Resetear scroll al montar
+  useEffect(() => {
+    const container = document.querySelector('.profile-container');
+    if (container) {
+      container.scrollTop = 0;
+    }
+  }, []);
   
   // Inicializar manager de videos iOS
   useEffect(() => {
@@ -92,7 +101,21 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
         
       } catch (error) {
         console.error('Error al cargar datos del usuario:', error);
-        setUserData(null);
+        // No setear null, mantener estado anterior o usar datos básicos
+        if (!userData) {
+          const emergencyData = {
+            fullName: auth.currentUser?.displayName || 'Usuario',
+            username: auth.currentUser?.email?.split('@')[0] || 'usuario',
+            email: auth.currentUser?.email || '',
+            bio: '',
+            link: '',
+            profilePicture: '',
+            followers: 0,
+            following: 0,
+            posts: 0
+          };
+          setUserData(emergencyData);
+        }
       } finally {
         setIsLoading(false);
       }

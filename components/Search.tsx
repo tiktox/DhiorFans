@@ -50,6 +50,14 @@ export default function Search({ onNavigateHome, onViewPost, onViewProfile }: Se
   const [userResults, setUserResults] = useState<UserWithId[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Resetear scroll al montar el componente
+  useEffect(() => {
+    const container = document.querySelector('.search-container');
+    if (container) {
+      container.scrollTop = 0;
+    }
+  }, []);
+
   useEffect(() => {
     const performSearch = async () => {
       if (searchQuery.trim()) {
