@@ -86,20 +86,11 @@ export default function ReelPlayer({ post, isActive, onProfileClick, onPostDelet
     if (videoRef.current) {
       const video = videoRef.current;
       
-      // CONFIGURACIÓN CRÍTICA PARA iOS
+      // Configuración básica para iOS
       video.setAttribute('playsinline', '');
       video.setAttribute('webkit-playsinline', '');
       video.playsInline = true;
       video.removeAttribute('controls');
-      
-      // Bloquear métodos de fullscreen
-      const videoAny = video as any;
-      if (videoAny.webkitEnterFullscreen) {
-        videoAny.webkitEnterFullscreen = () => Promise.reject('Blocked');
-      }
-      if (video.requestFullscreen) {
-        video.requestFullscreen = () => Promise.reject('Blocked');
-      }
       
       video.muted = isMuted;
       

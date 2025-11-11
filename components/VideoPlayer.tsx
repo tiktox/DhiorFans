@@ -28,60 +28,25 @@ export default function VideoPlayer({
     const video = videoRef.current;
     if (!video) return;
 
-    // CONFIGURACIÓN CRÍTICA INMEDIATA
-    const forceInlineConfig = () => {
-      video.setAttribute('playsinline', '');
-      video.setAttribute('webkit-playsinline', '');
-      video.playsInline = true;
-      video.removeAttribute('controls');
-      
-      // Bloquear métodos de fullscreen del video
-      const videoAny = video as any;
-      if (videoAny.webkitEnterFullscreen) {
-        videoAny.webkitEnterFullscreen = () => {
-          console.warn('webkitEnterFullscreen bloqueado');
-          return Promise.reject('Fullscreen blocked');
-        };
-      }
-      
-      if (video.requestFullscreen) {
-        video.requestFullscreen = () => {
-          console.warn('requestFullscreen bloqueado');
-          return Promise.reject('Fullscreen blocked');
-        };
-      }
-    };
+    // Configuración básica para iOS
+    video.setAttribute('playsinline', '');
+    video.setAttribute('webkit-playsinline', '');
+    video.playsInline = true;
+    video.removeAttribute('controls');
     
-    // Ejecutar inmediatamente
-    forceInlineConfig();
-    
-    // INTERCEPTAR TODOS los eventos de fullscreen
-    const fullscreenEvents = [
-      'webkitbeginfullscreen',
-      'webkitendfullscreen', 
-      'fullscreenchange',
-      'webkitfullscreenchange',
-      'mozfullscreenchange',
-      'msfullscreenchange',
-      'webkitpresentationmodechanged'
-    ];
-
+    // Interceptar eventos de fullscreen
     const preventFullscreen = (e: Event) => {
       e.preventDefault();
       e.stopPropagation();
-      e.stopImmediatePropagation();
-      console.warn('🚫 Pantalla completa bloqueada:', e.type);
       return false;
     };
 
-    fullscreenEvents.forEach(event => {
-      video.addEventListener(event, preventFullscreen, { capture: true, passive: false });
-    });
+    video.addEventListener('webkitbeginfullscreen', preventFullscreen, { capture: true, passive: false });
+    video.addEventListener('webkitendfullscreen', preventFullscreen, { capture: true, passive: false });
 
-    // INTERCEPTAR clicks para controlar reproducción manualmente
+    // Manejar clicks
     const handleClick = (e: Event) => {
       e.preventDefault();
-      e.stopPropagation();
       
       if (video.paused) {
         video.play().catch(() => {});
@@ -93,34 +58,10 @@ export default function VideoPlayer({
     };
 
     video.addEventListener('click', handleClick, { capture: true });
-    
-    // INTERCEPTAR doble click que puede activar fullscreen
-    video.addEventListener('dblclick', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      return false;
-    }, { capture: true, passive: false });
-    
-    // FORZAR configuración cada 50ms (MÁS AGRESIVO)
-    const forceConfig = setInterval(forceInlineConfig, 50);
-    
-    // Observer para cambios de atributos
-    const attributeObserver = new MutationObserver(() => {
-      forceInlineConfig();
-    });
-    
-    attributeObserver.observe(video, {
-      attributes: true,
-      attributeFilter: ['controls', 'playsinline', 'webkit-playsinline']
-    });
 
     return () => {
-      clearInterval(forceConfig);
-      attributeObserver.disconnect();
-      fullscreenEvents.forEach(event => {
-        video.removeEventListener(event, preventFullscreen, { capture: true });
-      });
+      video.removeEventListener('webkitbeginfullscreen', preventFullscreen, { capture: true });
+      video.removeEventListener('webkitendfullscreen', preventFullscreen, { capture: true });
       video.removeEventListener('click', handleClick, { capture: true });
     };
   }, [onClick]);

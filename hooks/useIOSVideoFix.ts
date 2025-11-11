@@ -1,46 +1,25 @@
 import { useEffect } from 'react';
-import { IOSFullscreenBlocker } from '../lib/iosEmergencyBlocker';
 
 export const useIOSVideoFix = () => {
   useEffect(() => {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     
     if (isIOS) {
-      // Activar sistema de emergencia
-      IOSFullscreenBlocker.getInstance();
-      // Aplicar configuraciones globales para iOS
-      const videos = document.querySelectorAll('video');
-      
-      videos.forEach(video => {
-        video.setAttribute('playsinline', 'true');
-        video.setAttribute('webkit-playsinline', 'true');
-        
-        // Prevenir eventos de pantalla completa
-        const preventFullscreen = (e: Event) => {
-          e.preventDefault();
-          e.stopPropagation();
-          return false;
-        };
-        
-        video.addEventListener('webkitbeginfullscreen', preventFullscreen);
-        video.addEventListener('webkitendfullscreen', preventFullscreen);
-      });
-      
-      // Observer para videos que se agreguen dinámicamente
-      const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-          mutation.addedNodes.forEach((node) => {
-            if (node.nodeType === 1) {
-              const element = node as Element;
-              const newVideos = element.querySelectorAll('video');
-              
-              newVideos.forEach(video => {
-                video.setAttribute('playsinline', 'true');
-                video.setAttribute('webkit-playsinline', 'true');
-              });
-            }
-          });
+      // Configuración básica para videos existentes
+      const configureVideos = () => {
+        document.querySelectorAll('video').forEach(video => {
+          video.setAttribute('playsinline', '');
+          video.setAttribute('webkit-playsinline', '');
+          video.playsInline = true;
+          video.removeAttribute('controls');
         });
+      };
+      
+      configureVideos();
+      
+      // Observer simple para nuevos videos
+      const observer = new MutationObserver(() => {
+        configureVideos();
       });
       
       observer.observe(document.body, {
@@ -48,9 +27,7 @@ export const useIOSVideoFix = () => {
         subtree: true
       });
       
-      return () => {
-        observer.disconnect();
-      };
+      return () => observer.disconnect();
     }
   }, []);
   
