@@ -3206,7 +3206,7 @@ body {
   cursor: pointer;
   transition: all 0.3s ease;
 }
-
+ 
 .editor-content {
   flex: 1;
   display: flex;
