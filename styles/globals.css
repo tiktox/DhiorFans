@@ -5277,8 +5277,9 @@ background-color: linear-gradient(135deg, #FF0000, #00BFFF);
 @import url('./google-auth.css');
 
 
-/* Username Validation Styles */
-.username-input-wrapper {
+/* Username and Email Validation Styles */
+.username-input-wrapper,
+.email-input-wrapper {
   position: relative;
   width: 100%;
 }

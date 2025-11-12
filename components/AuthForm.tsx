@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { auth, db } from '../lib/firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { saveUserData, getUserData, checkUsernameAvailability } from '../lib/userService';
+import { checkEmailAvailability } from '../lib/emailVerificationService';
 import Home from './Home';
 
 
@@ -17,10 +19,40 @@ export default function AuthForm() {
   const [error, setError] = useState('');
   const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
   const [usernameCheckTimeout, setUsernameCheckTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [emailStatus, setEmailStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
+  const [emailCheckTimeout, setEmailCheckTimeout] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
+      
+      // Sincronizar usuario automáticamente cuando se autentica
+      if (currentUser) {
+        try {
+          const userRef = doc(db, 'users', currentUser.uid);
+          const docSnap = await getDoc(userRef);
+          
+          if (!docSnap.exists()) {
+            console.log('🔄 Sincronizando usuario automáticamente...');
+            const userData = {
+              fullName: currentUser.displayName || currentUser.email?.split('@')[0] || 'Usuario',
+              username: (currentUser.email?.split('@')[0] || 'usuario').replace(/\s+/g, '_').toLowerCase(),
+              email: currentUser.email?.toLowerCase() || '',
+              bio: '',
+              link: '',
+              profilePicture: currentUser.photoURL || '',
+              followers: 0,
+              following: 0,
+              posts: 0
+            };
+            
+            await setDoc(userRef, userData);
+            console.log('✅ Usuario sincronizado automáticamente');
+          }
+        } catch (error) {
+          console.error('Error sincronizando usuario:', error);
+        }
+      }
     });
     return () => unsubscribe();
   }, []);
@@ -58,6 +90,46 @@ export default function AuthForm() {
     setUsernameCheckTimeout(timeout);
   };
 
+  const checkEmail = async (value: string) => {
+    if (!value.trim() || isLogin) {
+      setEmailStatus('idle');
+      return;
+    }
+    
+    setEmailStatus('checking');
+    
+    const available = await checkEmailAvailability(value);
+    
+    setEmailStatus(available ? 'available' : 'taken');
+  };
+
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    setError('');
+    
+    if (emailCheckTimeout) {
+      clearTimeout(emailCheckTimeout);
+    }
+    
+    if (!value.trim() || isLogin) {
+      setEmailStatus('idle');
+      return;
+    }
+    
+    const timeout = setTimeout(() => {
+      checkEmail(value);
+    }, 500);
+    
+    setEmailCheckTimeout(timeout);
+  };
+
+  const toggleMode = () => {
+    setIsLogin(!isLogin);
+    setEmailStatus('idle');
+    setUsernameStatus('idle');
+    setError('');
+  };
+
   const handleGoogleSignIn = async () => {
     setLoading(true);
     setError('');
@@ -66,18 +138,26 @@ export default function AuthForm() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       
-      const currentData = await getUserData();
-      if (!currentData.fullName) {
+      // Siempre sincronizar usuario de Google
+      const userRef = doc(db, 'users', user.uid);
+      const docSnap = await getDoc(userRef);
+      
+      if (!docSnap.exists()) {
         const formattedUsername = (user.displayName || user.email?.split('@')[0] || 'user').replace(/\s+/g, '_').toLowerCase();
-        await saveUserData({
+        const userData = {
           fullName: user.displayName || user.email?.split('@')[0] || 'Usuario',
           username: formattedUsername,
-          email: user.email || '',
+          email: user.email?.toLowerCase() || '',
+          bio: '',
+          link: '',
           profilePicture: user.photoURL || '',
           followers: 0,
           following: 0,
           posts: 0
-        });
+        };
+        
+        await setDoc(userRef, userData);
+        console.log('✅ Usuario de Google sincronizado');
       }
       console.log('✅ Login con Google exitoso');
     } catch (error: any) {
@@ -95,19 +175,6 @@ export default function AuthForm() {
     try {
       if (isLogin) {
         await signInWithEmailAndPassword(auth, email, password);
-        // Ensure user data exists for existing users
-        const currentData = await getUserData(); // This is already async, which is good
-        if (!currentData.fullName || currentData.fullName === currentData.email) {
-          const formattedUsername = email.split('@')[0].replace(/\s+/g, '_');
-          await saveUserData({
-            fullName: email.split('@')[0],
-            username: formattedUsername,
-            email,
-            followers: 0,
-            following: 0,
-            posts: 0
-          });
-        }
         console.log('Login exitoso');
       } else {
         if (password !== confirmPassword) {
@@ -128,18 +195,36 @@ export default function AuthForm() {
           return;
         }
         
+        if (emailStatus === 'taken') {
+          setError('Este correo electrónico ya está registrado');
+          setLoading(false);
+          return;
+        }
+        
+        if (emailStatus !== 'available') {
+          setError('Por favor espera a que se valide el correo electrónico');
+          setLoading(false);
+          return;
+        }
+        
         const formattedUsername = (username || email.split('@')[0]).replace(/\s+/g, '_').toLowerCase();
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         
-        // Guardar datos del usuario primero
-        await saveUserData({
+        // Guardar datos del usuario directamente en Firestore
+        const userData = {
           fullName: fullName || email.split('@')[0],
           username: formattedUsername,
-          email,
+          email: email.toLowerCase(),
+          bio: '',
+          link: '',
+          profilePicture: '',
           followers: 0,
           following: 0,
           posts: 0
-        });
+        };
+        
+        await setDoc(doc(db, 'users', userCredential.user.uid), userData);
+        console.log('✅ Usuario registrado y guardado en Firestore');
         
         // Email verification desactivado - Firebase tiene problemas de entrega
         console.log('✅ Registro exitoso para:', email);
@@ -171,7 +256,6 @@ export default function AuthForm() {
         loop 
         muted 
         playsInline
-        webkit-playsinline="true"
         style={{
           position: 'absolute',
           top: '50%',
@@ -231,13 +315,19 @@ export default function AuthForm() {
             </>
           )}
           
-          <input
-            type="email"
-            placeholder="Correo electrónico"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+          <div className="email-input-wrapper">
+            <input
+              type="email"
+              placeholder="Correo electrónico"
+              value={email}
+              onChange={(e) => handleEmailChange(e.target.value)}
+              required
+              className={!isLogin && emailStatus === 'taken' ? 'input-error' : !isLogin && emailStatus === 'available' ? 'input-success' : ''}
+            />
+            {!isLogin && emailStatus === 'checking' && <span className="checking-text">Verificando correo...</span>}
+            {!isLogin && emailStatus === 'available' && <span className="success-text">✓ Correo disponible</span>}
+            {!isLogin && emailStatus === 'taken' && <span className="error-text">✗ Este correo ya está registrado</span>}
+          </div>
           
           <input
             type="password"
@@ -279,10 +369,10 @@ export default function AuthForm() {
         </button>
         
         <p className="switch-mode">
-          ¿No tienes una cuenta?{' '}
+          {isLogin ? '¿No tienes una cuenta?' : '¿Ya tienes una cuenta?'}{' '}
           <button 
             type="button" 
-            onClick={() => setIsLogin(!isLogin)}
+            onClick={toggleMode}
             className="switch-btn"
           >
             {isLogin ? 'Registrarme' : 'Iniciar sesión'}

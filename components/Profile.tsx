@@ -296,8 +296,6 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
         </div>
       </div>
 
-
-
       {/* Posts Grid */}
       <div className="posts-grid">
         {userPosts.length > 0 ? (

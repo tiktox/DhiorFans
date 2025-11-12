@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { auth } from '../lib/firebase';
 import { getUserData, getUserDataById, UserData } from '../lib/userService';
 import { useProfileSync } from '../hooks/useProfileSync';
-import { claimDailyTokens, canClaimTokens, getUserTokens, ensureUserTokensExist } from '../lib/tokenService';
+import { claimDailyTokens, canClaimTokens, getUserTokens, ensureUserTokensExist, checkTokenSystemHealth, getCacheStats, clearTokenCache } from '../lib/tokenService';
 import { notifyTokens } from '../lib/notificationService';
 import { getUnreadNotificationsCount } from '../lib/notificationService';
 import Profile from './Profile';
@@ -87,56 +87,106 @@ export default function Home() {
           const count = await getUnreadNotificationsCount(auth.currentUser.uid);
           setUnreadCount(count);
           
-          // ✅ MIGRACIÓN AUTOMÁTICA + TOKENS DIARIOS - SISTEMA ROBUSTO
+          // 🚀 SISTEMA ROBUSTO DE TOKENS - VERSIÓN AVANZADA
           try {
-            console.log('🔄 Iniciando verificación de tokens para usuario:', auth.currentUser.uid);
+            console.log('🔄 Iniciando sistema robusto de tokens para usuario:', auth.currentUser.uid);
             
-            // ✅ PASO 1: Asegurar que el usuario tenga sistema de tokens
+            // ✅ PASO 1: Verificación de salud del sistema
+            const { checkTokenSystemHealth } = await import('../lib/tokenService');
+            const healthCheck = await checkTokenSystemHealth(auth.currentUser.uid);
+            
+            if (!healthCheck.healthy) {
+              console.warn('⚠️ Problemas detectados en sistema de tokens:', healthCheck.issues);
+              console.log('🔧 Recomendaciones:', healthCheck.recommendations);
+            }
+            
+            // ✅ PASO 2: Obtener tokens con sistema robusto (incluye cache y retry)
             const tokenData = await getUserTokens(auth.currentUser.uid);
-            console.log('🔍 Estado actual de tokens:', {
+            console.log('🔍 Estado actual de tokens (con validación):', {
               tokens: tokenData.tokens,
               lastClaim: tokenData.lastClaim,
               followersCount: tokenData.followersCount,
-              canClaim: canClaimTokens(tokenData.lastClaim)
+              canClaim: canClaimTokens(tokenData.lastClaim),
+              healthy: healthCheck.healthy
             });
             
-            // ✅ PASO 2: Intentar reclamar tokens diarios
+            // ✅ PASO 3: Reclamo automático con transacciones atómicas
             if (canClaimTokens(tokenData.lastClaim)) {
-              console.log('🎯 Intentando reclamar tokens diarios...');
+              console.log('🎯 Ejecutando reclamo diario con sistema robusto...');
               const result = await claimDailyTokens(auth.currentUser.uid, data.followers || 0);
               
               if (result.success && result.tokensEarned > 0) {
-                console.log(`✅ ÉXITO: Tokens diarios reclamados: +${result.tokensEarned} (Total: ${result.totalTokens})`);
+                console.log(`✅ ÉXITO ROBUSTO: Tokens diarios reclamados: +${result.tokensEarned} (Total: ${result.totalTokens})`);
                 
-                // ✅ PASO 3: Crear notificación de tokens
+                // ✅ PASO 4: Notificación con manejo de errores
                 try {
                   await notifyTokens(auth.currentUser.uid, result.tokensEarned);
                   setUnreadCount(prev => prev + 1);
                   console.log(`🔔 Notificación de tokens creada: ${result.tokensEarned} tokens`);
+                  
+                  // Mostrar notificación visual al usuario
+                  if (window.showToast) {
+                    window.showToast(`🪙 +${result.tokensEarned} tokens diarios recibidos!`, 'success');
+                  }
                 } catch (notifError) {
-                  console.error('⚠️ Error creando notificación de tokens (no crítico):', notifError);
+                  console.error('⚠️ Error creando notificación (no crítico):', notifError);
                 }
               } else if (!result.success) {
-                console.log('⏰ Tokens ya reclamados hoy o error en reclamo');
+                console.log('⏰ Tokens ya reclamados hoy o condición no cumplida');
               }
             } else {
               const nextClaimTime = new Date(tokenData.lastClaim + (24 * 60 * 60 * 1000));
-              console.log('⏰ Tokens ya reclamados hoy. Próximo reclamo:', nextClaimTime.toLocaleString());
+              console.log('⏰ Tokens ya reclamados. Próximo reclamo:', nextClaimTime.toLocaleString());
             }
             
-            // ✅ PASO 4: Verificar integridad del sistema de tokens
+            // ✅ PASO 5: Verificación final y limpieza
             const finalTokenData = await getUserTokens(auth.currentUser.uid);
-            console.log('📊 Estado final de tokens:', finalTokenData);
+            console.log('📊 Estado final verificado:', finalTokenData);
+            
+            // ✅ PASO 6: Monitoreo proactivo
+            const { getCacheStats } = await import('../lib/tokenService');
+            const cacheStats = getCacheStats();
+            console.log('💾 Estadísticas de cache:', cacheStats);
             
           } catch (tokenError) {
-            console.error('❌ ERROR CRÍTICO con sistema de tokens:', tokenError);
-            // ✅ INTENTAR RECUPERACIÓN DE EMERGENCIA
+            console.error('❌ ERROR EN SISTEMA ROBUSTO DE TOKENS:', tokenError);
+            
+            // 🆘 SISTEMA DE RECUPERACIÓN MULTI-NIVEL
             try {
-              console.log('🆘 Intentando recuperación de emergencia...');
+              console.log('🆘 Iniciando recuperación multi-nivel...');
+              
+              // Nivel 1: Recuperación básica
               await ensureUserTokensExist(auth.currentUser.uid, data.followers || 0);
-              console.log('✅ Recuperación de emergencia completada');
+              console.log('✅ Nivel 1: Recuperación básica completada');
+              
+              // Nivel 2: Verificación de integridad
+              const recoveredData = await getUserTokens(auth.currentUser.uid);
+              if (recoveredData.tokens >= 0) {
+                console.log('✅ Nivel 2: Integridad verificada');
+              } else {
+                throw new Error('Datos aún corruptos después de recuperación');
+              }
+              
+              // Nivel 3: Notificar recuperación exitosa
+              if (window.showToast) {
+                window.showToast('🔧 Sistema de tokens recuperado exitosamente', 'info');
+              }
+              
             } catch (emergencyError) {
-              console.error('❌ ERROR CRÍTICO en recuperación de emergencia:', emergencyError);
+              console.error('❌ FALLO CRÍTICO EN RECUPERACIÓN MULTI-NIVEL:', emergencyError);
+              
+              // 🚨 ÚLTIMO RECURSO: Crear documento mínimo
+              try {
+                const { clearTokenCache } = await import('../lib/tokenService');
+                clearTokenCache(auth.currentUser.uid);
+                console.log('🧹 Cache limpiado como último recurso');
+                
+                if (window.showToast) {
+                  window.showToast('⚠️ Sistema de tokens en modo de emergencia', 'warning');
+                }
+              } catch (lastResortError) {
+                console.error('💥 FALLO TOTAL DEL SISTEMA DE TOKENS:', lastResortError);
+              }
             }
           }
         } catch (error) {

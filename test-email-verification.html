@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Email Verification</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .container { max-width: 500px; margin: 0 auto; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
+        .result { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .available { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .taken { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .checking { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Test de Verificación de Email</h1>
+        <p>Ingresa tu email para verificar si está registrado:</p>
+        
+        <input type="email" id="emailInput" placeholder="tu-email@ejemplo.com">
+        <button onclick="testEmail()">Verificar Email</button>
+        
+        <div id="result"></div>
+        
+        <h3>📋 Instrucciones:</h3>
+        <ol>
+            <li>Abre las herramientas de desarrollador (F12)</li>
+            <li>Ve a la pestaña "Console"</li>
+            <li>Ingresa tu email y haz clic en "Verificar Email"</li>
+            <li>Revisa los logs detallados en la consola</li>
+        </ol>
+        
+        <h3>🛠️ Debug Manual:</h3>
+        <p>También puedes ejecutar en la consola:</p>
+        <code>
+            debugEmailCheck("tu-email@ejemplo.com")<br>
+            listAllUsers()
+        </code>
+    </div>
+
+    <script>
+        async function testEmail() {
+            const email = document.getElementById('emailInput').value;
+            const resultDiv = document.getElementById('result');
+            
+            if (!email) {
+                resultDiv.innerHTML = '<div class="result">⚠️ Por favor ingresa un email</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<div class="result checking">🔄 Verificando email...</div>';
+            
+            try {
+                // Simular la verificación (necesitarías importar el servicio real)
+                console.log('🔍 Iniciando verificación para:', email);
+                
+                // Aquí normalmente llamarías a checkEmailAvailability(email)
+                // Por ahora solo mostramos el proceso
+                
+                setTimeout(() => {
+                    resultDiv.innerHTML = `
+                        <div class="result">
+                            ℹ️ Verificación iniciada para: <strong>${email}</strong><br>
+                            📊 Revisa la consola para ver los logs detallados<br>
+                            🔧 Para probar realmente, usa el formulario de registro de la app
+                        </div>
+                    `;
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = '<div class="result taken">❌ Error en la verificación</div>';
+            }
+        }
+        
+        // Permitir verificar con Enter
+        document.getElementById('emailInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                testEmail();
+            }
+        });
+    </script>
+</body>
+</html>

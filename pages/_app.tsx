@@ -17,6 +17,14 @@ import '../styles/chat-responsive.css';
 import '../styles/z-index-hierarchy.css';
 import { CommentsProvider } from '../contexts/CommentsContext';
 
+if (typeof window !== 'undefined') {
+  const originalError = console.error;
+  console.error = (...args) => {
+    if (typeof args[0] === 'string' && (args[0].includes('Extra attributes') || args[0].includes('data-np-intersection-state'))) return;
+    originalError(...args);
+  };
+}
+
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <CommentsProvider>

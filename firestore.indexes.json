@@ -239,16 +239,6 @@
           "order": "DESCENDING"
         }
       ]
-    },
-    {
-      "collectionGroup": "tokens",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "tokens",
-          "order": "DESCENDING"
-        }
-      ]
     }
   ],
   "fieldOverrides": [
