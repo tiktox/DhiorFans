@@ -1,4 +1,4 @@
-import { db, connectionManager } from './firebase';
+import { db } from './firebase';
 import { collection, addDoc, query, where, orderBy, getDocs, updateDoc, doc, getDoc, onSnapshot, Timestamp } from 'firebase/firestore';
 
 export interface Notification {
@@ -32,7 +32,7 @@ export const createNotification = async (
   // No crear notificación si el usuario se interactúa consigo mismo
   if (userId === fromUserId) return;
 
-  return connectionManager.executeWithRetry(async () => {
+  try {
     const notificationData = {
       userId,
       type,
@@ -47,7 +47,10 @@ export const createNotification = async (
     
     await addDoc(collection(db, 'notifications'), notificationData);
     console.log('✅ Notificación creada exitosamente');
-  }, 'createNotification');
+  } catch (error) {
+    console.error('Error creando notificación:', error);
+    throw error;
+  }
 };
 
 // Obtener notificaciones del usuario con manejo robusto
@@ -57,7 +60,7 @@ export const getUserNotifications = async (userId: string): Promise<Notification
     return [];
   }
 
-  return connectionManager.executeWithRetry(async () => {
+  try {
     let querySnapshot;
     
     try {
@@ -112,10 +115,10 @@ export const getUserNotifications = async (userId: string): Promise<Notification
     
     console.log(`✅ ${notifications.length} notificaciones cargadas`);
     return notifications;
-  }, 'getUserNotifications').catch(error => {
+  } catch (error) {
     console.error('Error crítico obteniendo notificaciones:', error);
     return []; // Retornar array vacío en lugar de fallar
-  });
+  }
 };
 
 // Marcar notificación como leída con manejo robusto
@@ -125,16 +128,16 @@ export const markNotificationAsRead = async (notificationId: string): Promise<vo
     return;
   }
 
-  return connectionManager.executeWithRetry(async () => {
+  try {
     const notificationRef = doc(db, 'notifications', notificationId);
     await updateDoc(notificationRef, {
       read: true
     });
     console.log('✅ Notificación marcada como leída');
-  }, 'markNotificationAsRead').catch(error => {
+  } catch (error) {
     console.error('Error crítico marcando notificación como leída:', error);
     // No lanzar error para no interrumpir la UI
-  });
+  }
 };
 
 // Marcar todas las notificaciones como leídas con procesamiento por lotes
@@ -144,7 +147,7 @@ export const markAllNotificationsAsRead = async (userId: string): Promise<void> 
     return;
   }
 
-  return connectionManager.executeWithRetry(async () => {
+  try {
     const q = query(
       collection(db, 'notifications'),
       where('userId', '==', userId),
@@ -172,9 +175,9 @@ export const markAllNotificationsAsRead = async (userId: string): Promise<void> 
     }
     
     console.log(`✅ ${docs.length} notificaciones marcadas como leídas`);
-  }, 'markAllNotificationsAsRead').catch(error => {
+  } catch (error) {
     console.error('Error crítico marcando todas las notificaciones:', error);
-  });
+  }
 };
 
 // Contar notificaciones no leídas con cache
@@ -194,7 +197,7 @@ export const getUnreadNotificationsCount = async (userId: string): Promise<numbe
     return unreadCountCache.count;
   }
 
-  return connectionManager.executeWithRetry(async () => {
+  try {
     const q = query(
       collection(db, 'notifications'),
       where('userId', '==', userId),
@@ -212,10 +215,10 @@ export const getUnreadNotificationsCount = async (userId: string): Promise<numbe
     };
     
     return count;
-  }, 'getUnreadNotificationsCount').catch(error => {
+  } catch (error) {
     console.error('Error obteniendo contador de no leídas:', error);
     return 0; // Retornar 0 en lugar de fallar
-  });
+  }
 };
 
 // Escuchar notificaciones en tiempo real con manejo de errores
