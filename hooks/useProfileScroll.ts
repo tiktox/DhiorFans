@@ -31,7 +31,7 @@ export const useProfileScroll = (options: UseProfileScrollOptions = {}) => {
     if (container) {
       // Optimizaciones para dispositivos táctiles
       (container as HTMLElement).style.touchAction = 'pan-y';
-      (container as HTMLElement).style.webkitOverflowScrolling = 'touch';
+      (container as HTMLElement).style.setProperty('-webkit-overflow-scrolling', 'touch');
       (container as HTMLElement).style.scrollBehavior = smoothScroll ? 'smooth' : 'auto';
       
       // Mejorar rendimiento
