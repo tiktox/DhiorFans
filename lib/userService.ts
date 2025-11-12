@@ -246,11 +246,11 @@ export const getUserData = async (forceRefresh = false): Promise<UserData> => {
 
   getUserDataPromise.finally(() => {
     getUserDataPromise = null;
-  });
+  }); 
 
   return getUserDataPromise;
 };
-
+    
 export const getUserDataById = async (userId: string): Promise<UserData | null> => {
   if (!userId) return null;
   
