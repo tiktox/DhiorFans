@@ -375,13 +375,19 @@ export const getConversations = async (currentUserId: string): Promise<Conversat
         if (!conversationMap.has(otherUserId)) {
           const userData = await getUserDataById(otherUserId);
           if (userData) {
+            // Formatear mensaje para vista previa
+            let previewMessage = data.content || '';
+            if (previewMessage.startsWith('[emoji:') && previewMessage.endsWith(']')) {
+              previewMessage = `${userData.fullName || 'Usuario'} acaba de enviarte un emoji`;
+            }
+            
             conversationMap.set(otherUserId, {
               id: otherUserId,
               userId: otherUserId,
               userName: userData.fullName || userData.username || 'Usuario',
               userAvatar: userData.profilePicture,
               isAvatar: userData.isAvatar || false,
-              lastMessage: data.content || '',
+              lastMessage: previewMessage,
               timestamp: data.timestamp?.toMillis() || Date.now(),
               unreadCount: data.isRead ? 0 : 1,
               isRead: data.isRead || false
@@ -429,13 +435,19 @@ export const getConversations = async (currentUserId: string): Promise<Conversat
             (conversationMap.get(otherUserId)?.timestamp || 0) < (data.timestamp?.toMillis() || 0)) {
           const userData = await getUserDataById(otherUserId);
           if (userData) {
+            // Formatear mensaje para vista previa
+            let previewMessage = data.content || '';
+            if (previewMessage.startsWith('[emoji:') && previewMessage.endsWith(']')) {
+              previewMessage = 'Enviaste un emoji';
+            }
+            
             conversationMap.set(otherUserId, {
               id: otherUserId,
               userId: otherUserId,
               userName: userData.fullName || userData.username || 'Usuario',
               userAvatar: userData.profilePicture,
               isAvatar: userData.isAvatar || false,
-              lastMessage: data.content || '',
+              lastMessage: previewMessage,
               timestamp: data.timestamp?.toMillis() || Date.now(),
               unreadCount: 0,
               isRead: true
