@@ -50,12 +50,13 @@ export const getSystemMetrics = async (): Promise<TokenSystemMetrics> => {
     const tokensSnapshot = await getDocs(tokensQuery);
     const tokenUsers = tokensSnapshot.docs.map(doc => ({
       userId: doc.id,
+      tokens: (doc.data() as any).tokens || 0,
       ...doc.data()
     }));
     
     // Calcular métricas
     const totalUsers = tokensSnapshot.size;
-    const totalTokensInCirculation = tokenUsers.reduce((sum, user) => sum + (user.tokens || 0), 0);
+    const totalTokensInCirculation = tokenUsers.reduce((sum, user) => sum + ((user as any).tokens || 0), 0);
     const averageTokensPerUser = totalUsers > 0 ? totalTokensInCirculation / totalUsers : 0;
     
     const dailyClaimsToday = transactions.filter(t => t.type === 'daily_claim').length;
