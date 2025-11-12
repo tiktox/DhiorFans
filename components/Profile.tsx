@@ -12,7 +12,7 @@ import Settings from './Settings';
 import CreateDynamic from './CreateDynamic';
 import Editor from './Editor';
 import Store from './Store';
-import AdminTokenButton from './AdminTokenButton';
+
 
 interface ProfileProps {
   onNavigateHome?: () => void;
@@ -35,9 +35,7 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
   const [showStore, setShowStore] = useState(false);
   const taskbarRef = useRef<HTMLDivElement>(null);
 
-  // Sistema de carga optimizado con debounce
   const [isLoading, setIsLoading] = useState(false);
-  const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Aplicar fix para videos en iOS - DESACTIVADO TEMPORALMENTE
   // useIOSVideoFix();
@@ -60,67 +58,60 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
   const reloadUserData = useCallback(async () => {
     if (!auth.currentUser || isLoading) return;
     
-    if (loadingTimeoutRef.current) {
-      clearTimeout(loadingTimeoutRef.current);
-    }
-    
-    loadingTimeoutRef.current = setTimeout(async () => {
-      setIsLoading(true);
-      try {
-        const data = await getUserData(true);
-        setUserData(data);
-        
-        const [posts, tokens] = await Promise.allSettled([
-          getUserPosts(auth.currentUser!.uid),
-          initializeUserTokens(auth.currentUser!.uid)
-        ]);
-        
-        if (posts.status === 'fulfilled') {
-          setUserPosts(posts.value);
-        } else {
-          setUserPosts([]);
-        }
-        
-        if (tokens.status === 'fulfilled') {
-          setTokenData(tokens.value);
-          
-          if (canClaimTokens(tokens.value.lastClaim)) {
-            claimDailyTokens(auth.currentUser!.uid, data.followers || 0)
-              .then(result => {
-                if (result.success) {
-                  setTokenData(prev => prev ? { ...prev, tokens: result.totalTokens, lastClaim: Date.now() } : null);
-                }
-              })
-              .catch(() => {});
-          }
-        } else {
-          setTokenData({ tokens: 0, lastClaim: 0, followersCount: 0 });
-        }
-        
-        migrateUserTokens(auth.currentUser!.uid, data.followers || 0).catch(() => {});
-        
-      } catch (error) {
-        console.error('Error al cargar datos del usuario:', error);
-        // No setear null, mantener estado anterior o usar datos básicos
-        if (!userData) {
-          const emergencyData = {
-            fullName: auth.currentUser?.displayName || 'Usuario',
-            username: auth.currentUser?.email?.split('@')[0] || 'usuario',
-            email: auth.currentUser?.email || '',
-            bio: '',
-            link: '',
-            profilePicture: '',
-            followers: 0,
-            following: 0,
-            posts: 0
-          };
-          setUserData(emergencyData);
-        }
-      } finally {
-        setIsLoading(false);
+    setIsLoading(true);
+    try {
+      const data = await getUserData(true);
+      setUserData(data);
+      
+      const [posts, tokens] = await Promise.allSettled([
+        getUserPosts(auth.currentUser!.uid),
+        initializeUserTokens(auth.currentUser!.uid)
+      ]);
+      
+      if (posts.status === 'fulfilled') {
+        setUserPosts(posts.value);
+      } else {
+        setUserPosts([]);
       }
-    }, 300);
-  }, [isLoading]);
+      
+      if (tokens.status === 'fulfilled') {
+        setTokenData(tokens.value);
+        
+        if (canClaimTokens(tokens.value.lastClaim)) {
+          claimDailyTokens(auth.currentUser!.uid, data.followers || 0)
+            .then(result => {
+              if (result.success) {
+                setTokenData(prev => prev ? { ...prev, tokens: result.totalTokens, lastClaim: Date.now() } : null);
+              }
+            })
+            .catch(() => {});
+        }
+      } else {
+        setTokenData({ tokens: 0, lastClaim: 0, followersCount: 0 });
+      }
+      
+      migrateUserTokens(auth.currentUser!.uid, data.followers || 0).catch(() => {});
+      
+    } catch (error) {
+      console.error('Error al cargar datos del usuario:', error);
+      if (!userData) {
+        const emergencyData = {
+          fullName: auth.currentUser?.displayName || 'Usuario',
+          username: auth.currentUser?.email?.split('@')[0] || 'usuario',
+          email: auth.currentUser?.email || '',
+          bio: '',
+          link: '',
+          profilePicture: '',
+          followers: 0,
+          following: 0,
+          posts: 0
+        };
+        setUserData(emergencyData);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isLoading, userData]);
   
   useEffect(() => {
     if (auth.currentUser) {
@@ -129,26 +120,11 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
   }, [reloadUserData]);
 
   useEffect(() => {
+    // Solo mantener función global para uso manual
     (window as any).reloadProfileData = reloadUserData;
-    
-    const handleAvatarChange = () => {
-      if (auth.currentUser) reloadUserData();
-    };
-    
-    const handleVisibilityChange = () => {
-      if (!document.hidden && auth.currentUser) reloadUserData();
-    };
-    
-    window.addEventListener('avatarChanged', handleAvatarChange);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
     
     return () => {
       delete (window as any).reloadProfileData;
-      window.removeEventListener('avatarChanged', handleAvatarChange);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      if (loadingTimeoutRef.current) {
-        clearTimeout(loadingTimeoutRef.current);
-      }
     };
   }, [reloadUserData]);
 
@@ -316,19 +292,11 @@ export default function Profile({ onNavigateHome, onNavigatePublish, onNavigateS
           </svg>
         </button>
         <div className="action-btn tokens-btn" onClick={() => setShowStore(true)}>
-          🪙 {formatLargeNumber(tokenData?.tokens || 0)}
+           {formatLargeNumber(tokenData?.tokens || 0)}
         </div>
       </div>
 
-      {/* Admin Token Button */}
-      {auth.currentUser && (
-        <AdminTokenButton 
-          userId={auth.currentUser.uid}
-          onTokensAdded={(newTotal) => {
-            setTokenData(prev => prev ? { ...prev, tokens: newTotal } : null);
-          }}
-        />
-      )}
+
 
       {/* Posts Grid */}
       <div className="posts-grid">

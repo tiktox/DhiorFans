@@ -3780,7 +3780,7 @@ body {
   flex-direction: column;
   gap: 15px;
 }
-
+ 
 .action-btn-dynamic {
   background: rgba(0, 0, 0, 0.6);
   border: none;
@@ -6063,4 +6063,45 @@ background-color: linear-gradient(135deg, #FF0000, #00BFFF);
   .retry-btn {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   }
+}
+
+/* Admin Token Button */
+.admin-token-btn {
+  background: linear-gradient(45deg, #ff6b35, #f7931e);
+  border: none;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+  min-width: 200px;
+}
+
+.admin-token-btn:hover:not(:disabled) {
+  background: linear-gradient(45deg, #e55a2b, #e8841a);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 107, 53, 0.5);
+}
+
+.admin-token-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.admin-token-btn.used {
+  background: linear-gradient(45deg, #4caf50, #45a049);
+  cursor: default;
+}
+
+.admin-token-btn.used:hover {
+  transform: none;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
 }

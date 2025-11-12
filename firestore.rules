@@ -64,7 +64,33 @@ service cloud.firestore {
     // ===== TOKENS =====
     match /tokens/{userId} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow create: if request.auth != null && 
+        request.auth.uid == userId &&
+        isValidTokenData(request.resource.data);
+      allow update: if request.auth != null && 
+        request.auth.uid == userId &&
+        isValidTokenUpdate(resource.data, request.resource.data);
+      allow delete: if false; // Nunca eliminar tokens
+    }
+    
+    // Funciones de validación para tokens
+    function isValidTokenData(data) {
+      return data.keys().hasAll(['tokens', 'lastClaim', 'followersCount']) &&
+             data.tokens is number && data.tokens >= 0 &&
+             data.lastClaim is number && data.lastClaim >= 0 &&
+             data.followersCount is number && data.followersCount >= 0;
+    }
+    
+    function isValidTokenUpdate(oldData, newData) {
+      return isValidTokenData(newData) &&
+             // Solo permitir incrementos en tokens (no decrementos sin transacción)
+             (newData.tokens >= oldData.tokens || 
+              // O decrementos válidos con límite
+              (newData.tokens >= 0 && (oldData.tokens - newData.tokens) <= 1000000)) &&
+             // Validar que lastClaim no retroceda
+             newData.lastClaim >= oldData.lastClaim &&
+             // Validar followersCount
+             newData.followersCount >= 0;
     }
 
     // ===== TRANSACCIONES DE TOKENS =====
@@ -72,7 +98,19 @@ service cloud.firestore {
       allow read: if request.auth != null && 
         (request.auth.uid == resource.data.userId || 
          ('recipientId' in resource.data && request.auth.uid == resource.data.recipientId));
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.userId &&
+        isValidTokenTransaction(request.resource.data);
+      allow update: if false; // Transacciones inmutables
+      allow delete: if false; // Transacciones permanentes
+    }
+    
+    function isValidTokenTransaction(data) {
+      return data.keys().hasAll(['userId', 'amount', 'type', 'timestamp']) &&
+             data.userId is string &&
+             data.amount is number && data.amount > 0 && data.amount <= 10000000 &&
+             data.type is string && data.type.size() >= 3 && data.type.size() <= 50 &&
+             data.timestamp is timestamp;
     }
 
     // ===== REPORTES =====

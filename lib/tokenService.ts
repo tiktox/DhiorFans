@@ -150,30 +150,81 @@ export const updateFollowersCount = async (userId: string, followersCount: numbe
   }
 };
 
-export const spendTokens = async (userId: string, amount: number): Promise<{ success: boolean; remainingTokens: number }> => {
-  const tokenData = await getUserTokens(userId);
-  
-  if (amount > 0 && tokenData.tokens < amount) {
-    return { success: false, remainingTokens: tokenData.tokens };
+export const spendTokens = async (userId: string, amount: number, reason: string = 'purchase'): Promise<{ success: boolean; remainingTokens: number }> => {
+  try {
+    // Validaciones de seguridad
+    if (amount <= 0) {
+      throw new Error('Cantidad inválida');
+    }
+    
+    const tokenData = await getUserTokens(userId);
+    
+    if (tokenData.tokens < amount) {
+      return { success: false, remainingTokens: tokenData.tokens };
+    }
+    
+    const newTotal = tokenData.tokens - amount;
+    
+    // Crear transacción para auditoría
+    const transactionId = `${userId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    await setDoc(doc(db, 'tokenTransactions', transactionId), {
+      userId,
+      amount: -amount, // Negativo para gastos
+      type: reason,
+      timestamp: new Date(),
+      previousBalance: tokenData.tokens,
+      newBalance: newTotal
+    });
+    
+    // Actualizar tokens
+    await setDoc(doc(db, 'tokens', userId), {
+      tokens: newTotal,
+      lastClaim: tokenData.lastClaim,
+      followersCount: tokenData.followersCount
+    });
+    
+    console.log(`💸 Tokens gastados: -${amount} (Restante: ${newTotal}) para usuario: ${userId} - Razón: ${reason}`);
+    return { success: true, remainingTokens: newTotal };
+  } catch (error) {
+    console.error('❌ Error gastando tokens:', error);
+    return { success: false, remainingTokens: 0 };
   }
-  
-  const newTotal = tokenData.tokens - amount;
-  await updateDoc(doc(db, 'tokens', userId), {
-    tokens: newTotal
-  });
-  
-  return { success: true, remainingTokens: newTotal };
 };
 
-export const addTokens = async (userId: string, amount: number): Promise<{ success: boolean; totalTokens: number }> => {
-  const tokenData = await getUserTokens(userId);
-  const newTotal = tokenData.tokens + amount;
-  
-  await updateDoc(doc(db, 'tokens', userId), {
-    tokens: newTotal
-  });
-  
-  return { success: true, totalTokens: newTotal };
+export const addTokens = async (userId: string, amount: number, reason: string = 'manual_add'): Promise<{ success: boolean; totalTokens: number }> => {
+  try {
+    // Validaciones de seguridad
+    if (amount <= 0 || amount > 10000000) {
+      throw new Error('Cantidad de tokens inválida');
+    }
+    
+    const tokenData = await getUserTokens(userId);
+    const newTotal = tokenData.tokens + amount;
+    
+    // Crear transacción para auditoría
+    const transactionId = `${userId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    await setDoc(doc(db, 'tokenTransactions', transactionId), {
+      userId,
+      amount,
+      type: reason,
+      timestamp: new Date(),
+      previousBalance: tokenData.tokens,
+      newBalance: newTotal
+    });
+    
+    // Actualizar tokens
+    await setDoc(doc(db, 'tokens', userId), {
+      tokens: newTotal,
+      lastClaim: tokenData.lastClaim,
+      followersCount: tokenData.followersCount
+    });
+    
+    console.log(`✅ Tokens agregados: +${amount} (Total: ${newTotal}) para usuario: ${userId} - Razón: ${reason}`);
+    return { success: true, totalTokens: newTotal };
+  } catch (error) {
+    console.error('❌ Error agregando tokens:', error);
+    return { success: false, totalTokens: 0 };
+  }
 };
 
 export const grantFollowerBonus = async (userId: string, newFollowersCount: number): Promise<{ tokensGranted: number; totalTokens: number } | null> => {
