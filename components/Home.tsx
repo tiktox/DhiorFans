@@ -125,8 +125,8 @@ export default function Home() {
                   console.log(`🔔 Notificación de tokens creada: ${result.tokensEarned} tokens`);
                   
                   // Mostrar notificación visual al usuario
-                  if (window.showToast) {
-                    window.showToast(`🪙 +${result.tokensEarned} tokens diarios recibidos!`, 'success');
+                  if ((window as any).showToast) {
+                    (window as any).showToast(`🪙 +${result.tokensEarned} tokens diarios recibidos!`, 'success');
                   }
                 } catch (notifError) {
                   console.error('⚠️ Error creando notificación (no crítico):', notifError);
@@ -168,8 +168,8 @@ export default function Home() {
               }
               
               // Nivel 3: Notificar recuperación exitosa
-              if (window.showToast) {
-                window.showToast('🔧 Sistema de tokens recuperado exitosamente', 'info');
+              if ((window as any).showToast) {
+                (window as any).showToast('🔧 Sistema de tokens recuperado exitosamente', 'info');
               }
               
             } catch (emergencyError) {
@@ -181,8 +181,8 @@ export default function Home() {
                 clearTokenCache(auth.currentUser.uid);
                 console.log('🧹 Cache limpiado como último recurso');
                 
-                if (window.showToast) {
-                  window.showToast('⚠️ Sistema de tokens en modo de emergencia', 'warning');
+                if ((window as any).showToast) {
+                  (window as any).showToast('⚠️ Sistema de tokens en modo de emergencia', 'warning');
                 }
               } catch (lastResortError) {
                 console.error('💥 FALLO TOTAL DEL SISTEMA DE TOKENS:', lastResortError);
