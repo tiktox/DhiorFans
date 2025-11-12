@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { auth, useFirebaseConnection } from '../lib/firebase';
+import { auth } from '../lib/firebase';
 import { getUserData, UserData, UserWithId } from '../lib/userService';
 import { getChatUsers, getConversations, Conversation, clearChatCache } from '../lib/chatService';
 import ChatConversation from './ChatConversation';
@@ -21,7 +21,6 @@ export default function Chat({ onNavigateHome }: ChatProps) {
   const [retryCount, setRetryCount] = useState(0);
   const touchStartY = useRef(0);
   const conversationsRef = useRef<HTMLDivElement>(null);
-  const connectionState = useFirebaseConnection();
 
   useEffect(() => {
     loadData();
@@ -130,13 +129,6 @@ export default function Chat({ onNavigateHome }: ChatProps) {
     clearChatCache();
     loadData();
   };
-  
-  // Reintentar cuando la conexión se restaure
-  useEffect(() => {
-    if (connectionState === 'connected' && error) {
-      handleRetry();
-    }
-  }, [connectionState, error]);
 
   const filteredUsers = chatUsers.filter(user => 
     user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -230,15 +222,6 @@ export default function Chat({ onNavigateHome }: ChatProps) {
             ↻
           </div>
           <span>{isRefreshing ? 'Actualizando...' : 'Desliza para actualizar'}</span>
-        </div>
-      )}
-
-      {/* Indicador de estado de conexión */}
-      {connectionState !== 'connected' && (
-        <div className={`connection-status ${connectionState}`}>
-          {connectionState === 'reconnecting' && '🔄 Reconectando chat...'}
-          {connectionState === 'disconnected' && '🚫 Chat sin conexión'}
-          {connectionState === 'error' && '❌ Error en el chat'}
         </div>
       )}
 

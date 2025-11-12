@@ -5275,6 +5275,20 @@ background-color: linear-gradient(135deg, #FF0000, #00BFFF);
 
 @import url('./multi-image.css');
 @import url('./google-auth.css');
+@import url('./animated-emoji-modal.css');
+
+/* Animated Emoji in Messages */
+.animated-emoji-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+}
+
+.emoji-loading {
+  font-size: 24px;
+  text-align: center;
+}
 
 
 /* Username and Email Validation Styles */

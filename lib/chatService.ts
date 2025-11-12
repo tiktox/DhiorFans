@@ -1,4 +1,4 @@
-import { db, connectionManager } from './firebase';
+import { db } from './firebase';
 import { collection, query, where, orderBy, limit, getDocs, doc, getDoc, addDoc, onSnapshot, Timestamp, updateDoc } from 'firebase/firestore';
 import { getUserDataById, UserData, UserWithId } from './userService';
 
@@ -99,19 +99,16 @@ export const sendMessage = async (senderId: string, receiverId: string, content:
     throw new Error('El mensaje es demasiado largo');
   }
 
-  return connectionManager.executeWithRetry(async () => {
-    const messagesRef = collection(db, 'messages');
-    const messageData = {
-      senderId,
-      receiverId,
-      content: trimmedContent,
-      timestamp: Timestamp.now(),
-      isRead: false
-    };
-    
-    await addDoc(messagesRef, messageData);
-    console.log('✅ Mensaje enviado exitosamente');
-  }, 'sendMessage');
+  const messagesRef = collection(db, 'messages');
+  const messageData = {
+    senderId,
+    receiverId,
+    content: trimmedContent,
+    timestamp: Timestamp.now(),
+    isRead: false
+  };
+  
+  await addDoc(messagesRef, messageData);
 };
 
 // Escuchar mensajes en tiempo real con manejo robusto de errores
@@ -293,7 +290,7 @@ export const markMessagesAsRead = async (currentUserId: string, otherUserId: str
     return;
   }
 
-  return connectionManager.executeWithRetry(async () => {
+  try {
     const messagesRef = collection(db, 'messages');
     const q = query(
       messagesRef,
@@ -304,12 +301,8 @@ export const markMessagesAsRead = async (currentUserId: string, otherUserId: str
     
     const querySnapshot = await getDocs(q);
     
-    if (querySnapshot.empty) {
-      console.log('No hay mensajes por marcar como leídos');
-      return;
-    }
+    if (querySnapshot.empty) return;
     
-    // Procesar en lotes de 10
     const batchSize = 10;
     const docs = querySnapshot.docs;
     
@@ -318,17 +311,13 @@ export const markMessagesAsRead = async (currentUserId: string, otherUserId: str
       const updatePromises = batch.map(docSnap => 
         updateDoc(doc(db, 'messages', docSnap.id), { isRead: true })
       );
-      
       await Promise.all(updatePromises);
     }
     
-    // Limpiar cache de conversaciones
     conversationsCache = null;
-    
-    console.log(`✅ ${docs.length} mensajes marcados como leídos`);
-  }, 'markMessagesAsRead').catch(error => {
-    console.error('Error crítico marcando mensajes como leídos:', error);
-  });
+  } catch (error) {
+    console.error('Error marcando mensajes como leídos:', error);
+  }
 };
 
 // Obtener conversaciones con cache y manejo robusto
@@ -348,7 +337,7 @@ export const getConversations = async (currentUserId: string): Promise<Conversat
     return conversationsCache.conversations;
   }
 
-  return connectionManager.executeWithRetry(async () => {
+  try {
     const messagesRef = collection(db, 'messages');
     const conversationMap = new Map<string, Conversation>();
     
@@ -470,13 +459,11 @@ export const getConversations = async (currentUserId: string): Promise<Conversat
       timestamp: Date.now()
     };
     
-    console.log(`✅ ${conversations.length} conversaciones cargadas`);
     return conversations;
-    
-  }, 'getConversations').catch(error => {
-    console.error('Error crítico obteniendo conversaciones:', error);
-    return []; // Retornar array vacío en lugar de fallar
-  });
+  } catch (error) {
+    console.error('Error obteniendo conversaciones:', error);
+    return [];
+  }
 };
 
 // Obtener usuarios disponibles para chat (seguidores + siguiendo)

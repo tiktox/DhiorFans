@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { auth, useFirebaseConnection } from '../lib/firebase';
+import { auth } from '../lib/firebase';
 import { getUserDataById, UserData } from '../lib/userService';
 import { 
   subscribeToNotifications, 
@@ -19,7 +19,6 @@ export default function Notifications({ onNavigateBack, onViewProfile, onViewPos
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
-  const connectionState = useFirebaseConnection();
 
   useEffect(() => {
     if (!auth.currentUser) return;
@@ -108,13 +107,6 @@ export default function Notifications({ onNavigateBack, onViewProfile, onViewPos
       }
     };
   }, [retryCount]);
-  
-  // Reintentar cuando la conexión se restaure
-  useEffect(() => {
-    if (connectionState === 'connected' && error) {
-      setRetryCount(0);
-    }
-  }, [connectionState, error]);
 
   const getTimeAgo = (timestamp: number) => {
     const seconds = Math.floor((Date.now() - timestamp) / 1000);
@@ -206,15 +198,6 @@ export default function Notifications({ onNavigateBack, onViewProfile, onViewPos
       </div>
 
       <div className="notifications-content">
-        {/* Indicador de estado de conexión */}
-        {connectionState !== 'connected' && (
-          <div className={`connection-status ${connectionState}`}>
-            {connectionState === 'reconnecting' && '🔄 Reconectando...'}
-            {connectionState === 'disconnected' && '🚫 Sin conexión'}
-            {connectionState === 'error' && '❌ Error de conexión'}
-          </div>
-        )}
-        
         {loading ? (
           <div className="notifications-loading">
             <p>Cargando notificaciones...</p>

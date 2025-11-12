@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { UserWithId } from '../lib/userService';
 import { sendMessage, listenToMessages, markMessagesAsRead, Message } from '../lib/chatService';
+import AnimatedEmojiModal from './AnimatedEmojiModal';
+import EmojiRenderer from './EmojiRenderer';
+import { AnimatedEmoji } from '../lib/emojiService';
 
 interface ChatConversationProps {
   user: UserWithId;
@@ -15,6 +18,7 @@ export default function ChatConversation({ user, currentUserId, onNavigateBack }
   const [otherUserTyping, setOtherUserTyping] = useState(false);
   const [lastSeen, setLastSeen] = useState<number>(Date.now());
   const [loading, setLoading] = useState(true);
+  const [showEmojiModal, setShowEmojiModal] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   const unsubscribeRef = useRef<(() => void) | null>(null);
@@ -54,6 +58,14 @@ export default function ChatConversation({ user, currentUserId, onNavigateBack }
       setNewMessage('');
     } catch (error) {
       console.error('Error sending message:', error);
+    }
+  };
+
+  const handleSelectEmoji = async (emoji: AnimatedEmoji) => {
+    try {
+      await sendMessage(currentUserId, user.id, `[emoji:${emoji.id}]`);
+    } catch (error) {
+      console.error('Error sending emoji:', error);
     }
   };
 
@@ -149,7 +161,7 @@ export default function ChatConversation({ user, currentUserId, onNavigateBack }
                   
                   <div className={`message ${message.senderId === currentUserId ? 'sent' : 'received'}`}>
                     <div className="message-content">
-                      <p>{message.content}</p>
+                      <EmojiRenderer content={message.content} />
                       <span className="message-time">{formatTime(message.timestamp)}</span>
                     </div>
                   </div>
@@ -175,7 +187,7 @@ export default function ChatConversation({ user, currentUserId, onNavigateBack }
 
       {/* Input */}
       <div className="message-input-container">
-        <button className="emoji-btn">😊</button>
+        <button className="emoji-btn" onClick={() => setShowEmojiModal(true)}>😊</button>
         
         <div className="input-wrapper">
           <input
@@ -213,6 +225,13 @@ export default function ChatConversation({ user, currentUserId, onNavigateBack }
           )}
         </button>
       </div>
+
+      {/* Emoji Modal */}
+      <AnimatedEmojiModal
+        isOpen={showEmojiModal}
+        onClose={() => setShowEmojiModal(false)}
+        onSelectEmoji={handleSelectEmoji}
+      />
     </div>
   );
 }
