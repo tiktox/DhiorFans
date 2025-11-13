@@ -5283,11 +5283,13 @@ background-color: linear-gradient(135deg, #FF0000, #00BFFF);
   align-items: center;
   justify-content: center;
   padding: 10px;
+  background: none;
 }
 
 .emoji-loading {
   font-size: 24px;
   text-align: center;
+  background: none;
 }
 
 

@@ -39,8 +39,8 @@ const EmojiRenderer = memo(function EmojiRenderer({ content }: EmojiRendererProp
 
   if (!emojiData) {
     return (
-      <div className="emoji-loading-message">
-        <div className="loading-spinner-small"></div>
+      <div style={{ background: 'none' }}>
+        <div style={{ background: 'none' }}></div>
       </div>
     );
   }

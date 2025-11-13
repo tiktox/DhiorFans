@@ -174,14 +174,14 @@
   align-items: center;
   gap: 8px;
   padding: 12px;
-  background: #2a2a2a;
+  background: none;
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .emoji-item:hover {
-  background: #333;
+  background: none;
   transform: scale(1.05);
 }
 
@@ -192,7 +192,7 @@
 .emoji-placeholder {
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, #2196f3, #1976d2);
+  background: none;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -217,8 +217,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(42, 42, 42, 0.8), rgba(30, 30, 30, 0.9));
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: none;
+  border: none;
 }
 
 .loading-spinner {
@@ -294,6 +294,7 @@
   .emoji-loading {
     width: 68px;
     height: 68px;
+    background: none;
   }
   
   .loading-spinner {

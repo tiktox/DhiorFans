@@ -51,8 +51,8 @@ const EmojiItem = ({ emoji, emojiData, isLoading, isHovered, observer, onClick, 
           }}
         />
       ) : isLoading ? (
-        <div className="emoji-loading">
-          <div className="loading-spinner"></div>
+        <div style={{ background: 'none' }}>
+          <div style={{ background: 'none' }}></div>
         </div>
       ) : (
         <div className="emoji-placeholder">
