@@ -5300,10 +5300,17 @@ background-color: linear-gradient(135deg, #FF0000, #00BFFF);
   background: none !important;
 }
 
-/* Lottie specific styles */
-[data-testid="lottie"],
-.lottie-container,
-.lottie-svg {
+/* Estilos específicos para emojis en mensajes */
+.emoji-in-message,
+.emoji-in-message *,
+.emoji-in-message svg,
+.emoji-in-message canvas {
+  background: none !important;
+  background-color: transparent !important;
+}
+
+/* Lottie específico para emojis en mensajes */
+.emoji-in-message [data-testid="lottie"] {
   background: none !important;
   background-color: transparent !important;
 }

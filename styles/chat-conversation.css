@@ -216,7 +216,7 @@
 }
 
 .message.received .message-content {
-  background: none;
+  background: rgba(255, 255, 255, 0.9);
   color: #333;
   border-bottom-left-radius: 8px;
 }
@@ -225,11 +225,6 @@
   margin: 0;
   font-size: 14px;
   line-height: 1.4;
-  background: none !important;
-}
-
-.message-content div {
-  background: none !important;
 }
 
 .message-time {
@@ -393,6 +388,17 @@
 
 .send-btn.active {
   background: linear-gradient(135deg, #4caf50, #2196f3);
+}
+
+/* Emoji específico en mensajes */
+.message-content .animated-emoji-message {
+  background: none !important;
+  padding: 0;
+}
+
+.message-content .animated-emoji-message * {
+  background: none !important;
+  background-color: transparent !important;
 }
 
 /* ===== TABLET STYLES (768px - 1023px) ===== */
