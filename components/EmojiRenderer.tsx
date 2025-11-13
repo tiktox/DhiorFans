@@ -46,12 +46,12 @@ const EmojiRenderer = memo(function EmojiRenderer({ content }: EmojiRendererProp
   }
 
   return (
-    <div className="animated-emoji-message">
+    <div className="animated-emoji-message" style={{ background: 'none' }}>
       <Lottie
         animationData={emojiData}
         loop={true}
         autoplay={true}
-        style={{ width: 120, height: 120 }}
+        style={{ width: 120, height: 120, background: 'none' }}
         rendererSettings={{
           preserveAspectRatio: 'xMidYMid slice'
         }}

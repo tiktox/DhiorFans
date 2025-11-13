@@ -5283,13 +5283,29 @@ background-color: linear-gradient(135deg, #FF0000, #00BFFF);
   align-items: center;
   justify-content: center;
   padding: 10px;
-  background: none;
+  background: none !important;
+}
+
+.animated-emoji-message *,
+.animated-emoji-message svg,
+.animated-emoji-message canvas,
+.animated-emoji-message div {
+  background: none !important;
+  background-color: transparent !important;
 }
 
 .emoji-loading {
   font-size: 24px;
   text-align: center;
-  background: none;
+  background: none !important;
+}
+
+/* Lottie specific styles */
+[data-testid="lottie"],
+.lottie-container,
+.lottie-svg {
+  background: none !important;
+  background-color: transparent !important;
 }
 
 

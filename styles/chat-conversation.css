@@ -216,7 +216,7 @@
 }
 
 .message.received .message-content {
-  background: rgba(255, 255, 255, 0);
+  background: none;
   color: #333;
   border-bottom-left-radius: 8px;
 }
@@ -225,6 +225,11 @@
   margin: 0;
   font-size: 14px;
   line-height: 1.4;
+  background: none !important;
+}
+
+.message-content div {
+  background: none !important;
 }
 
 .message-time {
