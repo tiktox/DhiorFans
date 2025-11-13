@@ -137,11 +137,7 @@ export default function ChatConversation({ user, currentUserId, onNavigateBack }
 
       {/* Messages */}
       <div className="messages-container">
-        {loading ? (
-          <div className="messages-loading">
-            <p>Cargando mensajes...</p>
-          </div>
-        ) : messages.length === 0 ? (
+        {messages.length === 0 ? (
           <div className="no-messages">
             <p>Inicia una conversación con {user.fullName}</p>
           </div>

@@ -234,12 +234,7 @@ export default function Chat({ onNavigateHome }: ChatProps) {
         onTouchEnd={handleTouchEnd}
         style={{ transform: `translateY(${pullDistance}px)` }}
       >
-        {loading ? (
-          <div className="chat-loading">
-            <p>Cargando chats...</p>
-            {retryCount > 0 && <p>Reintento {retryCount}/3...</p>}
-          </div>
-        ) : error ? (
+        {error ? (
           <div className="chat-error">
             <div className="error-icon">❌</div>
             <p>Error cargando el chat</p>

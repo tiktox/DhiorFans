@@ -419,15 +419,7 @@
   to { transform: rotate(360deg); }
 }
 
-/* Loading & Empty States */
-.chat-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 30px 16px;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 15px;
-}
+/* Empty States */
 
 .no-conversations {
   display: flex;
@@ -517,10 +509,7 @@
     max-width: 220px;
   }
   
-  .chat-loading {
-    padding: 40px 24px;
-    font-size: 16px;
-  }
+
   
   .no-conversations {
     padding: 60px 24px;
@@ -605,10 +594,7 @@
     max-width: 200px;
   }
   
-  .chat-loading {
-    padding: 40px 28px;
-    font-size: 16px;
-  }
+
   
   .no-conversations {
     padding: 60px 28px;
