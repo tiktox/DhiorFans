@@ -345,32 +345,22 @@
 }
 
 .unread-count {
-  top:-5px;
-  right:10px;
-  background: linear-gradient(135deg, #ff0000, #00ccff);
+  position: relative;
+  width: 40px; 
+  height: 25px; 
+  border-radius: 100%; 
+  background: #000000;
   color: white;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 4px 8px;
-  border-radius: 15px;
-  min-width: 22px;
-  text-align: center;
-  box-shadow: 0 4px 15px rgba(255, 0, 128, 0), 0 0 20px rgba(255, 0, 128, 0);
+  font-size: 12px;
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 550;
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  right: 10px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   animation: pulse 2s infinite;
-  position: relative;
   z-index: 1;
-}
-
-.unread-count::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0), transparent);
-  animation: shimmer 2s infinite;
 }
 
 @keyframes pulse {

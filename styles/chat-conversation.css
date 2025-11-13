@@ -216,7 +216,7 @@
 }
 
 .message.received .message-content {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0);
   color: #333;
   border-bottom-left-radius: 8px;
 }
@@ -237,6 +237,33 @@
 
 .message.received .message-time {
   text-align: left;
+}
+
+/* Emoji Loading in Messages */
+.emoji-loading-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.loading-spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top: 2px solid #2196f3;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.animated-emoji-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Typing Indicator */

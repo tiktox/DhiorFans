@@ -72,11 +72,12 @@
 
 /* Search */
 .emoji-search {
+  
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 15px 20px;
-  background: #0a0a0a;
+  background: #000000;
   border-bottom: 1px solid #333;
 }
 
@@ -115,8 +116,8 @@
 .emoji-category {
   background: #2a2a2a;
   border: none;
-  border-radius: 12px;
-  padding: 10px 16px;
+  border-radius: 100px;
+  padding: 15px 1px;
   cursor: pointer;
   transition: all 0.2s;
   flex-shrink: 0;
@@ -131,8 +132,10 @@
 }
 
 .category-icon {
+  top:-16px;
+  position: relative;
   font-size: 24px;
-  display: block;
+  display: flex;
 }
 
 /* Emoji Grid */
@@ -206,6 +209,46 @@
   line-height: 1.2;
 }
 
+/* Loading States */
+.emoji-loading {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(42, 42, 42, 0.8), rgba(30, 30, 30, 0.9));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top: 2px solid #2196f3;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Performance Optimizations */
+.emoji-item {
+  will-change: transform;
+  contain: layout style paint;
+}
+
+.emoji-grid {
+  contain: layout;
+}
+
+.emoji-modal {
+  contain: layout style;
+}
+
 /* No Emojis */
 .no-emojis {
   padding: 60px 20px;
@@ -216,6 +259,21 @@
   color: #666;
   font-size: 14px;
   margin: 0;
+}
+
+/* Reduce motion for better performance */
+@media (prefers-reduced-motion: reduce) {
+  .emoji-item {
+    transition: none;
+  }
+  
+  .loading-spinner {
+    animation: none;
+  }
+  
+  .emoji-modal {
+    animation: none;
+  }
 }
 
 /* Desktop */
@@ -231,5 +289,15 @@
 
   .emoji-grid {
     grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  }
+  
+  .emoji-loading {
+    width: 68px;
+    height: 68px;
+  }
+  
+  .loading-spinner {
+    width: 24px;
+    height: 24px;
   }
 }

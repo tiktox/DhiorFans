@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, memo } from 'react';
 import Lottie from 'lottie-react';
 import { ANIMATED_EMOJIS } from '../lib/emojiService';
+import { emojiCache } from '../lib/emojiCache';
 
 interface EmojiRendererProps {
   content: string;
 }
 
-export default function EmojiRenderer({ content }: EmojiRendererProps) {
+const EmojiRenderer = memo(function EmojiRenderer({ content }: EmojiRendererProps) {
   const [emojiData, setEmojiData] = useState<any>(null);
   const [isEmoji, setIsEmoji] = useState(false);
   const [emojiId, setEmojiId] = useState<string>('');
@@ -25,8 +26,7 @@ export default function EmojiRenderer({ content }: EmojiRendererProps) {
     if (!emoji) return;
 
     try {
-      const response = await fetch(emoji.path);
-      const data = await response.json();
+      const data = await emojiCache.get(id, emoji.path);
       setEmojiData(data);
     } catch (error) {
       console.error('Error loading emoji:', error);
@@ -38,7 +38,11 @@ export default function EmojiRenderer({ content }: EmojiRendererProps) {
   }
 
   if (!emojiData) {
-    return <div className="emoji-loading">⏳</div>;
+    return (
+      <div className="emoji-loading-message">
+        <div className="loading-spinner-small"></div>
+      </div>
+    );
   }
 
   return (
@@ -48,7 +52,15 @@ export default function EmojiRenderer({ content }: EmojiRendererProps) {
         loop={true}
         autoplay={true}
         style={{ width: 120, height: 120 }}
+        rendererSettings={{
+          preserveAspectRatio: 'xMidYMid slice',
+          clearCanvas: false,
+          progressiveLoad: true,
+          hideOnTransparent: true
+        }}
       />
     </div>
   );
-}
+});
+
+export default EmojiRenderer;

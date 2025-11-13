@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Lottie from 'lottie-react';
 import { ANIMATED_EMOJIS, EMOJI_CATEGORIES, getEmojisByCategory, AnimatedEmoji } from '../lib/emojiService';
+import { emojiCache } from '../lib/emojiCache';
 
 interface AnimatedEmojiModalProps {
   isOpen: boolean;
@@ -8,36 +9,143 @@ interface AnimatedEmojiModalProps {
   onSelectEmoji: (emoji: AnimatedEmoji) => void;
 }
 
+// Componente optimizado para cada emoji
+const EmojiItem = ({ emoji, emojiData, isLoading, isHovered, observer, onClick, onMouseEnter, onMouseLeave }: {
+  emoji: AnimatedEmoji;
+  emojiData: any;
+  isLoading: boolean;
+  isHovered: boolean;
+  observer: IntersectionObserver | null;
+  onClick: () => void;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
+}) => {
+  const itemRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    if (observer && itemRef.current) {
+      itemRef.current.setAttribute('data-emoji-id', emoji.id);
+      observer.observe(itemRef.current);
+      return () => {
+        if (itemRef.current) observer.unobserve(itemRef.current);
+      };
+    }
+  }, [observer, emoji.id]);
+  
+  return (
+    <div
+      ref={itemRef}
+      className="emoji-item"
+      onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
+      {emojiData ? (
+        <Lottie
+          animationData={emojiData}
+          loop={isHovered}
+          autoplay={isHovered}
+          style={{ width: 60, height: 60 }}
+          rendererSettings={{
+            preserveAspectRatio: 'xMidYMid slice',
+            clearCanvas: false,
+            progressiveLoad: true,
+            hideOnTransparent: true
+          }}
+        />
+      ) : isLoading ? (
+        <div className="emoji-loading">
+          <div className="loading-spinner"></div>
+        </div>
+      ) : (
+        <div className="emoji-placeholder">
+          <span>{emoji.name[0]}</span>
+        </div>
+      )}
+      <span className="emoji-name">{emoji.name}</span>
+    </div>
+  );
+};
+
 export default function AnimatedEmojiModal({ isOpen, onClose, onSelectEmoji }: AnimatedEmojiModalProps) {
   const [selectedCategory, setSelectedCategory] = useState('smileys');
   const [searchQuery, setSearchQuery] = useState('');
   const [hoveredEmoji, setHoveredEmoji] = useState<string | null>(null);
   const [emojiData, setEmojiData] = useState<{ [key: string]: any }>({});
+  const [loadingEmojis, setLoadingEmojis] = useState<Set<string>>(new Set());
+  const [visibleEmojis, setVisibleEmojis] = useState<Set<string>>(new Set());
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const cacheRef = useRef<{ [key: string]: any }>({});
+
+  const loadEmojiData = useCallback(async (emoji: AnimatedEmoji) => {
+    if (loadingEmojis.has(emoji.id)) return null;
+    
+    setLoadingEmojis(prev => new Set([...prev, emoji.id]));
+    
+    try {
+      const data = await emojiCache.get(emoji.id, emoji.path);
+      setEmojiData(prev => ({ ...prev, [emoji.id]: data }));
+      setLoadingEmojis(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(emoji.id);
+        return newSet;
+      });
+      return data;
+    } catch (error) {
+      console.error(`Error loading emoji ${emoji.id}:`, error);
+      setLoadingEmojis(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(emoji.id);
+        return newSet;
+      });
+      return null;
+    }
+  }, [loadingEmojis]);
 
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      
+      // Precargar emojis más populares usando cache
+      const popularEmojis = ANIMATED_EMOJIS.slice(0, 8);
+      const popularIds = popularEmojis.map(e => e.id);
+      const popularPaths = popularEmojis.map(e => e.path);
+      emojiCache.preload(popularIds, popularPaths);
+      
+      // Cargar datos ya cacheados
+      popularEmojis.forEach(emoji => {
+        setTimeout(() => loadEmojiData(emoji), 50);
+      });
+      
+      // Configurar Intersection Observer para lazy loading
+      observerRef.current = new IntersectionObserver(
+        (entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              const emojiId = entry.target.getAttribute('data-emoji-id');
+              if (emojiId) {
+                setVisibleEmojis(prev => new Set([...prev, emojiId]));
+                const emoji = ANIMATED_EMOJIS.find(e => e.id === emojiId);
+                if (emoji) loadEmojiData(emoji);
+              }
+            }
+          });
+        },
+        { rootMargin: '50px' }
+      );
     } else {
       document.body.style.overflow = 'unset';
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
     }
     return () => {
       document.body.style.overflow = 'unset';
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
     };
-  }, [isOpen]);
-
-  const loadEmojiData = async (emoji: AnimatedEmoji) => {
-    if (emojiData[emoji.id]) return emojiData[emoji.id];
-    
-    try {
-      const response = await fetch(emoji.path);
-      const data = await response.json();
-      setEmojiData(prev => ({ ...prev, [emoji.id]: data }));
-      return data;
-    } catch (error) {
-      console.error('Error loading emoji:', error);
-      return null;
-    }
-  };
+  }, [isOpen, loadEmojiData]);
 
   const handleEmojiClick = (emoji: AnimatedEmoji) => {
     onSelectEmoji(emoji);
@@ -96,30 +204,22 @@ export default function AnimatedEmojiModal({ isOpen, onClose, onSelectEmoji }: A
         {/* Emoji Grid */}
         <div className="emoji-grid">
           {filteredEmojis.map(emoji => (
-            <div
+            <EmojiItem
               key={emoji.id}
-              className="emoji-item"
+              emoji={emoji}
+              emojiData={emojiData[emoji.id]}
+              isLoading={loadingEmojis.has(emoji.id)}
+              isHovered={hoveredEmoji === emoji.id}
+              observer={observerRef.current}
               onClick={() => handleEmojiClick(emoji)}
               onMouseEnter={() => {
                 setHoveredEmoji(emoji.id);
-                loadEmojiData(emoji);
+                if (!emojiData[emoji.id] && !loadingEmojis.has(emoji.id)) {
+                  loadEmojiData(emoji);
+                }
               }}
               onMouseLeave={() => setHoveredEmoji(null)}
-            >
-              {emojiData[emoji.id] ? (
-                <Lottie
-                  animationData={emojiData[emoji.id]}
-                  loop={hoveredEmoji === emoji.id}
-                  autoplay={hoveredEmoji === emoji.id}
-                  style={{ width: 60, height: 60 }}
-                />
-              ) : (
-                <div className="emoji-placeholder">
-                  <span>{emoji.name[0]}</span>
-                </div>
-              )}
-              <span className="emoji-name">{emoji.name}</span>
-            </div>
+            />
           ))}
         </div>
 
