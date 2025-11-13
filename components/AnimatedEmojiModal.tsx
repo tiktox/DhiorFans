@@ -77,13 +77,13 @@ export default function AnimatedEmojiModal({ isOpen, onClose, onSelectEmoji }: A
   const loadEmojiData = useCallback(async (emoji: AnimatedEmoji) => {
     if (loadingEmojis.has(emoji.id)) return null;
     
-    setLoadingEmojis(prev => new Set([...prev, emoji.id]));
+    setLoadingEmojis(prev => new Set(Array.from(prev).concat(emoji.id)));
     
     try {
       const data = await emojiCache.get(emoji.id, emoji.path);
       setEmojiData(prev => ({ ...prev, [emoji.id]: data }));
       setLoadingEmojis(prev => {
-        const newSet = new Set(prev);
+        const newSet = new Set(Array.from(prev));
         newSet.delete(emoji.id);
         return newSet;
       });
@@ -91,7 +91,7 @@ export default function AnimatedEmojiModal({ isOpen, onClose, onSelectEmoji }: A
     } catch (error) {
       console.error(`Error loading emoji ${emoji.id}:`, error);
       setLoadingEmojis(prev => {
-        const newSet = new Set(prev);
+        const newSet = new Set(Array.from(prev));
         newSet.delete(emoji.id);
         return newSet;
       });
@@ -121,7 +121,7 @@ export default function AnimatedEmojiModal({ isOpen, onClose, onSelectEmoji }: A
             if (entry.isIntersecting) {
               const emojiId = entry.target.getAttribute('data-emoji-id');
               if (emojiId) {
-                setVisibleEmojis(prev => new Set([...prev, emojiId]));
+                setVisibleEmojis(prev => new Set(Array.from(prev).concat(emojiId)));
                 const emoji = ANIMATED_EMOJIS.find(e => e.id === emojiId);
                 if (emoji) loadEmojiData(emoji);
               }
