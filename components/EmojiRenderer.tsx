@@ -53,10 +53,7 @@ const EmojiRenderer = memo(function EmojiRenderer({ content }: EmojiRendererProp
         autoplay={true}
         style={{ width: 120, height: 120 }}
         rendererSettings={{
-          preserveAspectRatio: 'xMidYMid slice',
-          clearCanvas: false,
-          progressiveLoad: true,
-          hideOnTransparent: true
+          preserveAspectRatio: 'xMidYMid slice'
         }}
       />
     </div>

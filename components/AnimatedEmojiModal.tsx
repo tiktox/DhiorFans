@@ -47,10 +47,7 @@ const EmojiItem = ({ emoji, emojiData, isLoading, isHovered, observer, onClick, 
           autoplay={isHovered}
           style={{ width: 60, height: 60 }}
           rendererSettings={{
-            preserveAspectRatio: 'xMidYMid slice',
-            clearCanvas: false,
-            progressiveLoad: true,
-            hideOnTransparent: true
+            preserveAspectRatio: 'xMidYMid slice'
           }}
         />
       ) : isLoading ? (
