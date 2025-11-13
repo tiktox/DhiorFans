@@ -18,6 +18,12 @@ const EmojiRenderer = memo(function EmojiRenderer({ content }: EmojiRendererProp
       setIsEmoji(true);
       setEmojiId(emojiMatch[1]);
       loadEmoji(emojiMatch[1]);
+      
+      // Agregar clase al contenedor padre para identificar mensajes solo de emoji
+      const messageContent = document.querySelector('.message-content:last-child');
+      if (messageContent) {
+        messageContent.classList.add('emoji-only');
+      }
     }
   }, [content]);
 

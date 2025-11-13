@@ -5300,17 +5300,16 @@ background-color: linear-gradient(135deg, #FF0000, #00BFFF);
   background: none !important;
 }
 
-/* Estilos específicos para emojis en mensajes */
-.emoji-in-message,
-.emoji-in-message *,
-.emoji-in-message svg,
-.emoji-in-message canvas {
+/* Emojis recibidos - prioridad máxima */
+.message.received .emoji-in-message {
   background: none !important;
   background-color: transparent !important;
 }
 
-/* Lottie específico para emojis en mensajes */
-.emoji-in-message [data-testid="lottie"] {
+.message.received .emoji-in-message *,
+.message.received .emoji-in-message svg,
+.message.received .emoji-in-message canvas,
+.message.received .emoji-in-message [data-testid="lottie"] {
   background: none !important;
   background-color: transparent !important;
 }

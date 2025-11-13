@@ -390,15 +390,20 @@
   background: linear-gradient(135deg, #4caf50, #2196f3);
 }
 
-/* Emoji específico en mensajes */
-.message-content .animated-emoji-message {
+/* Emojis recibidos - sin fondo blanco */
+.message.received .message-content:has(.emoji-in-message) {
   background: none !important;
-  padding: 0;
 }
 
-.message-content .animated-emoji-message * {
+.message.received .emoji-in-message,
+.message.received .emoji-in-message * {
   background: none !important;
   background-color: transparent !important;
+}
+
+/* Fallback para navegadores sin :has() */
+.message.received .message-content.emoji-only {
+  background: none !important;
 }
 
 /* ===== TABLET STYLES (768px - 1023px) ===== */
